@@ -6,13 +6,13 @@
 !/.git*
 
 # Do not ignore current project's `.uproject`.
-!*/*.uproject
+!*.uproject
 
 # Do not ignore source, config and plugins dirs.
-!*/Source/**
-!*/Config/**
-!*/Plugins/**
-!*/GameData/**
+!Source/**
+!Config/**
+!Plugins/**
+!GameData/**
 */Plugins/Developer/RiderLink
 **/Plugins/*/Binaries
 **/Intermediate/Build
@@ -20,12 +20,12 @@
 # Only allow .uasset and .umap files from /Content dir.
 # They're tracked by git-lfs, don't forget to track other
 # files if adding them here.
-!*/Content/**/*.uasset
-!*/Content/**/*.umap
+!Content/**/*.uasset
+!Content/**/*.umap
 
 # Allow any files from /RawContent dir.
 # Any file in /RawContent dir will be managed by git lfs.
-!*/RawContent/**/*
+!RawContent/**/*
 
 # OS/platform generated files.
 
