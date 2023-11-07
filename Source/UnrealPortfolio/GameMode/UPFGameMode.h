@@ -14,5 +14,6 @@ class UNREALPORTFOLIO_API AUPFGameMode : public AGameMode
 {
 	GENERATED_BODY()
 
-	
+public:
+	AUPFGameMode(const FObjectInitializer& ObjectInitializer);
 };

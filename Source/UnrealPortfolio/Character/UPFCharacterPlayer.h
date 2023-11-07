@@ -19,4 +19,9 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=CharacterControl)
+	TObjectPtr<class UUPFCharacterControlData> CharacterControlData;
 };

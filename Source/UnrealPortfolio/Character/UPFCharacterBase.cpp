@@ -4,15 +4,8 @@
 #include "UPFCharacterBase.h"
 
 // Sets default values
-AUPFCharacterBase::AUPFCharacterBase()
+AUPFCharacterBase::AUPFCharacterBase(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 	
 }
-
-// Called to bind functionality to input
-void AUPFCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-}
-
