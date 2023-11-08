@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
+#include "AbilitySystemComponent.h"
 #include "UPFPlayerState.generated.h"
 
 /**
@@ -13,5 +14,8 @@ UCLASS()
 class UNREALPORTFOLIO_API AUPFPlayerState : public APlayerState
 {
 	GENERATED_BODY()
-	
+
+public:
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
+	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 };

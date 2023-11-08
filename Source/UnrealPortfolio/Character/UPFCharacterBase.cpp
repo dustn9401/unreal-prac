@@ -6,6 +6,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Physics/UPFCollision.h"
+#include "Player/UPFPlayerState.h"
 
 // Sets default values
 AUPFCharacterBase::AUPFCharacterBase(const FObjectInitializer& ObjectInitializer)
@@ -47,4 +48,18 @@ AUPFCharacterBase::AUPFCharacterBase(const FObjectInitializer& ObjectInitializer
 	{
 		GetMesh()->SetAnimInstanceClass(AnimInstanceClassRef.Class);
 	}
+}
+
+void AUPFCharacterBase::OnMeleeAttackAnimationHit()
+{
+	// 본인이 빙의한 캐릭터인 경우에만 서버/클라 분기하여 처리
+	if (!IsLocallyControlled()) return;
+}
+
+UAbilitySystemComponent* AUPFCharacterBase::GetAbilitySystemComponent() const
+{
+	const AUPFPlayerState* PS = GetPlayerState<AUPFPlayerState>();
+	check(PS);
+
+	return PS->AbilitySystemComponent;
 }

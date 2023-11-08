@@ -8,7 +8,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Player/UPFCharacterControlData.h"
+#include "DataAssets/UPFCharacterControlData.h"
 
 AUPFCharacterPlayer::AUPFCharacterPlayer(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)

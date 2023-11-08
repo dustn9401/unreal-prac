@@ -49,6 +49,9 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> JumpAction;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputAction> AttackAction;
 
 	void Look(const FInputActionValue& Value);
 	void Move(const FInputActionValue& Value);

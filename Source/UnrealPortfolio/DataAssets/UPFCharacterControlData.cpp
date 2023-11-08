@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Player/UPFCharacterControlData.h"
+#include "DataAssets/UPFCharacterControlData.h"
 
 UUPFCharacterControlData::UUPFCharacterControlData(): bUseControllerRotationYaw(0), bOrientRotationToMovement(1), bUseControllerDesiredRotation(0), TargetArmLength(400.0f), bUsePawnControlRotation(1),
                                                       bInheritPitch(1), bInheritYaw(1),

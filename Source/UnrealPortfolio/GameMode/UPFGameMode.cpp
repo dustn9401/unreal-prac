@@ -2,9 +2,8 @@
 
 
 #include "UPFGameMode.h"
-
 #include "UPFGameState.h"
-#include "UPFPlayerState.h"
+#include "Player/UPFPlayerState.h"
 
 AUPFGameMode::AUPFGameMode(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
