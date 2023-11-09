@@ -7,3 +7,10 @@ UUPFGameplayAbility::UUPFGameplayAbility(const FObjectInitializer& ObjectInitial
 {
 	
 }
+
+bool UUPFGameplayAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags,
+	const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
+{
+	return Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags) &&
+		ActorInfo->GetAnimInstance();
+}

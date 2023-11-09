@@ -16,4 +16,8 @@ class UNREALPORTFOLIO_API UUPFGameplayAbility : public UGameplayAbility
 
 public:
 	UUPFGameplayAbility(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+
+// overrides
+public:
+	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const override;
 };
