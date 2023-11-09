@@ -16,6 +16,5 @@ class UNREALPORTFOLIO_API AUPFPlayerState : public APlayerState
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
-	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
+	AUPFPlayerState(const FObjectInitializer& ObjectInitializer);
 };

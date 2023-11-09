@@ -4,6 +4,7 @@
 #include "UPFCharacterBase.h"
 
 #include "Components/CapsuleComponent.h"
+#include "Components/UPFAbilitySystemComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Physics/UPFCollision.h"
 #include "Player/UPFPlayerState.h"
@@ -48,18 +49,21 @@ AUPFCharacterBase::AUPFCharacterBase(const FObjectInitializer& ObjectInitializer
 	{
 		GetMesh()->SetAnimInstanceClass(AnimInstanceClassRef.Class);
 	}
+
+	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UUPFAbilitySystemComponent>(this, TEXT("AbilitySystemComponent"));
+	AbilitySystemComponent->SetIsReplicated(true);
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 }
 
 void AUPFCharacterBase::OnMeleeAttackAnimationHit()
 {
 	// 본인이 빙의한 캐릭터인 경우에만 서버/클라 분기하여 처리
 	if (!IsLocallyControlled()) return;
+
+	
 }
 
 UAbilitySystemComponent* AUPFCharacterBase::GetAbilitySystemComponent() const
 {
-	const AUPFPlayerState* PS = GetPlayerState<AUPFPlayerState>();
-	check(PS);
-
-	return PS->AbilitySystemComponent;
+	return AbilitySystemComponent;
 }

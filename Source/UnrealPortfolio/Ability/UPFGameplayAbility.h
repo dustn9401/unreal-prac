@@ -16,8 +16,4 @@ class UNREALPORTFOLIO_API UUPFGameplayAbility : public UGameplayAbility
 
 public:
 	UUPFGameplayAbility(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
-
-// GameplayAbility override
-public:
-	
 };

@@ -26,4 +26,8 @@ public:
 // IAbilitySystemInterface Impl
 public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+public:
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
+	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;		// 이 캐릭터가 보유한 어빌리티를 관리할 컴포넌트
 };
