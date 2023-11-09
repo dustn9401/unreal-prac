@@ -3,3 +3,7 @@
 
 #include "Ability/UPFGameplayAbility.h"
 
+UUPFGameplayAbility::UUPFGameplayAbility(const FObjectInitializer& ObjectInitializer)
+{
+	
+}
