@@ -13,5 +13,9 @@ UCLASS()
 class UNREALPORTFOLIO_API UUPFAbilitySystemComponent : public UAbilitySystemComponent
 {
 	GENERATED_BODY()
-	
+
+public:
+	void SetupPlayerInputComponent(UEnhancedInputComponent* InputComponent);
+	void OnTaggedInputPressed(const FGameplayTag& InputTag);
+	void OnTaggedInputReleased(const FGameplayTag& InputTag);
 };

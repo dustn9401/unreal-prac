@@ -3,12 +3,14 @@
 
 #include "UPFCharacterPlayer.h"
 
+#include "AbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "DataAssets/UPFCharacterControlData.h"
+#include "Input/UPFAbilityInputMappingData.h"
 
 AUPFCharacterPlayer::AUPFCharacterPlayer(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -47,6 +49,12 @@ AUPFCharacterPlayer::AUPFCharacterPlayer(const FObjectInitializer& ObjectInitial
 	{
 		JumpAction = InputActionJumpRef.Object;
 	}
+
+	static ConstructorHelpers::FObjectFinder<UUPFAbilityInputMappingData> AbilityInputDataRef(TEXT("/Script/UnrealPortfolio.UPFAbilityInputMappingData'/Game/UnrealPortfolio/DataAssets/PlayerCharacterInputMappingData.PlayerCharacterInputMappingData'"));
+	if (AbilityInputDataRef.Object)
+	{
+		AbilityInputMappingData = AbilityInputDataRef.Object;
+	}
 }
 
 void AUPFCharacterPlayer::BeginPlay()
@@ -64,17 +72,34 @@ void AUPFCharacterPlayer::BeginPlay()
 	}
 }
 
+template<class UserClass, typename PressedFuncType, typename ReleasedFuncType>
+void BindAbilityInput(UEnhancedInputComponent* InputComponent, UInputAction InputAction, UserClass* Object, PressedFuncType PressedFunc, ReleasedFuncType ReleasedFunc, FGameplayTag InputTag)
+{
+	InputComponent->BindAction(InputAction, ETriggerEvent::Triggered, Object, PressedFunc, InputTag);
+	InputComponent->BindAction(InputAction, ETriggerEvent::Completed, Object, ReleasedFunc, InputTag);
+}
+
 void AUPFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	// 로컬 컨트롤러 일때만 호출되는 함수
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
-	
+
+	// Native Inputs
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AUPFCharacterPlayer::Look);
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AUPFCharacterPlayer::Move);
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+
+	// Ability Inputs
+	if (AbilityInputMappingData)
+	{
+		for(const FUPFAbilityInputAction& AbilityInputAction : AbilityInputMappingData->AbilityInputActions)
+		{
+			BindAbilityInput(EnhancedInputComponent, AbilityInputAction.InputAction, AbilitySystemComponent, &UUPFAbilitySystemComponent::OnTaggedInputPressed, &UUPFAbilitySystemComponent::OnTaggedInputReleased, InputTag);
+		}
+	}
 }
 
 void AUPFCharacterPlayer::ApplyCharacterControlData(const UUPFCharacterControlData* Data)

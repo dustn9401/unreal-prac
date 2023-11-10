@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Ability/UPFGameplayAbility.h"
 #include "Engine/DataAsset.h"
 #include "ComboAttackData.generated.h"
 
@@ -15,6 +16,9 @@ class UNREALPORTFOLIO_API UComboAttackData : public UPrimaryDataAsset
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(EditAnywhere, Category=Class)
+	TSubclassOf<UUPFGameplayAbility> AbilityClass;
+	
 	UPROPERTY(EditAnywhere, Category=Montage)
 	TObjectPtr<UAnimMontage> Montage;
 

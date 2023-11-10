@@ -3,6 +3,7 @@
 
 #include "Ability/UPFGameplayAbility_MeleeAttack.h"
 
+#include "UPFGameplayTags.h"
 #include "DataAssets/ComboAttackData.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -13,6 +14,11 @@ UUPFGameplayAbility_MeleeAttack::UUPFGameplayAbility_MeleeAttack(const FObjectIn
 	{
 		ComboAttackData = ComboAttackDataRef.Object;
 	}
+
+	FAbilityTriggerData TriggerData;
+	TriggerData.TriggerTag = UPFGameplayTags::InputTag_Ability;
+	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
+	AbilityTriggers.Add(TriggerData);
 }
 
 void UUPFGameplayAbility_MeleeAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -60,6 +66,11 @@ void UUPFGameplayAbility_MeleeAttack::ProcessNextCombo()
 
 void UUPFGameplayAbility_MeleeAttack::OnMontageEnd(UAnimMontage* TargetMontage, bool IsProperlyEnded)
 {
+	if (UCharacterMovementComponent* CMC = Cast<UCharacterMovementComponent>(CurrentActorInfo->MovementComponent))
+	{
+		CMC->SetMovementMode(MOVE_Walking);
+	}
+	
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
@@ -70,7 +81,7 @@ void UUPFGameplayAbility_MeleeAttack::SetNextComboTimerIfPossible()
 	const int32 ComboIndex = CurrentCombo - 1;
 	check(ComboAttackData->EffectiveFrameCount.IsValidIndex(ComboIndex));
 
-	// ComboEffectiveTime 내에 공격 인풋이 들어와야 다음 콤보로 넘어갈 수 있음
+	// ComboEffectiveTime 내에 공격 인풋이 들어와야 다음 콤보로 넘어갈 수 있도록 하는 로직
 	float ComboEffectiveTime = (ComboAttackData->EffectiveFrameCount[ComboIndex] / ComboAttackData->FrameRate);
 	if (ComboEffectiveTime > 0.0f)	// ComboIndex < ComboAttackData->EffectiveFrameCount.Num() - 1
 	{
