@@ -15,7 +15,6 @@ class UNREALPORTFOLIO_API UUPFAbilitySystemComponent : public UAbilitySystemComp
 	GENERATED_BODY()
 
 public:
-	void SetupPlayerInputComponent(UEnhancedInputComponent* InputComponent);
-	void OnTaggedInputPressed(const FGameplayTag& InputTag);
-	void OnTaggedInputReleased(const FGameplayTag& InputTag);
+	virtual void AbilityLocalInputPressed(int32 InputID) override;
+	virtual void AbilityLocalInputReleased(int32 InputID) override;
 };

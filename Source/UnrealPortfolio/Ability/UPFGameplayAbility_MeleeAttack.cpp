@@ -25,10 +25,10 @@ void UUPFGameplayAbility_MeleeAttack::ActivateAbility(const FGameplayAbilitySpec
                                                       const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
                                                       const FGameplayEventData* TriggerEventData)
 {
-	UE_LOG(LogTemp, Log, TEXT("UUPFGameplayAbility_MeleeAttack::ActivateAbility"));
+	UE_LOG(LogTemp, Log, TEXT("UUPFGameplayAbility_MeleeAttack::ActivateAbility, %s"), *ActorInfo->AvatarActor->GetName());
+	if (CurrentCombo != 0) return;
 
 	// 콤보관련 변수 초기화
-	ensure(CurrentCombo == 0);
 	CurrentCombo = 1;
 	ComboTimer.Invalidate();
 
@@ -40,36 +40,57 @@ void UUPFGameplayAbility_MeleeAttack::ActivateAbility(const FGameplayAbilitySpec
 	
 	CommitAbility(Handle, ActorInfo, ActivationInfo);
 	
+	UAnimInstance* AnimInst = ActorInfo->GetAnimInstance();
+	check(AnimInst);
+	
 	// 몽타주 실행
-	check(ActorInfo->AnimInstance.IsValid());
-	ActorInfo->AnimInstance->Montage_Play(ComboAttackData->Montage, 1.0f);
+	UE_LOG(LogTemp, Log, TEXT("UUPFGameplayAbility_MeleeAttack::Montage_Play"));
+	AnimInst->Montage_Play(ComboAttackData->Montage, 1.0f);
 
 	// 몽타주 종료 콜백
 	FOnMontageEnded EndDelegate;
 	EndDelegate.BindUObject(this, &UUPFGameplayAbility_MeleeAttack::OnMontageEnd);
-	ActorInfo->AnimInstance->Montage_SetEndDelegate(EndDelegate, ComboAttackData->Montage);
+	AnimInst->Montage_SetEndDelegate(EndDelegate, ComboAttackData->Montage);
 
 	// 첫 콤보 체크 타이머는 수동으로 호출
 	SetNextComboTimerIfPossible();
 }
 
+void UUPFGameplayAbility_MeleeAttack::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
+{
+	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
+
+	if (ComboTimer.IsValid())
+	{
+		HasNextComboCommand = true;
+	}
+}
+
 void UUPFGameplayAbility_MeleeAttack::ProcessNextCombo()
 {
+	
 	CurrentCombo = FMath::Clamp(CurrentCombo + 1, 1, ComboAttackData->MaxComboCount);
-	const FName NextSectionName = *FString::Printf(TEXT("Combo%d"), CurrentCombo);
+	const FName NextSectionName = *FString::Printf(TEXT("Combo%d"), CurrentCombo - 1);
 
+	UAnimInstance* AnimInst = CurrentActorInfo->GetAnimInstance();
+	check(AnimInst);
+	
 	// JumpToSection() 으로 현재 콤보의 남은 애니메이션을 생략하고 다음콤보로 바로 이동
-	CurrentActorInfo->AnimInstance->Montage_JumpToSection(NextSectionName, ComboAttackData->Montage);
+	AnimInst->Montage_JumpToSection(NextSectionName, ComboAttackData->Montage);
 		
 	SetNextComboTimerIfPossible();
 }
 
 void UUPFGameplayAbility_MeleeAttack::OnMontageEnd(UAnimMontage* TargetMontage, bool IsProperlyEnded)
 {
+	UE_LOG(LogTemp, Log, TEXT("UUPFGameplayAbility_MeleeAttack::OnMontageEnd"));
+	
 	if (UCharacterMovementComponent* CMC = Cast<UCharacterMovementComponent>(CurrentActorInfo->MovementComponent))
 	{
 		CMC->SetMovementMode(MOVE_Walking);
 	}
+
+	CurrentCombo = 0;
 	
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
@@ -87,6 +108,7 @@ void UUPFGameplayAbility_MeleeAttack::SetNextComboTimerIfPossible()
 	{
 		const FTimerDelegate TimerCallback = FTimerDelegate::CreateWeakLambda(this, [this]
 		{
+			UE_LOG(LogTemp, Log, TEXT("UUPFGameplayAbility_MeleeAttack::TimerCallback, HasNextComboCommand=%d"), HasNextComboCommand);
 			if (HasNextComboCommand)
 			{
 				HasNextComboCommand = false;

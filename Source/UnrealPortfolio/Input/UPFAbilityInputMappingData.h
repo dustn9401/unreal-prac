@@ -4,11 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "UnrealPortfolio.h"
 #include "Engine/DataAsset.h"
 #include "UPFAbilityInputMappingData.generated.h"
 
 
 class UInputAction;
+class UUPFGameplayAbility;
 
 /**
  * InputAction과 GameplayTag 매핑을 위한 구조체
@@ -18,12 +20,22 @@ struct FUPFAbilityInputAction
 {
 	GENERATED_BODY()
 
+	FUPFAbilityInputAction(): InputID(EUPFGameplayAbilityInputBinds::Ability1)
+	{
+	}
+
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<const UInputAction> InputAction = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (Categories = "InputTag"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<UUPFGameplayAbility> Ability;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FGameplayTag InputTag;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TEnumAsByte<EUPFGameplayAbilityInputBinds> InputID;
 };
 
 /**

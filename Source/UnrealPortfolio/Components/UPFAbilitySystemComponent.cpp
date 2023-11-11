@@ -2,27 +2,16 @@
 
 
 #include "Components/UPFAbilitySystemComponent.h"
-
-#include "EnhancedInputComponent.h"
 #include "UPFGameplayTags.h"
 
-void UUPFAbilitySystemComponent::SetupPlayerInputComponent(UEnhancedInputComponent* InputComponent)
+void UUPFAbilitySystemComponent::AbilityLocalInputPressed(int32 InputID)
 {
-	for(const FGameplayAbilitySpec& AbilitySpec : ActivatableAbilities.Items)
-	{
-		if (AbilitySpec.DynamicAbilityTags.HasTag(UPFGameplayTags::InputTag_Ability))
-		{
-			// InputComponent->BindAction()
-		}	
-	}
-	
-	if (GameplayEventTriggeredAbilities.Contains(UPFGameplayTags::InputTag_Ability))
-	{
-		for(const auto& SpecHandle : GameplayEventTriggeredAbilities[UPFGameplayTags::InputTag_Ability])
-		{
-			if (!SpecHandle.IsValid()) continue;
-			// FindAbilitySpecFromHandle()
-		}
-	}
-	
+	UE_LOG(LogTemp, Log, TEXT("AbilityLocalInputPressed, %d"), InputID);
+	Super::AbilityLocalInputPressed(InputID);
+}
+
+void UUPFAbilitySystemComponent::AbilityLocalInputReleased(int32 InputID)
+{
+	UE_LOG(LogTemp, Log, TEXT("AbilityLocalInputReleased, %d"), InputID);
+	Super::AbilityLocalInputReleased(InputID);
 }

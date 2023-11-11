@@ -59,12 +59,6 @@ AUPFCharacterBase::AUPFCharacterBase(const FObjectInitializer& ObjectInitializer
 void AUPFCharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-	
-	// 모든 캐릭터에 주먹 근접 공격 어빌리티 부여
-	FGameplayAbilitySpec AbilitySpec(MeleeAttackAbilityData->AbilityClass);
-	AbilitySpec.SourceObject = this;
-	AbilitySpec.DynamicAbilityTags.AddTag(UPFGameplayTags::InputTag_Ability_Melee);
-	MeleeAttackAbilitySpecHandle = AbilitySystemComponent->GiveAbility(AbilitySpec);
 }
 
 void AUPFCharacterBase::OnMeleeAttackAnimationHit()

@@ -41,12 +41,4 @@ public:
 public:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Ability")
 	TObjectPtr<UUPFAbilitySystemComponent> AbilitySystemComponent;		// 이 캐릭터가 보유한 어빌리티를 관리할 컴포넌트
-
-	
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<UComboAttackData> MeleeAttackAbilityData;	// 캐릭터의 기본 근접 공격 어빌리티 데이터
-
-	UPROPERTY()
-	FGameplayAbilitySpecHandle MeleeAttackAbilitySpecHandle;
 };

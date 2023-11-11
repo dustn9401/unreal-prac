@@ -50,7 +50,7 @@ AUPFCharacterPlayer::AUPFCharacterPlayer(const FObjectInitializer& ObjectInitial
 		JumpAction = InputActionJumpRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UUPFAbilityInputMappingData> AbilityInputDataRef(TEXT("/Script/UnrealPortfolio.UPFAbilityInputMappingData'/Game/UnrealPortfolio/DataAssets/PlayerCharacterInputMappingData.PlayerCharacterInputMappingData'"));
+	static ConstructorHelpers::FObjectFinder<UUPFAbilityInputMappingData> AbilityInputDataRef(TEXT("/Script/UnrealPortfolio.UPFAbilityInputMappingData'/Game/UnrealPortfolio/DataAssets/AIMD_PlayerCharacter.AIMD_PlayerCharacter'"));
 	if (AbilityInputDataRef.Object)
 	{
 		AbilityInputMappingData = AbilityInputDataRef.Object;
@@ -72,13 +72,6 @@ void AUPFCharacterPlayer::BeginPlay()
 	}
 }
 
-template<class UserClass, typename PressedFuncType, typename ReleasedFuncType>
-void BindAbilityInput(UEnhancedInputComponent* InputComponent, UInputAction InputAction, UserClass* Object, PressedFuncType PressedFunc, ReleasedFuncType ReleasedFunc, FGameplayTag InputTag)
-{
-	InputComponent->BindAction(InputAction, ETriggerEvent::Triggered, Object, PressedFunc, InputTag);
-	InputComponent->BindAction(InputAction, ETriggerEvent::Completed, Object, ReleasedFunc, InputTag);
-}
-
 void AUPFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	// 로컬 컨트롤러 일때만 호출되는 함수
@@ -92,12 +85,27 @@ void AUPFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
-	// Ability Inputs
+	// Ability Inputs, 여기서 어빌리티 생성 및 부여
 	if (AbilityInputMappingData)
 	{
 		for(const FUPFAbilityInputAction& AbilityInputAction : AbilityInputMappingData->AbilityInputActions)
 		{
-			BindAbilityInput(EnhancedInputComponent, AbilityInputAction.InputAction, AbilitySystemComponent, &UUPFAbilitySystemComponent::OnTaggedInputPressed, &UUPFAbilitySystemComponent::OnTaggedInputReleased, InputTag);
+			FGameplayAbilitySpec AbilitySpec(AbilityInputAction.Ability, 1, AbilityInputAction.InputID, this);
+			AbilitySystemComponent->GiveAbility(AbilitySpec);
+
+			EnhancedInputComponent->BindAction<UAbilitySystemComponent, int32>(
+				AbilityInputAction.InputAction,
+				ETriggerEvent::Triggered,
+				AbilitySystemComponent,
+				&UAbilitySystemComponent::PressInputID,
+				AbilityInputAction.InputID);
+
+			EnhancedInputComponent->BindAction<UAbilitySystemComponent, int32>(
+				AbilityInputAction.InputAction,
+				ETriggerEvent::Completed,
+				AbilitySystemComponent,
+				&UAbilitySystemComponent::ReleaseInputID,
+				AbilityInputAction.InputID);
 		}
 	}
 }

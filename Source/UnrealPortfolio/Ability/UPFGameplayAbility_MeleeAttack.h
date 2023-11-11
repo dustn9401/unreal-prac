@@ -20,6 +20,9 @@ public:
 	
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
+	// 어빌리티 발동 중 인풋 들어왔을때 호출되는 함수, 콤보 판정 처리
+	virtual void InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
+
 // combo
 protected:
 	void ProcessNextCombo();	// 다음 콤보 몽타주 실행 및 관련 변수 업데이트

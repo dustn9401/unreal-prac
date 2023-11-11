@@ -13,7 +13,7 @@ AUPFGameMode::AUPFGameMode(const FObjectInitializer& ObjectInitializer)
 	{
 		PlayerControllerClass = PlayerControllerClassRef.Class;
 	}
-
+	
 	static ConstructorHelpers::FClassFinder<APawn> DefaultPawnClassRef(TEXT("/Game/UnrealPortfolio/Blueprints/BP_UPFCharacterPlayer.BP_UPFCharacterPlayer_C"));
 	if (DefaultPawnClassRef.Class)
 	{
