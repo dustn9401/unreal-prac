@@ -3,6 +3,7 @@
 
 #include "Ability/UPFGameplayAbility_MeleeAttack.h"
 
+#include "AbilitySystemComponent.h"
 #include "UPFGameplayTags.h"
 #include "DataAssets/ComboAttackData.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -40,17 +41,14 @@ void UUPFGameplayAbility_MeleeAttack::ActivateAbility(const FGameplayAbilitySpec
 	
 	CommitAbility(Handle, ActorInfo, ActivationInfo);
 	
-	UAnimInstance* AnimInst = ActorInfo->GetAnimInstance();
-	check(AnimInst);
-	
 	// 몽타주 실행
-	UE_LOG(LogTemp, Log, TEXT("UUPFGameplayAbility_MeleeAttack::Montage_Play"));
-	AnimInst->Montage_Play(ComboAttackData->Montage, 1.0f);
-
+	const TWeakObjectPtr<UAbilitySystemComponent> ASC = ActorInfo->AbilitySystemComponent;
+	ASC->PlayMontage(this, ActivationInfo, ComboAttackData->Montage, 1.0f);
+	
 	// 몽타주 종료 콜백
 	FOnMontageEnded EndDelegate;
 	EndDelegate.BindUObject(this, &UUPFGameplayAbility_MeleeAttack::OnMontageEnd);
-	AnimInst->Montage_SetEndDelegate(EndDelegate, ComboAttackData->Montage);
+	ActorInfo->GetAnimInstance()->Montage_SetEndDelegate(EndDelegate, ComboAttackData->Montage);
 
 	// 첫 콤보 체크 타이머는 수동으로 호출
 	SetNextComboTimerIfPossible();
@@ -118,4 +116,9 @@ void UUPFGameplayAbility_MeleeAttack::SetNextComboTimerIfPossible()
 		
 		GetWorld()->GetTimerManager().SetTimer(ComboTimer, TimerCallback, ComboEffectiveTime, false);
 	}
+}
+
+void UUPFGameplayAbility_MeleeAttack::OnAnimNotify()
+{
+	UE_LOG(LogTemp, Log, TEXT("UUPFGameplayAbility_MeleeAttack::OnAnimNotify()"));
 }

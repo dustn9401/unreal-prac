@@ -4,6 +4,7 @@
 #include "UPFCharacterBase.h"
 
 #include "UPFGameplayTags.h"
+#include "Ability/UPFGameplayAbility_MeleeAttack.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/UPFAbilitySystemComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -59,14 +60,19 @@ AUPFCharacterBase::AUPFCharacterBase(const FObjectInitializer& ObjectInitializer
 void AUPFCharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
+
+	StatSet = AbilitySystemComponent->GetSet<UUPFCharacterStatSet>();
 }
 
 void AUPFCharacterBase::OnMeleeAttackAnimationHit()
 {
-	// 본인이 빙의한 캐릭터인 경우에만 서버/클라 분기하여 처리
+	// 로컬 컨트롤러만 Notify를 수신한다.
 	if (!IsLocallyControlled()) return;
 
-	
+	const auto AnimatingMeleeAttackAbility = Cast<UUPFGameplayAbility_MeleeAttack>(AbilitySystemComponent->GetAnimatingAbility());
+	if (!AnimatingMeleeAttackAbility) return;
+
+	AnimatingMeleeAttackAbility->OnAnimNotify();
 }
 
 UAbilitySystemComponent* AUPFCharacterBase::GetAbilitySystemComponent() const

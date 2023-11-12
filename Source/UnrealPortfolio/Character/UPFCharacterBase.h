@@ -4,9 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "Interface/AttackAnimationInterface.h"
+#include "..\Interface\MeleeAttackAnimationInterface.h"
 #include "AbilitySystemInterface.h"
 #include "Ability/UPFGameplayAbility.h"
+#include "Ability/Attributes/UPFCharacterStatSet.h"
 #include "Components/UPFAbilitySystemComponent.h"
 #include "DataAssets/ComboAttackData.h"
 #include "UPFCharacterBase.generated.h"
@@ -38,7 +39,12 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 // Ability
-public:
+protected:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Ability")
 	TObjectPtr<UUPFAbilitySystemComponent> AbilitySystemComponent;		// 이 캐릭터가 보유한 어빌리티를 관리할 컴포넌트
+
+// Stat
+protected:
+	UPROPERTY()
+	TObjectPtr<const UUPFCharacterStatSet> StatSet;
 };

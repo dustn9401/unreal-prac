@@ -35,4 +35,8 @@ protected:
 	int32 CurrentCombo = 0;		// 콤보중이 아닐때 0, 콤보중인경우 1/2/3/4
 	FTimerHandle ComboTimer;	// 콤보 연속/종료 판정을 위한 타이머
 	bool HasNextComboCommand = false;	// 다음 콤보로 이어져야 하는지 여부 플래그
+
+// hit check
+public:
+	void OnAnimNotify();
 };

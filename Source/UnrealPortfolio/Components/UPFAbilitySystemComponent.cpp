@@ -6,12 +6,12 @@
 
 void UUPFAbilitySystemComponent::AbilityLocalInputPressed(int32 InputID)
 {
-	UE_LOG(LogTemp, Log, TEXT("AbilityLocalInputPressed, %d"), InputID);
+	// UE_LOG(LogTemp, Log, TEXT("AbilityLocalInputPressed, %d"), InputID);
 	Super::AbilityLocalInputPressed(InputID);
 }
 
 void UUPFAbilitySystemComponent::AbilityLocalInputReleased(int32 InputID)
 {
-	UE_LOG(LogTemp, Log, TEXT("AbilityLocalInputReleased, %d"), InputID);
+	// UE_LOG(LogTemp, Log, TEXT("AbilityLocalInputReleased, %d"), InputID);
 	Super::AbilityLocalInputReleased(InputID);
 }

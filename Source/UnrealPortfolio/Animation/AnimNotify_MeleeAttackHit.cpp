@@ -3,7 +3,7 @@
 
 #include "Animation/AnimNotify_MeleeAttackHit.h"
 
-#include "Interface/AttackAnimationInterface.h"
+#include "..\Interface\MeleeAttackAnimationInterface.h"
 
 void UAnimNotify_MeleeAttackHit::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
@@ -17,7 +17,7 @@ void UAnimNotify_MeleeAttackHit::Notify(USkeletalMeshComponent* MeshComp, UAnimS
 		}
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("MeshComp->GetOwner() is NOT IAttackAnimationInterface!!"));
+			UE_LOG(LogTemp, Error, TEXT("MeshComp->GetOwner() is NOT IMeleeAttackAnimationInterface!!"));
 		}
 	}
 }
