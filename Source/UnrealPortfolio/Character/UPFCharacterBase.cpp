@@ -3,6 +3,8 @@
 
 #include "UPFCharacterBase.h"
 
+#include "AbilitySystemGlobals.h"
+#include "GameplayAbilitiesModule.h"
 #include "UPFGameplayTags.h"
 #include "Ability/UPFGameplayAbility_MeleeAttack.h"
 #include "Components/CapsuleComponent.h"
@@ -60,8 +62,7 @@ AUPFCharacterBase::AUPFCharacterBase(const FObjectInitializer& ObjectInitializer
 void AUPFCharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-
-	StatSet = AbilitySystemComponent->GetSet<UUPFCharacterStatSet>();
+	
 }
 
 void AUPFCharacterBase::OnMeleeAttackAnimationHit()

@@ -122,8 +122,46 @@ void UUPFGameplayAbility_MeleeAttack::OnAnimNotify()
 	
 	TArray<FHitResult> OutHitResults;
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, Instigator);
-	// Params.IgnoreMask = static_cast<FMaskFilter>(TeamType);
+	// Params.IgnoreMask = static_cast<FMaskFilter>(TeamType);	// TODO: 피아식별
 
 	const UUPFCharacterStatComponent* StatComp = Instigator->StatComponent;
-	// todo: sweep 구현, hit result 처리
+	// const auto TotalStat = Stat->GetTotalStat();
+	// const float AttackRange = TotalStat.AttackRange;
+	// const float AttackRadius = Stat->GetAttackRadius();
+	// const float AttackDamage = TotalStat.Attack;
+	//
+	// const FVector Forward = GetActorForwardVector();
+	// const FVector Start = GetActorLocation() + Forward * GetCapsuleComponent()->GetScaledCapsuleRadius();
+	// const FVector End = Start + Forward * AttackRange;
+	//
+	// bool HitDetected = GetWorld()-> SweepMultiByChannel(OutHitResults, Start, End, FQuat::Identity, CCHANNEL_ABACTION, FCollisionShape::MakeSphere(AttackRadius), Params);
+	// float HitCheckTime = GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
+	// 	
+	// // 클라이언트인 경우, 서버에 검증을 받기 위해 Server RPC 함수 호출
+	// if (!HasAuthority())
+	// {
+	// 	if (HitDetected)
+	// 	{
+	// 		ServerRPCNotifyHit(OutHitResults, HitCheckTime);
+	// 	}
+	// 	else
+	// 	{
+	// 		ServerRPCNotifyMiss(Start, End, Forward, HitCheckTime);
+	// 	}
+	// }
+	// // 서버의 경우, 바로 Confirm 함수 호출
+	// else
+	// {
+	// 	if (HitDetected)
+	// 	{
+	// 		for(const auto& HitResult : OutHitResults)
+	// 		{
+	// 			AttackHitConfirm(HitResult);
+	// 		}
+	// 	}
+	// 	else
+	// 	{
+	// 			
+	// 	}
+	// }
 }

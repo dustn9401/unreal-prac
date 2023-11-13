@@ -22,10 +22,23 @@ public:
 	// Sets default values for this component's properties
 	UUPFCharacterStatComponent();
 
+	virtual void InitializeComponent() override;
+
+public:
+	TObjectPtr<const UUPFCharacterStatSet> GetBaseStat() const
+	{
+		return BaseStat;
+	}
+
+	TObjectPtr<const UUPFCharacterStatSet> GetModifierStat() const
+	{
+		return ModifierStat;
+	}
+
 protected:
 	UPROPERTY(Transient, VisibleInstanceOnly, Category=Stat, meta=(AllowPrivateAccess="true"))
 	TObjectPtr<const UUPFCharacterStatSet> BaseStat;	// 캐릭터 자체 스텟
-
+	
 	UPROPERTY(Transient, VisibleInstanceOnly, Category=Stat, meta=(AllowPrivateAccess="true"))
 	TObjectPtr<const UUPFCharacterStatSet> ModifierStat;	// 장비, 버프 등의 추가 스텟
 };

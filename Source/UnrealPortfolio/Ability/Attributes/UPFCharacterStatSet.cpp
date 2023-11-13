@@ -5,6 +5,7 @@
 
 UUPFCharacterStatSet::UUPFCharacterStatSet()
 {
+	
 }
 
 void UUPFCharacterStatSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
