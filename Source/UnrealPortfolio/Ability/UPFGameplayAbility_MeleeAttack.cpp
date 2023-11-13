@@ -26,7 +26,6 @@ void UUPFGameplayAbility_MeleeAttack::ActivateAbility(const FGameplayAbilitySpec
                                                       const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
                                                       const FGameplayEventData* TriggerEventData)
 {
-	UE_LOG(LogTemp, Log, TEXT("UUPFGameplayAbility_MeleeAttack::ActivateAbility, %s"), *ActorInfo->AvatarActor->GetName());
 	if (CurrentCombo != 0) return;
 
 	// 콤보관련 변수 초기화
@@ -81,8 +80,6 @@ void UUPFGameplayAbility_MeleeAttack::ProcessNextCombo()
 
 void UUPFGameplayAbility_MeleeAttack::OnMontageEnd(UAnimMontage* TargetMontage, bool IsProperlyEnded)
 {
-	UE_LOG(LogTemp, Log, TEXT("UUPFGameplayAbility_MeleeAttack::OnMontageEnd"));
-	
 	if (UCharacterMovementComponent* CMC = Cast<UCharacterMovementComponent>(CurrentActorInfo->MovementComponent))
 	{
 		CMC->SetMovementMode(MOVE_Walking);
@@ -106,7 +103,6 @@ void UUPFGameplayAbility_MeleeAttack::SetNextComboTimerIfPossible()
 	{
 		const FTimerDelegate TimerCallback = FTimerDelegate::CreateWeakLambda(this, [this]
 		{
-			UE_LOG(LogTemp, Log, TEXT("UUPFGameplayAbility_MeleeAttack::TimerCallback, HasNextComboCommand=%d"), HasNextComboCommand);
 			if (HasNextComboCommand)
 			{
 				HasNextComboCommand = false;
