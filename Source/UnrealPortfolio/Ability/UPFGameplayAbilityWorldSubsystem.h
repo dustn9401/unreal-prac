@@ -15,5 +15,5 @@ class UNREALPORTFOLIO_API UUPFGameplayAbilityWorldSubsystem : public UWorldSubsy
 	GENERATED_BODY()
 
 public:
-	
+	virtual void PostInitialize() override;
 };

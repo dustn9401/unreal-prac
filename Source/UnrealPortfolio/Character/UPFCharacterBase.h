@@ -49,6 +49,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Stat")
 	TObjectPtr<UUPFCharacterStatComponent> StatComponent;
 
-	UPROPERTY()
-	TWeakObjectPtr<>
+	// UPROPERTY()
+	// TWeakObjectPtr<>
 };
