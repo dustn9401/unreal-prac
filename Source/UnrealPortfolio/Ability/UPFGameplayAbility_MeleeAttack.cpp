@@ -5,6 +5,7 @@
 
 #include "AbilitySystemComponent.h"
 #include "UPFGameplayTags.h"
+#include "Character/UPFCharacterBase.h"
 #include "DataAssets/ComboAttackData.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -72,7 +73,7 @@ void UUPFGameplayAbility_MeleeAttack::ProcessNextCombo()
 	UAnimInstance* AnimInst = CurrentActorInfo->GetAnimInstance();
 	check(AnimInst);
 	
-	// JumpToSection() 으로 현재 콤보의 남은 애니메이션을 생략하고 다음콤보로 바로 이동
+	// 현재 콤보의 남은 애니메이션을 생략하고 다음콤보로 바로 이동
 	AnimInst->Montage_JumpToSection(NextSectionName, ComboAttackData->Montage);
 		
 	SetNextComboTimerIfPossible();
@@ -116,5 +117,13 @@ void UUPFGameplayAbility_MeleeAttack::SetNextComboTimerIfPossible()
 
 void UUPFGameplayAbility_MeleeAttack::OnAnimNotify()
 {
-	UE_LOG(LogTemp, Log, TEXT("UUPFGameplayAbility_MeleeAttack::OnAnimNotify()"));
+	AUPFCharacterBase* Instigator = Cast<AUPFCharacterBase>(CurrentActorInfo->OwnerActor);
+	check(Instigator);
+	
+	TArray<FHitResult> OutHitResults;
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, Instigator);
+	// Params.IgnoreMask = static_cast<FMaskFilter>(TeamType);
+
+	const UUPFCharacterStatComponent* StatComp = Instigator->StatComponent;
+	// todo: sweep 구현, hit result 처리
 }

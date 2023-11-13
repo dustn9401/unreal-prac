@@ -9,6 +9,7 @@
 #include "Ability/UPFGameplayAbility.h"
 #include "Ability/Attributes/UPFCharacterStatSet.h"
 #include "Components/UPFAbilitySystemComponent.h"
+#include "Components/UPFCharacterStatComponent.h"
 #include "DataAssets/ComboAttackData.h"
 #include "UPFCharacterBase.generated.h"
 
@@ -44,7 +45,7 @@ protected:
 	TObjectPtr<UUPFAbilitySystemComponent> AbilitySystemComponent;		// 이 캐릭터가 보유한 어빌리티를 관리할 컴포넌트
 
 // Stat
-protected:
-	UPROPERTY()
-	TObjectPtr<const UUPFCharacterStatSet> StatSet;
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Stat")
+	TObjectPtr<UUPFCharacterStatComponent> StatComponent;
 };
