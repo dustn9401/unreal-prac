@@ -6,8 +6,11 @@
 #include "AbilitySystemComponent.h"
 #include "UPFGameplayTags.h"
 #include "Character/UPFCharacterBase.h"
+#include "Components/CapsuleComponent.h"
 #include "DataAssets/ComboAttackData.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/GameStateBase.h"
+#include "Physics/UPFCollision.h"
 
 UUPFGameplayAbility_MeleeAttack::UUPFGameplayAbility_MeleeAttack(const FObjectInitializer& ObjectInitializer)
 {
@@ -125,43 +128,119 @@ void UUPFGameplayAbility_MeleeAttack::OnAnimNotify()
 	// Params.IgnoreMask = static_cast<FMaskFilter>(TeamType);	// TODO: 피아식별
 
 	const UUPFCharacterStatComponent* StatComp = Instigator->StatComponent;
-	// const auto TotalStat = Stat->GetTotalStat();
-	// const float AttackRange = TotalStat.AttackRange;
-	// const float AttackRadius = Stat->GetAttackRadius();
-	// const float AttackDamage = TotalStat.Attack;
-	//
-	// const FVector Forward = GetActorForwardVector();
-	// const FVector Start = GetActorLocation() + Forward * GetCapsuleComponent()->GetScaledCapsuleRadius();
-	// const FVector End = Start + Forward * AttackRange;
-	//
-	// bool HitDetected = GetWorld()-> SweepMultiByChannel(OutHitResults, Start, End, FQuat::Identity, CCHANNEL_ABACTION, FCollisionShape::MakeSphere(AttackRadius), Params);
-	// float HitCheckTime = GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
-	// 	
-	// // 클라이언트인 경우, 서버에 검증을 받기 위해 Server RPC 함수 호출
-	// if (!HasAuthority())
-	// {
-	// 	if (HitDetected)
-	// 	{
-	// 		ServerRPCNotifyHit(OutHitResults, HitCheckTime);
-	// 	}
-	// 	else
-	// 	{
-	// 		ServerRPCNotifyMiss(Start, End, Forward, HitCheckTime);
-	// 	}
-	// }
-	// // 서버의 경우, 바로 Confirm 함수 호출
-	// else
-	// {
-	// 	if (HitDetected)
-	// 	{
-	// 		for(const auto& HitResult : OutHitResults)
-	// 		{
-	// 			AttackHitConfirm(HitResult);
-	// 		}
-	// 	}
-	// 	else
-	// 	{
-	// 			
-	// 	}
-	// }
+	const UUPFCharacterStatSet* StatSet = StatComp->GetBaseStat();
+	const float AttackRange = StatSet->GetAttackRange();
+	const float AttackRadius = 50.0f;	// TODO: 무기 종류에 따라 값 설정
+	const float AttackDamage = StatSet->GetAttack();
+	
+	const FVector Forward = Instigator->GetActorForwardVector();
+	const FVector Start = Instigator->GetActorLocation() + Forward * Instigator->GetCapsuleComponent()->GetScaledCapsuleRadius();
+	const FVector End = Start + Forward * AttackRange;
+
+	// 근접공격은 여러명 타격 가능
+	bool HitDetected = GetWorld()-> SweepMultiByChannel(OutHitResults, Start, End, FQuat::Identity, CCHANNEL_UPFACTION, FCollisionShape::MakeSphere(AttackRadius), Params);
+	float HitCheckTime = GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
+		
+	// 클라이언트인 경우, 서버에 검증을 받기 위해 Server RPC 함수 호출
+	if (!Instigator->HasAuthority())
+	{
+		if (HitDetected)
+		{
+			ServerRPCNotifyHit(OutHitResults, HitCheckTime);
+		}
+		else
+		{
+			ServerRPCNotifyMiss(Start, End, Forward, HitCheckTime);
+		}
+	}
+	// 서버의 경우, 바로 Confirm 함수 호출
+	else
+	{
+		if (HitDetected)
+		{
+			for(const auto& HitResult : OutHitResults)
+			{
+				HitConfirm(HitResult);
+			}
+		}
+		else
+		{
+				
+		}
+	}
+}
+
+void UUPFGameplayAbility_MeleeAttack::ServerRPCNotifyHit_Implementation(const TArray<FHitResult>& OutHitResults, float HitCheckTime)
+{
+	constexpr float AcceptCheckDistance = 300.0f;	// 허용 가능한 최대 근접 공격 거리
+
+	for(const auto& HitResult : OutHitResults)
+	{
+		AActor* HitActor = HitResult.GetActor();
+		if (!::IsValid(HitActor)) continue;
+
+		const FVector HitLocation = HitResult.Location;
+		const FBox HitBox = HitActor->GetComponentsBoundingBox();
+		const FVector ActorBoxCenter = HitBox.GetCenter();
+		if (FVector::DistSquared(HitLocation, ActorBoxCenter) <= AcceptCheckDistance * AcceptCheckDistance)
+		{
+			HitConfirm(HitResult);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("HitTest Rejected!"));
+		}
+
+#if ENABLE_DRAW_DEBUG
+		DrawDebugPoint(GetWorld(), ActorBoxCenter, 50.0f, FColor::Cyan, false, 5.0f);
+		DrawDebugPoint(GetWorld(), HitLocation, 50.0f, FColor::Magenta, false, 5.0f);
+#endif
+		
+	}
+}
+
+bool UUPFGameplayAbility_MeleeAttack::ServerRPCNotifyHit_Validate(const TArray<FHitResult>& OutHitResults, float HitCheckTime)
+{
+	return true;
+}
+
+void UUPFGameplayAbility_MeleeAttack::ServerRPCNotifyMiss_Implementation(FVector_NetQuantize TraceStart, FVector_NetQuantize TraceEnd, FVector_NetQuantizeNormal TraceDir, float HitCheckTime)
+{
+}
+
+bool UUPFGameplayAbility_MeleeAttack::ServerRPCNotifyMiss_Validate(FVector_NetQuantize TraceStart, FVector_NetQuantize TraceEnd, FVector_NetQuantizeNormal TraceDir, float HitCheckTime)
+{
+	return true;
+}
+
+void UUPFGameplayAbility_MeleeAttack::HitConfirm(const FHitResult& HitResult)
+{
+	AUPFCharacterBase* Instigator = Cast<AUPFCharacterBase>(CurrentActorInfo->OwnerActor);
+	if (!ensure(Instigator)) return;
+	if (!ensure(Instigator->HasAuthority())) return;
+
+	UAbilitySystemComponent* ASC = Instigator->GetAbilitySystemComponent();
+	if (!ensure(ASC)) return;
+	
+	AActor* HitActor = HitResult.GetActor();
+	if (!ensure(HitActor)) return;
+
+	// Hit당한 액터가 어빌리티 시스템 컴포넌트를 보유한 경우
+	if (UAbilitySystemComponent* TargetASC = HitActor->GetComponentByClass<UAbilitySystemComponent>())
+	{
+		FGameplayEffectContextHandle EffectContextHandle = ASC->MakeEffectContext();
+		EffectContextHandle.AddHitResult(HitResult);
+		
+		FGameplayEffectSpec EffectSpec(EffectClass->GetDefaultObject<UGameplayEffect>(), EffectContextHandle, 1);
+		ASC->ApplyGameplayEffectSpecToTarget(EffectSpec, TargetASC);
+	}
+	// 아닌 경우
+	else
+	{
+		// todo
+	}
+
+	
+	// FDamageEvent DamageEvent;
+	// HitActor->TakeDamage(AttackDamage, DamageEvent, GetController(), this);
 }
