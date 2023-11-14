@@ -51,3 +51,8 @@ void UUPFCharacterStatSet::OnRep_MovementSpeed(const FGameplayAttributeData& Old
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UUPFCharacterStatSet, MovementSpeed, OldValue);
 }
+
+FString UUPFCharacterStatSet::ToString() const
+{
+	return FString::Printf(TEXT("MaxHP=%f, Attack=%f"), MaxHP.GetCurrentValue(), Attack.GetCurrentValue());
+}

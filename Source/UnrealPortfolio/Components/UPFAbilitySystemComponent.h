@@ -15,6 +15,9 @@ class UNREALPORTFOLIO_API UUPFAbilitySystemComponent : public UAbilitySystemComp
 	GENERATED_BODY()
 
 public:
+	UUPFAbilitySystemComponent();
+
+public:
 	virtual void AbilityLocalInputPressed(int32 InputID) override;
 	virtual void AbilityLocalInputReleased(int32 InputID) override;
 };

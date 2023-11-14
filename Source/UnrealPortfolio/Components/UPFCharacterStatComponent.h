@@ -7,6 +7,8 @@
 #include "Components/ActorComponent.h"
 #include "UPFCharacterStatComponent.generated.h"
 
+class UAbilitySystemComponent;
+
 DECLARE_MULTICAST_DELEGATE(FOnDeathDelegate)
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnHpChangedDelegate, float /*CurrentHp*/, float /*MaxHp*/)
 
@@ -22,23 +24,17 @@ public:
 	// Sets default values for this component's properties
 	UUPFCharacterStatComponent();
 
-	virtual void InitializeComponent() override;
+public:
+	// Pawn의 PostInitializeComponents 함수에서 호출되는 어트리뷰트 초기화용 함수
+	void InitializeAttributes(UAbilitySystemComponent* ASC, FName GroupName, int32 Level);
 
 public:
 	TObjectPtr<const UUPFCharacterStatSet> GetBaseStat() const
 	{
-		return BaseStat;
-	}
-
-	TObjectPtr<const UUPFCharacterStatSet> GetModifierStat() const
-	{
-		return ModifierStat;
+		return StatSet;
 	}
 
 protected:
 	UPROPERTY(Transient, VisibleInstanceOnly, Category=Stat, meta=(AllowPrivateAccess="true"))
-	TObjectPtr<const UUPFCharacterStatSet> BaseStat;	// 캐릭터 자체 스텟
-	
-	UPROPERTY(Transient, VisibleInstanceOnly, Category=Stat, meta=(AllowPrivateAccess="true"))
-	TObjectPtr<const UUPFCharacterStatSet> ModifierStat;	// 장비, 버프 등의 추가 스텟
+	TObjectPtr<const UUPFCharacterStatSet> StatSet;
 };

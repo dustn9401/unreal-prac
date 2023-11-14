@@ -64,4 +64,7 @@ protected:
 
 	UFUNCTION()
 	void OnRep_MovementSpeed(const FGameplayAttributeData& OldValue);
+
+public:
+	FString ToString() const;
 };

@@ -54,15 +54,19 @@ AUPFCharacterBase::AUPFCharacterBase(const FObjectInitializer& ObjectInitializer
 		GetMesh()->SetAnimInstanceClass(AnimInstanceClassRef.Class);
 	}
 
-	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UUPFAbilitySystemComponent>(this, TEXT("AbilitySystemComponent"));
+	AbilitySystemComponent = CreateDefaultSubobject<UUPFAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+
+	StatComponent = CreateDefaultSubobject<UUPFCharacterStatComponent>(TEXT("CharacterStatComponent"));
+	StatSet = CreateDefaultSubobject<UUPFCharacterStatSet>(TEXT("StatSet"));
 }
 
 void AUPFCharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-	
+
+	StatComponent->InitializeAttributes(AbilitySystemComponent, FName(TEXT("Player")), 5);
 }
 
 void AUPFCharacterBase::OnMeleeAttackAnimationHit()

@@ -4,6 +4,10 @@
 #include "Components/UPFAbilitySystemComponent.h"
 #include "UPFGameplayTags.h"
 
+UUPFAbilitySystemComponent::UUPFAbilitySystemComponent()
+{
+}
+
 void UUPFAbilitySystemComponent::AbilityLocalInputPressed(int32 InputID)
 {
 	// UE_LOG(LogTemp, Log, TEXT("AbilityLocalInputPressed, %d"), InputID);
