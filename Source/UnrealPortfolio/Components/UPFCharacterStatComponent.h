@@ -9,9 +9,6 @@
 
 class UAbilitySystemComponent;
 
-DECLARE_MULTICAST_DELEGATE(FOnDeathDelegate)
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnHpChangedDelegate, float /*CurrentHp*/, float /*MaxHp*/)
-
 /**
  * 캐릭터의 스텟 컴포넌트
  */

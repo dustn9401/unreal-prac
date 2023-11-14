@@ -25,6 +25,10 @@ public:
 	ATTRIBUTE_ACCESSORS(UUPFCharacterStatSet, AttackSpeed);
 	ATTRIBUTE_ACCESSORS(UUPFCharacterStatSet, MovementSpeed);
 
+	FUPFAttributeEvent OnCurrentHPChanged;
+	FUPFAttributeEvent OnMaxHPChanged;
+	FUPFAttributeEvent OnDeath;
+
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentHP, Category = "UPF|Stat", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData CurrentHP;	// 현재 체력
@@ -44,8 +48,20 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_MovementSpeed, Category = "UPF|Stat", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData MovementSpeed;	// 이동속도
 
+	bool bIsOnDeathInvoked;
+
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	virtual bool PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data) override;
+	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+
+	virtual void PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const override;
+	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+	virtual void PostAttributeBaseChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) const override;
+	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
+
+	void ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const;
 	
 	UFUNCTION()
 	void OnRep_CurrentHP(const FGameplayAttributeData& OldValue);

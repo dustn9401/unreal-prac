@@ -31,4 +31,14 @@ void UUPFDamageExecution::Execute_Implementation(const FGameplayEffectCustomExec
 	Super::Execute_Implementation(ExecutionParams, OutExecutionOutput);
 
 	UE_LOG(LogTemp, Log, TEXT("UUPFDamageExecution::Execute_Implementation"));
+	
+	for(const auto& Attr : ExecutionParams.GetOwningSpec().ModifiedAttributes)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Attr Name = %s, Mag = %f"), *Attr.Attribute.AttributeName, Attr.TotalMagnitude);
+	}
+	
+	for(const auto& Modifier : ExecutionParams.GetOwningSpec().Modifiers)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Modifier Mag = %f"), Modifier.GetEvaluatedMagnitude());
+	}
 }
