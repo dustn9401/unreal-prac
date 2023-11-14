@@ -238,9 +238,7 @@ void UUPFGameplayAbility_MeleeAttack::HitConfirm(const FHitResult& HitResult)
 	else
 	{
 		// todo
+		// FDamageEvent DamageEvent;
+		// HitActor->TakeDamage(AttackDamage, DamageEvent, GetController(), this);
 	}
-
-	
-	// FDamageEvent DamageEvent;
-	// HitActor->TakeDamage(AttackDamage, DamageEvent, GetController(), this);
 }
