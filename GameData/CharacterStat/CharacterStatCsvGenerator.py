@@ -6,6 +6,10 @@ num_lvl = 100
 
 with open(csv_path, 'w', newline='', encoding='utf-8') as file:
     csv_writer = csv.writer(file)
+    
+    header = ['Level'] + [i + 1 for i in range(num_lvl)]
+    csv_writer.writerow(header)
+    
     groups = ['Default', 'Player', 'Enemy']
     attribute_set = 'CharacterStat'
     for group in groups:
