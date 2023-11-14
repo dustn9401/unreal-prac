@@ -68,14 +68,20 @@ void UUPFCharacterStatSet::PostAttributeBaseChange(const FGameplayAttribute& Att
 {
 	Super::PostAttributeBaseChange(Attribute, OldValue, NewValue);
 
-	UPF_LOG_ATTRIBUTE(LogTemp, Log, TEXT("Called: %s, %f -> %f"), *Attribute.AttributeName, OldValue, NewValue);
+	if (const AActor* OwningActor = GetOwningActor())
+	{
+		UPF_LOG_ATTRIBUTE(LogTemp, Log, TEXT("Called: %s, %s, %f -> %f (%f)"), *OwningActor->GetName(), *Attribute.AttributeName, OldValue, NewValue, GetCurrentHP());
+	}
 }
 
 void UUPFCharacterStatSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
 {
 	Super::PostAttributeChange(Attribute, OldValue, NewValue);
 
-	UPF_LOG_ATTRIBUTE(LogTemp, Log, TEXT("Called: %s, %f -> %f"), *Attribute.AttributeName, OldValue, NewValue);
+	if (const AActor* OwningActor = GetOwningActor())
+	{
+		UPF_LOG_ATTRIBUTE(LogTemp, Log, TEXT("Called: %s, %s, %f -> %f (%f)"), *OwningActor->GetName(), *Attribute.AttributeName, OldValue, NewValue, GetCurrentHP());
+	}
 }
 
 void UUPFCharacterStatSet::ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const

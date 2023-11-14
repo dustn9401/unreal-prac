@@ -67,6 +67,7 @@ void AUPFCharacterBase::PostInitializeComponents()
 	Super::PostInitializeComponents();
 
 	StatComponent->InitializeAttributes(AbilitySystemComponent, FName(TEXT("Player")), 5);
+	StatSet->InitCurrentHP(StatSet->GetMaxHP());
 }
 
 void AUPFCharacterBase::OnMeleeAttackAnimationHit()
