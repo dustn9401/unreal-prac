@@ -9,6 +9,6 @@ void UUPFGameplayAbilityWorldSubsystem::PostInitialize()
 {
 	Super::PostInitialize();
 
-	UE_LOG(LogTemp, Log, TEXT("IsInitialized: %d"), UAbilitySystemGlobals::Get().IsAbilitySystemGlobalsInitialized());
-	UAbilitySystemGlobals::Get().InitGlobalData();
+	// UE_LOG(LogTemp, Log, TEXT("IsInitialized: %d"), UAbilitySystemGlobals::Get().IsAbilitySystemGlobalsInitialized());
+	// UAbilitySystemGlobals::Get().InitGlobalData();
 }
