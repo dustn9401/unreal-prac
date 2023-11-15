@@ -29,6 +29,9 @@ bool UUPFCharacterStatSet::PreGameplayEffectExecute(FGameplayEffectModCallbackDa
 {
 	// 서버전용
 	// UPF_LOG_ATTRIBUTE(LogTemp, Log, TEXT("Called"));
+	PrevHP = GetCurrentHP();
+	PrevMaxHP = GetMaxHP();
+	
 	return Super::PreGameplayEffectExecute(Data);
 }
 
@@ -47,11 +50,11 @@ void UUPFCharacterStatSet::PostGameplayEffectExecute(const FGameplayEffectModCal
 		
 			if (Data.EvaluatedData.Magnitude < 0.0f)
 			{
-				OnTakeDamage.Broadcast(Instigator, Causer, &Data.EffectSpec, Data.EvaluatedData.Magnitude);
+				OnTakeDamage.Broadcast(Instigator, Causer, &Data.EffectSpec, Data.EvaluatedData.Magnitude, PrevHP, GetCurrentHP());
 			}
 			else //if (Data.EvaluatedData.Magnitude > 0.0f)
 			{
-				OnHealing.Broadcast(Instigator, Causer, &Data.EffectSpec, Data.EvaluatedData.Magnitude);
+				OnHealing.Broadcast(Instigator, Causer, &Data.EffectSpec, Data.EvaluatedData.Magnitude, PrevHP, GetCurrentHP());
 			}
 		}
 	}
@@ -59,6 +62,11 @@ void UUPFCharacterStatSet::PostGameplayEffectExecute(const FGameplayEffectModCal
 	{
 		// 최대 체력 감소 시 현재 체력 조절하는 부분
 		SetCurrentHP(FMath::Clamp(GetCurrentHP(), 0.0f, GetMaxHP()));
+		
+		if (!FMath::IsNearlyZero(Data.EvaluatedData.Magnitude))
+		{
+			OnMaxHPChanged.Broadcast(GetCurrentHP(), GetMaxHP());
+		}
 	}
 }
 
@@ -94,11 +102,6 @@ void UUPFCharacterStatSet::PostAttributeChange(const FGameplayAttribute& Attribu
 	// {
 	// 	UPF_LOG_ATTRIBUTE(LogTemp, Log, TEXT("Called: %s, %s, %f -> %f (%f)"), *OwningActor->GetName(), *Attribute.AttributeName, OldValue, NewValue, GetCurrentHP());
 	// }
-
-	if (Attribute == GetCurrentHPAttribute() || Attribute == GetMaxHPAttribute())
-	{
-		OnHPChanged.Broadcast(GetCurrentHP(), GetMaxHP());
-	}
 }
 
 void UUPFCharacterStatSet::ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const
@@ -123,7 +126,7 @@ void UUPFCharacterStatSet::OnRep_CurrentHP(const FGameplayAttributeData& OldValu
 
 	if (!bIsOnDeathInvoked && CurHP <= 0.0f)
 	{
-		OnDeath.Broadcast(nullptr, nullptr, nullptr, EstimatedMagnitude);
+		OnDeath.Broadcast(nullptr, nullptr, nullptr, EstimatedMagnitude, OldValue.GetCurrentValue(), CurHP);
 	}
 
 	bIsOnDeathInvoked = CurHP <= 0.0f;

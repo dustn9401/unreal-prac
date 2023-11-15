@@ -54,12 +54,18 @@ AUPFCharacterBase::AUPFCharacterBase(const FObjectInitializer& ObjectInitializer
 		GetMesh()->SetAnimInstanceClass(AnimInstanceClassRef.Class);
 	}
 
+	// Ability
 	AbilitySystemComponent = CreateDefaultSubobject<UUPFAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	StatComponent = CreateDefaultSubobject<UUPFCharacterStatComponent>(TEXT("CharacterStatComponent"));
 	StatSet = CreateDefaultSubobject<UUPFCharacterStatSet>(TEXT("StatSet"));
+
+	// Widget
+	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
+	WidgetComponent->SetupAttachment(GetMesh());
+	
 }
 
 void AUPFCharacterBase::PostInitializeComponents()

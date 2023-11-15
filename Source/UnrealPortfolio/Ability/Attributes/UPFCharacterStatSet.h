@@ -29,12 +29,12 @@ public:
 	ATTRIBUTE_ACCESSORS(UUPFCharacterStatSet, Defense);
 
 	// for UIs
-	FOnHPChangedDelegate OnHPChanged;
-	FUPFAttributeEvent OnDeath;
+	mutable FOnHPChangedDelegate OnMaxHPChanged;
+	mutable FUPFAttributeEvent OnDeath;
 
 	// for Damage / Heal Effects
-	FUPFAttributeEvent OnTakeDamage;
-	FUPFAttributeEvent OnHealing;
+	mutable FUPFAttributeEvent OnTakeDamage;
+	mutable FUPFAttributeEvent OnHealing;
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentHP, Category = "UPF|Stat", Meta = (AllowPrivateAccess = true))
@@ -59,6 +59,8 @@ private:
 	FGameplayAttributeData Defense;	// 방어력
 
 	bool bIsOnDeathInvoked;
+	float PrevHP = 0.0f;
+	float PrevMaxHP = 0.0f;
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

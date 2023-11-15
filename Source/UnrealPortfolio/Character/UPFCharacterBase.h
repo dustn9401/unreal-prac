@@ -10,6 +10,7 @@
 #include "Ability/Attributes/UPFCharacterStatSet.h"
 #include "Components/UPFAbilitySystemComponent.h"
 #include "Components/UPFCharacterStatComponent.h"
+#include "Components/WidgetComponent.h"
 #include "DataAssets/ComboAttackData.h"
 #include "UPFCharacterBase.generated.h"
 
@@ -45,7 +46,7 @@ protected:
 	TObjectPtr<UUPFAbilitySystemComponent> AbilitySystemComponent;		// 이 캐릭터가 보유한 어빌리티를 관리할 컴포넌트
 
 // Stat
-public:
+protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Stat")
 	TObjectPtr<UUPFCharacterStatComponent> StatComponent;
 
@@ -53,6 +54,17 @@ public:
 	// 실제 StatSet의 관리는 StatComponent가 담당
 	UPROPERTY()
 	TObjectPtr<UUPFCharacterStatSet> StatSet;
+
+// Widget
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Widget")
+	TObjectPtr<UWidgetComponent> WidgetComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Widget")
+	TObjectPtr<UUserWidget> Widget;
+
+// Equipment
+	
 
 	// UPROPERTY()
 	// TWeakObjectPtr<>
