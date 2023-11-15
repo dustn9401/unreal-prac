@@ -48,6 +48,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_MovementSpeed, Category = "UPF|Stat", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData MovementSpeed;	// 이동속도
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_Defense, Category = "UPF|Stat", Meta = (AllowPrivateAccess = true))
+	FGameplayAttributeData Defense;	// 방어력
+
 	bool bIsOnDeathInvoked;
 
 protected:
@@ -80,6 +83,9 @@ protected:
 
 	UFUNCTION()
 	void OnRep_MovementSpeed(const FGameplayAttributeData& OldValue);
+
+	UFUNCTION()
+	void OnRep_Defense(const FGameplayAttributeData& OldValue);
 
 public:
 	FString ToString() const;

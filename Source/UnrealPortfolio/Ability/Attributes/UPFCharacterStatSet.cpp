@@ -22,6 +22,7 @@ void UUPFCharacterStatSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	DOREPLIFETIME_CONDITION_NOTIFY(UUPFCharacterStatSet, AttackRange, COND_OwnerOnly, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UUPFCharacterStatSet, AttackSpeed, COND_OwnerOnly, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UUPFCharacterStatSet, MovementSpeed, COND_OwnerOnly, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UUPFCharacterStatSet, Defense, COND_OwnerOnly, REPNOTIFY_Always);
 }
 
 bool UUPFCharacterStatSet::PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data)
@@ -137,6 +138,11 @@ void UUPFCharacterStatSet::OnRep_AttackSpeed(const FGameplayAttributeData& OldVa
 void UUPFCharacterStatSet::OnRep_MovementSpeed(const FGameplayAttributeData& OldValue)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UUPFCharacterStatSet, MovementSpeed, OldValue);
+}
+
+void UUPFCharacterStatSet::OnRep_Defense(const FGameplayAttributeData& OldValue)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UUPFCharacterStatSet, Defense, OldValue);
 }
 
 FString UUPFCharacterStatSet::ToString() const

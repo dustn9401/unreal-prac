@@ -32,3 +32,7 @@ with open(csv_path, 'w', newline='', encoding='utf-8') as file:
         row = [f'{group}.{attribute_set}.MovementSpeed'] + \
               [400 for i in range(num_lvl)]
         csv_writer.writerow(row)
+
+        row = [f'{group}.{attribute_set}.Defense'] + \
+              [i*10 for i in range(num_lvl)]
+        csv_writer.writerow(row)
