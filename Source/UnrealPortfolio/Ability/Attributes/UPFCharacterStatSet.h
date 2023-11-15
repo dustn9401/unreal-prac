@@ -7,6 +7,8 @@
 #include "Ability/Attributes/UPFAttributeSet.h"
 #include "UPFCharacterStatSet.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnHPChangedDelegate, float /*CurrentHP*/, float /*MaxHP*/)
+
 /**
  * 캐릭터가 가지고 있는 스텟 데이터
  */
@@ -24,10 +26,15 @@ public:
 	ATTRIBUTE_ACCESSORS(UUPFCharacterStatSet, AttackRange);
 	ATTRIBUTE_ACCESSORS(UUPFCharacterStatSet, AttackSpeed);
 	ATTRIBUTE_ACCESSORS(UUPFCharacterStatSet, MovementSpeed);
+	ATTRIBUTE_ACCESSORS(UUPFCharacterStatSet, Defense);
 
-	FUPFAttributeEvent OnCurrentHPChanged;
-	FUPFAttributeEvent OnMaxHPChanged;
+	// for UIs
+	FOnHPChangedDelegate OnHPChanged;
 	FUPFAttributeEvent OnDeath;
+
+	// for Damage / Heal Effects
+	FUPFAttributeEvent OnTakeDamage;
+	FUPFAttributeEvent OnHealing;
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentHP, Category = "UPF|Stat", Meta = (AllowPrivateAccess = true))

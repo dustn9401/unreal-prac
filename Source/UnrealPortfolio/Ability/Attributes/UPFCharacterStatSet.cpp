@@ -27,22 +27,33 @@ void UUPFCharacterStatSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 
 bool UUPFCharacterStatSet::PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data)
 {
-	UPF_LOG_ATTRIBUTE(LogTemp, Log, TEXT("Called"));
+	// 서버전용
+	// UPF_LOG_ATTRIBUTE(LogTemp, Log, TEXT("Called"));
 	return Super::PreGameplayEffectExecute(Data);
 }
 
 void UUPFCharacterStatSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
-	UPF_LOG_ATTRIBUTE(LogTemp, Log, TEXT("Called"));
+	// 서버전용
 	Super::PostGameplayEffectExecute(Data);
-
-	const FGameplayEffectContextHandle& EffectContext = Data.EffectSpec.GetEffectContext();
-	AActor* Instigator = EffectContext.GetOriginalInstigator();
-	AActor* Causer = EffectContext.GetEffectCauser();
-
+	
 	if (Data.EvaluatedData.Attribute == GetCurrentHPAttribute())
 	{
+		if (!FMath::IsNearlyZero(Data.EvaluatedData.Magnitude))
+		{
+			const FGameplayEffectContextHandle& EffectContext = Data.EffectSpec.GetEffectContext();
+			AActor* Instigator = EffectContext.GetOriginalInstigator();
+			AActor* Causer = EffectContext.GetEffectCauser();
 		
+			if (Data.EvaluatedData.Magnitude < 0.0f)
+			{
+				OnTakeDamage.Broadcast(Instigator, Causer, &Data.EffectSpec, Data.EvaluatedData.Magnitude);
+			}
+			else //if (Data.EvaluatedData.Magnitude > 0.0f)
+			{
+				OnHealing.Broadcast(Instigator, Causer, &Data.EffectSpec, Data.EvaluatedData.Magnitude);
+			}
+		}
 	}
 	else if (Data.EvaluatedData.Attribute == GetMaxHPAttribute())
 	{
@@ -61,7 +72,7 @@ void UUPFCharacterStatSet::PreAttributeBaseChange(const FGameplayAttribute& Attr
 void UUPFCharacterStatSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
 {
 	Super::PreAttributeChange(Attribute, NewValue);
-
+	
 	ClampAttribute(Attribute, NewValue);
 }
 
@@ -69,19 +80,24 @@ void UUPFCharacterStatSet::PostAttributeBaseChange(const FGameplayAttribute& Att
 {
 	Super::PostAttributeBaseChange(Attribute, OldValue, NewValue);
 
-	if (const AActor* OwningActor = GetOwningActor())
-	{
-		UPF_LOG_ATTRIBUTE(LogTemp, Log, TEXT("Called: %s, %s, %f -> %f (%f)"), *OwningActor->GetName(), *Attribute.AttributeName, OldValue, NewValue, GetCurrentHP());
-	}
+	// if (const AActor* OwningActor = GetOwningActor())
+	// {
+	// 	UPF_LOG_ATTRIBUTE(LogTemp, Log, TEXT("Called: %s, %s, %f -> %f (%f)"), *OwningActor->GetName(), *Attribute.AttributeName, OldValue, NewValue, GetCurrentHP());
+	// }
 }
 
 void UUPFCharacterStatSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
 {
 	Super::PostAttributeChange(Attribute, OldValue, NewValue);
 
-	if (const AActor* OwningActor = GetOwningActor())
+	// if (const AActor* OwningActor = GetOwningActor())
+	// {
+	// 	UPF_LOG_ATTRIBUTE(LogTemp, Log, TEXT("Called: %s, %s, %f -> %f (%f)"), *OwningActor->GetName(), *Attribute.AttributeName, OldValue, NewValue, GetCurrentHP());
+	// }
+
+	if (Attribute == GetCurrentHPAttribute() || Attribute == GetMaxHPAttribute())
 	{
-		UPF_LOG_ATTRIBUTE(LogTemp, Log, TEXT("Called: %s, %s, %f -> %f (%f)"), *OwningActor->GetName(), *Attribute.AttributeName, OldValue, NewValue, GetCurrentHP());
+		OnHPChanged.Broadcast(GetCurrentHP(), GetMaxHP());
 	}
 }
 
@@ -104,12 +120,10 @@ void UUPFCharacterStatSet::OnRep_CurrentHP(const FGameplayAttributeData& OldValu
 
 	const float CurHP = GetCurrentHP();
 	const float EstimatedMagnitude = CurHP - OldValue.GetCurrentValue();
-	
-	OnCurrentHPChanged.Broadcast(nullptr, nullptr, nullptr, EstimatedMagnitude, OldValue.GetCurrentValue(), CurHP);
 
 	if (!bIsOnDeathInvoked && CurHP <= 0.0f)
 	{
-		OnDeath.Broadcast(nullptr, nullptr, nullptr, EstimatedMagnitude, OldValue.GetCurrentValue(), CurHP);
+		OnDeath.Broadcast(nullptr, nullptr, nullptr, EstimatedMagnitude);
 	}
 
 	bIsOnDeathInvoked = CurHP <= 0.0f;
