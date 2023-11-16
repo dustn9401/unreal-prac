@@ -20,6 +20,8 @@ class UNREALPORTFOLIO_API UUPFCharacterStatSet : public UUPFAttributeSet
 public:
 	UUPFCharacterStatSet();
 
+	virtual void OnInit() override;
+
 	ATTRIBUTE_ACCESSORS(UUPFCharacterStatSet, CurrentHP);
 	ATTRIBUTE_ACCESSORS(UUPFCharacterStatSet, MaxHP);
 	ATTRIBUTE_ACCESSORS(UUPFCharacterStatSet, Attack);
@@ -30,7 +32,7 @@ public:
 
 	// for UIs
 	mutable FOnHPChangedDelegate OnMaxHPChanged;
-	mutable FUPFAttributeEvent OnDeath;
+	mutable FUPFAttributeEvent OnHPZero;
 
 	// for Damage / Heal Effects
 	mutable FUPFAttributeEvent OnTakeDamage;
@@ -58,7 +60,7 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_Defense, Category = "UPF|Stat", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData Defense;	// 방어력
 
-	bool bIsOnDeathInvoked;
+	bool bIsOnHPZeroInvoked;
 	float PrevHP = 0.0f;
 	float PrevMaxHP = 0.0f;
 

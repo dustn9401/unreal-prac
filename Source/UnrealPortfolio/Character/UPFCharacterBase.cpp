@@ -77,6 +77,10 @@ AUPFCharacterBase::AUPFCharacterBase(const FObjectInitializer& ObjectInitializer
 	}
 }
 
+void AUPFCharacterBase::DestroySelf()
+{
+}
+
 void AUPFCharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
@@ -84,10 +88,10 @@ void AUPFCharacterBase::PostInitializeComponents()
 	// 스텟 초기화
 	const FName StatGroup(TEXT("Player"));
 	IGameplayAbilitiesModule::Get().GetAbilitySystemGlobals()->GetAttributeSetInitter()->InitAttributeSetDefaults(AbilitySystemComponent, StatGroup, 1, true);
-	
-	// CurrentHP 값은 테이블에 없기 때문에, 여기서 MaxHP값으로 초기화
-	StatSet->InitCurrentHP(StatSet->GetMaxHP());
+	StatSet->OnInit();
+	StatSet->OnHPZero.AddUObject(this, &AUPFCharacterBase::OnHPZero);
 
+	// 위젯 초기화
 	HPBarWidgetComp->InitWidget(); // 여기선 아직 Widget이 생성 안된 상태라 수동으로 초기화
 	UUPFHPBarWidget* HPBarWidget = CastChecked<UUPFHPBarWidget>(HPBarWidgetComp->GetWidget());
 	HPBarWidget->SetData(StatSet);
@@ -107,4 +111,22 @@ void AUPFCharacterBase::OnMeleeAttackAnimationHit()
 UAbilitySystemComponent* AUPFCharacterBase::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
+}
+
+void AUPFCharacterBase::OnHPZero(AActor* EffectInstigator, AActor* EffectCauser, const FGameplayEffectSpec* EffectSpec, float EffectMagnitude, float OldValue, float NewValue)
+{
+	GetCharacterMovement()->SetMovementMode(MOVE_None);
+	SetActorEnableCollision(false);	// 시체가 걸리적거리지 않도록
+	HPBarWidgetComp->SetHiddenInGame(true);	// 사망 연출 중 hp bar는 숨긴다.
+	
+	OnDeathStart();
+	K2_OnDeathStart();	// 사망 몽타주 재생 등 연출은 여기서 처리
+}
+
+void AUPFCharacterBase::FinishDeath()
+{
+	if (IsFinishDeathInvoked) return;
+	IsFinishDeathInvoked = true;
+
+	// todo: 컨트롤러에 알려서 HUD 띄우기
 }

@@ -29,6 +29,9 @@ public:
 	// Sets default values for this character's properties
 	AUPFCharacterBase(const FObjectInitializer& ObjectInitializer);
 
+	// 스스로 정리한 뒤 파괴시킨다. 반드시 캐릭터를 제거할 때는 이 함수를 사용할 것!!
+	virtual void DestroySelf();
+
 protected:
 	virtual void PostInitializeComponents() override;
 
@@ -59,11 +62,28 @@ public:
 		return StatSet;
 	}
 
-	// Widget
+// Widget
 protected:
 	// HP bar 표시용 컴포넌트
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Widget")
 	TObjectPtr<UWidgetComponent> HPBarWidgetComp;
+
+// Death
+private:
+	void OnHPZero(AActor* EffectInstigator, AActor* EffectCauser, const FGameplayEffectSpec* EffectSpec, float EffectMagnitude, float OldValue, float NewValue);
+
+	
+protected:
+	virtual void OnDeathStart() {}
+	
+	// 데미지를 받아 캐릭터의 체력이 0이 되었을 때 호출되는 함수. 여기서 반드시 FinishDeath 를 호출할 것
+	UFUNCTION(BlueprintImplementableEvent, DisplayName="OnDeathStartCpp")
+	void K2_OnDeathStart();
+	
+	UFUNCTION(BlueprintCallable)
+	virtual void FinishDeath();
+
+	bool IsFinishDeathInvoked;
 
 // Equipment
 	

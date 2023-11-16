@@ -13,5 +13,10 @@ UCLASS()
 class UNREALPORTFOLIO_API AUPFPlayerController : public APlayerController
 {
 	GENERATED_BODY()
+
+public:
+	AUPFPlayerController();
 	
+	UFUNCTION(BlueprintImplementableEvent, Category=Game, DisplayName="OnGameOverCpp")
+	void K2_OnGameOver();
 };

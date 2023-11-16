@@ -3,3 +3,6 @@
 
 #include "Player/UPFPlayerController.h"
 
+AUPFPlayerController::AUPFPlayerController()
+{
+}
