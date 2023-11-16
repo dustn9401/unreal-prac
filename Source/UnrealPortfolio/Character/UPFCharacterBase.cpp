@@ -12,6 +12,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Physics/UPFCollision.h"
 #include "Player/UPFPlayerState.h"
+#include "UI/UPFHPBarWidget.h"
 
 // Sets default values
 AUPFCharacterBase::AUPFCharacterBase(const FObjectInitializer& ObjectInitializer)
@@ -59,21 +60,37 @@ AUPFCharacterBase::AUPFCharacterBase(const FObjectInitializer& ObjectInitializer
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
-	StatComponent = CreateDefaultSubobject<UUPFCharacterStatComponent>(TEXT("CharacterStatComponent"));
+	// Character Stat
 	StatSet = CreateDefaultSubobject<UUPFCharacterStatSet>(TEXT("StatSet"));
 
-	// Widget
-	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
-	WidgetComponent->SetupAttachment(GetMesh());
-	
+	// Widget: HP Bar
+	HPBarWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
+	HPBarWidgetComp->SetupAttachment(GetMesh(), FName(TEXT("rootSocket")));
+	HPBarWidgetComp->SetRelativeLocation(FVector(0.0f, 0.0f, 190.0f));
+	static ConstructorHelpers::FClassFinder<UUPFHPBarWidget> HPBarWidgetRef(TEXT("/Game/UnrealPortfolio/UI/WBP_UPFHPBar.WBP_UPFHPBar_C"));
+	if (HPBarWidgetRef.Class)
+	{
+		HPBarWidgetComp->SetWidgetClass(HPBarWidgetRef.Class);
+		HPBarWidgetComp->SetWidgetSpace(EWidgetSpace::Screen);
+		HPBarWidgetComp->SetDrawSize(FVector2D(150.0f, 15.0f));
+		HPBarWidgetComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
 }
 
 void AUPFCharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	StatComponent->InitializeAttributes(AbilitySystemComponent, FName(TEXT("Player")), 5);
+	// 스텟 초기화
+	const FName StatGroup(TEXT("Player"));
+	IGameplayAbilitiesModule::Get().GetAbilitySystemGlobals()->GetAttributeSetInitter()->InitAttributeSetDefaults(AbilitySystemComponent, StatGroup, 1, true);
+	
+	// CurrentHP 값은 테이블에 없기 때문에, 여기서 MaxHP값으로 초기화
 	StatSet->InitCurrentHP(StatSet->GetMaxHP());
+
+	HPBarWidgetComp->InitWidget(); // 여기선 아직 Widget이 생성 안된 상태라 수동으로 초기화
+	UUPFHPBarWidget* HPBarWidget = CastChecked<UUPFHPBarWidget>(HPBarWidgetComp->GetWidget());
+	HPBarWidget->SetData(StatSet);
 }
 
 void AUPFCharacterBase::OnMeleeAttackAnimationHit()

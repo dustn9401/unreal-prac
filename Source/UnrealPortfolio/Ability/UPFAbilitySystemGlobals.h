@@ -1,0 +1,19 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "AbilitySystemGlobals.h"
+#include "UPFAbilitySystemGlobals.generated.h"
+
+
+
+/**
+ * 
+ */
+UCLASS()
+class UNREALPORTFOLIO_API UUPFAbilitySystemGlobals : public UAbilitySystemGlobals
+{
+	GENERATED_BODY()
+
+};

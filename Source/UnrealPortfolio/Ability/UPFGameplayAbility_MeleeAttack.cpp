@@ -20,10 +20,10 @@ UUPFGameplayAbility_MeleeAttack::UUPFGameplayAbility_MeleeAttack(const FObjectIn
 		ComboAttackData = ComboAttackDataRef.Object;
 	}
 
-	FAbilityTriggerData TriggerData;
-	TriggerData.TriggerTag = UPFGameplayTags::InputTag_Ability;
-	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
-	AbilityTriggers.Add(TriggerData);
+	// FAbilityTriggerData TriggerData;
+	// TriggerData.TriggerTag = UPFGameplayTags::InputTag_Ability;
+	// TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
+	// AbilityTriggers.Add(TriggerData);
 }
 
 void UUPFGameplayAbility_MeleeAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -129,9 +129,8 @@ void UUPFGameplayAbility_MeleeAttack::OnAnimNotify()
 	TArray<FHitResult> OutHitResults;
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, Instigator);
 	// Params.IgnoreMask = static_cast<FMaskFilter>(TeamType);	// TODO: 피아식별
-
-	const UUPFCharacterStatComponent* StatComp = Instigator->StatComponent;
-	const UUPFCharacterStatSet* StatSet = StatComp->GetBaseStat();
+	
+	const UUPFCharacterStatSet* StatSet = Instigator->GetStatSet();
 	const float AttackRange = StatSet->GetAttackRange();
 	const float AttackRadius = 50.0f;	// TODO: 무기 종류에 따라 값 설정
 	const float AttackDamage = StatSet->GetAttack();
