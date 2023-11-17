@@ -5,6 +5,7 @@
 
 #include "AbilitySystemGlobals.h"
 #include "GameplayAbilitiesModule.h"
+#include "UnrealPortfolio.h"
 #include "UPFGameplayTags.h"
 #include "Ability/UPFGameplayAbility_MeleeAttack.h"
 #include "Components/CapsuleComponent.h"
@@ -55,6 +56,12 @@ AUPFCharacterBase::AUPFCharacterBase(const FObjectInitializer& ObjectInitializer
 		GetMesh()->SetAnimInstanceClass(AnimInstanceClassRef.Class);
 	}
 
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> DeadMontageRef(TEXT("/Script/Engine.AnimMontage'/Game/UnrealPortfolio/Animation/AM_Dead.AM_Dead'"));
+	if (DeadMontageRef.Object)
+	{
+		DeadMontage = DeadMontageRef.Object;
+	}
+
 	// Ability
 	AbilitySystemComponent = CreateDefaultSubobject<UUPFAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
@@ -79,6 +86,7 @@ AUPFCharacterBase::AUPFCharacterBase(const FObjectInitializer& ObjectInitializer
 
 void AUPFCharacterBase::DestroySelf()
 {
+	Destroy();
 }
 
 void AUPFCharacterBase::PostInitializeComponents()
@@ -115,18 +123,19 @@ UAbilitySystemComponent* AUPFCharacterBase::GetAbilitySystemComponent() const
 
 void AUPFCharacterBase::OnHPZero(AActor* EffectInstigator, AActor* EffectCauser, const FGameplayEffectSpec* EffectSpec, float EffectMagnitude, float OldValue, float NewValue)
 {
+	UPF_LOG(LogTemp, Log, TEXT("Called"));
 	GetCharacterMovement()->SetMovementMode(MOVE_None);
 	SetActorEnableCollision(false);	// 시체가 걸리적거리지 않도록
 	HPBarWidgetComp->SetHiddenInGame(true);	// 사망 연출 중 hp bar는 숨긴다.
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	AnimInstance->StopAllMontages(0.0f);
+	AnimInstance->Montage_Play(DeadMontage);
 	
 	OnDeathStart();
-	K2_OnDeathStart();	// 사망 몽타주 재생 등 연출은 여기서 처리
+	K2_OnDeathStart();
 }
 
 void AUPFCharacterBase::FinishDeath()
 {
-	if (IsFinishDeathInvoked) return;
-	IsFinishDeathInvoked = true;
-
-	// todo: 컨트롤러에 알려서 HUD 띄우기
+	SetActorHiddenInGame(true);
 }

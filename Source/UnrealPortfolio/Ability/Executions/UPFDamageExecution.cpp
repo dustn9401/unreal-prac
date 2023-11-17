@@ -36,12 +36,6 @@ void UUPFDamageExecution::Execute_Implementation(const FGameplayEffectCustomExec
 	Super::Execute_Implementation(ExecutionParams, OutExecutionOutput);
 
 	// UE_LOG(LogTemp, Log, TEXT("UUPFDamageExecution::Execute_Implementation"));
-	//
-	for(const auto& Attr : ExecutionParams.GetOwningSpec().ModifiedAttributes)
-	{
-		UE_LOG(LogTemp, Log, TEXT("Attr Name = %s, Mag = %f"), *Attr.Attribute.AttributeName, Attr.TotalMagnitude);
-	}
-
 
 	const FGameplayEffectSpec& Spec = ExecutionParams.GetOwningSpec();
 	const FGameplayTagContainer* SourceTags = Spec.CapturedSourceTags.GetAggregatedTags();
@@ -54,12 +48,10 @@ void UUPFDamageExecution::Execute_Implementation(const FGameplayEffectCustomExec
 	// Instigator의 공격력
 	float BaseDamage = 0.0f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().BaseDamageDef, EvaluateParameters, BaseDamage);
-	UE_LOG(LogTemp, Log, TEXT("BaseDamage = %f"), BaseDamage);
 
 	// Target의 방어력
 	float BaseDefense = 0.0f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().BaseDefenseDef, EvaluateParameters, BaseDefense);
-	UE_LOG(LogTemp, Log, TEXT("BaseDefense = %f"), BaseDefense);
 
 	// 최종 데미지 감소율 계산
 	constexpr float DamageReductionConstant = 300.0f;
@@ -67,7 +59,6 @@ void UUPFDamageExecution::Execute_Implementation(const FGameplayEffectCustomExec
 
 	if (const float FinalDamage = FMath::Max(0.0f, BaseDamage * MultiplierByDefense); FinalDamage > 0.0f)
 	{
-		UE_LOG(LogTemp, Log, TEXT("FinalDamage = %f"), FinalDamage);
 		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(UUPFCharacterStatSet::GetCurrentHPAttribute(), EGameplayModOp::Additive, -FinalDamage));
 	}
 }

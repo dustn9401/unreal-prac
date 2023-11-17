@@ -18,7 +18,7 @@ with open(csv_path, 'w', newline='', encoding='utf-8') as file:
         csv_writer.writerow(row)
 
         row = [f'{group}.{attribute_set}.Attack'] + \
-              [40 + i*20 for i in range(num_lvl)]
+              [(100 + i*50 if group == 'Player' else 40 + i*20) for i in range(num_lvl)]
         csv_writer.writerow(row)
 
         row = [f'{group}.{attribute_set}.AttackRange'] + \

@@ -74,6 +74,9 @@ private:
 
 	
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
+	TObjectPtr<UAnimMontage> DeadMontage;
+	
 	virtual void OnDeathStart() {}
 	
 	// 데미지를 받아 캐릭터의 체력이 0이 되었을 때 호출되는 함수. 여기서 반드시 FinishDeath 를 호출할 것
@@ -82,8 +85,6 @@ protected:
 	
 	UFUNCTION(BlueprintCallable)
 	virtual void FinishDeath();
-
-	bool IsFinishDeathInvoked;
 
 // Equipment
 	
