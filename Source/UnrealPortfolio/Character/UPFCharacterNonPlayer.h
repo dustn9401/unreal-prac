@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Character/UPFCharacterBase.h"
-#include "UPFCharacterEnemy.generated.h"
+#include "UPFCharacterNonPlayer.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class UNREALPORTFOLIO_API AUPFCharacterEnemy : public AUPFCharacterBase
+class UNREALPORTFOLIO_API AUPFCharacterNonPlayer : public AUPFCharacterBase
 {
 	GENERATED_BODY()
 	

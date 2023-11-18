@@ -19,7 +19,7 @@
  * 모든 캐릭터들의 base class
  */
 
-UCLASS()
+UCLASS(Abstract)
 class UNREALPORTFOLIO_API AUPFCharacterBase : public ACharacter,
 public IMeleeAttackAnimationInterface,
 public IAbilitySystemInterface
