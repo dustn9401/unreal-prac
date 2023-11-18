@@ -23,6 +23,7 @@
 UENUM(BlueprintType)
 enum EUPFGameplayAbilityInputBinds : int
 {
+	None,
 	Ability1				UMETA(DisplayName = "Ability1 (LMB)"),
 	Ability2				UMETA(DisplayName = "Ability2 (RMB)"),
 	Ability3				UMETA(DisplayName = "Ability3 (Q)"),

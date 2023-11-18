@@ -11,6 +11,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/UPFAbilitySystemComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Input/UPFAbilityInputMappingData.h"
 #include "Physics/UPFCollision.h"
 #include "Player/UPFPlayerState.h"
 #include "UI/UPFHPBarWidget.h"
@@ -82,6 +83,12 @@ AUPFCharacterBase::AUPFCharacterBase(const FObjectInitializer& ObjectInitializer
 		HPBarWidgetComp->SetDrawSize(FVector2D(150.0f, 15.0f));
 		HPBarWidgetComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
+
+	static ConstructorHelpers::FObjectFinder<UUPFCharacterData> CharacterDataRef(TEXT("/Script/UnrealPortfolio.UPFCharacterData'/Game/UnrealPortfolio/DataAssets/UPFCharacterData.UPFCharacterData'"));
+	if (CharacterDataRef.Object)
+	{
+		CharacterData = CharacterDataRef.Object;
+	}
 }
 
 void AUPFCharacterBase::DestroySelf()
@@ -93,10 +100,23 @@ void AUPFCharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	// 스텟 초기화
-	const FName StatGroup(TEXT("Player"));
-	IGameplayAbilitiesModule::Get().GetAbilitySystemGlobals()->GetAttributeSetInitter()->InitAttributeSetDefaults(AbilitySystemComponent, StatGroup, 1, true);
-	StatSet->OnInit();
+	UPF_LOG(LogTemp, Log, TEXT("Called, %s"), *GetName());
+
+	// 스텟 초기화 및 기본 어빌리티 부여, 서버만 수행
+	if (HasAuthority())
+	{
+		IGameplayAbilitiesModule::Get().GetAbilitySystemGlobals()->GetAttributeSetInitter()->InitAttributeSetDefaults(AbilitySystemComponent, GetStatGroup(), 1, true);
+		StatSet->OnInit();
+
+		check(CharacterData);
+		for(const FUPFAbilityTriggerData& AbilityInputAction : CharacterData->AbilityInputMappingData->AbilityInputActions)
+		{
+			const int32 InputID = AbilityInputAction.InputID == None ? INDEX_NONE : AbilityInputAction.InputID;	// enum이 -1값이 안되서 따로 처리
+			FGameplayAbilitySpec AbilitySpec(AbilityInputAction.Ability, 1, InputID, this);
+			AbilitySystemComponent->GiveAbility(AbilitySpec);
+		}
+	}
+	
 	StatSet->OnHPZero.AddUObject(this, &AUPFCharacterBase::OnHPZero);
 
 	// 위젯 초기화

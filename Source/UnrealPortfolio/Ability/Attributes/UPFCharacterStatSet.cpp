@@ -140,10 +140,10 @@ void UUPFCharacterStatSet::ClampAttribute(const FGameplayAttribute& Attribute, f
 void UUPFCharacterStatSet::OnRep_CurrentHP(const FGameplayAttributeData& OldValue)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UUPFCharacterStatSet, CurrentHP, OldValue);
-	UPF_LOG_ATTRIBUTE(LogTemp, Log, TEXT("Called"));
 
 	const float CurHP = GetCurrentHP();
 	const float EstimatedMagnitude = CurHP - OldValue.GetCurrentValue();
+	UPF_LOG_ATTRIBUTE(LogTemp, Log, TEXT("Called, %f -> %f"), OldValue.GetCurrentValue(), CurHP);
 
 	if (EstimatedMagnitude < 0.0f)
 	{
@@ -166,6 +166,7 @@ void UUPFCharacterStatSet::OnRep_MaxHP(const FGameplayAttributeData& OldValue)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UUPFCharacterStatSet, MaxHP, OldValue);
 
+	UPF_LOG_ATTRIBUTE(LogTemp, Log, TEXT("Called, %f -> %f"), OldValue.GetCurrentValue(), GetMaxHP());
 	OnMaxHPChanged.Broadcast(GetCurrentHP(), GetMaxHP());
 }
 

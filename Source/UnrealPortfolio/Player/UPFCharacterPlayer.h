@@ -39,9 +39,6 @@ protected:
 // Input Section
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
-	TObjectPtr<class UUPFAbilityInputMappingData> AbilityInputMappingData;	// 이 캐릭터가 보유한 어빌리티를 발동시키기 위한 입력 설정
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> LookAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))

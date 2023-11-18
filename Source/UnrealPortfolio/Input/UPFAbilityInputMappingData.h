@@ -13,18 +13,19 @@ class UInputAction;
 class UUPFGameplayAbility;
 
 /**
- * InputAction과 GameplayTag 매핑을 위한 구조체
+ * 어빌리티를 발동시키기 위한 인풋 및 태그를 묶어놓은 구조체
  */
 USTRUCT(BlueprintType)
-struct FUPFAbilityInputAction
+struct FUPFAbilityTriggerData
 {
 	GENERATED_BODY()
 
-	FUPFAbilityInputAction(): InputID(EUPFGameplayAbilityInputBinds::Ability1)
+	FUPFAbilityTriggerData(): InputID(EUPFGameplayAbilityInputBinds::Ability1)
 	{
 	}
 
 public:
+	// Can be null
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<const UInputAction> InputAction = nullptr;
 
@@ -47,6 +48,7 @@ class UNREALPORTFOLIO_API UUPFAbilityInputMappingData : public UPrimaryDataAsset
 	GENERATED_BODY()
 
 public:
+	// 이 캐릭터가 보유한 어빌리티를 발동시키기 위한 입력 설정
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (TitleProperty = "InputAction"))
-	TArray<FUPFAbilityInputAction> AbilityInputActions;
+	TArray<FUPFAbilityTriggerData> AbilityInputActions;
 };

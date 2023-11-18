@@ -7,7 +7,7 @@
 #include "UPFGameplayAbility.generated.h"
 
 /**
- * 
+ * 모든 어빌리티들의 base class
  */
 UCLASS()
 class UNREALPORTFOLIO_API UUPFGameplayAbility : public UGameplayAbility

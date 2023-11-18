@@ -49,12 +49,6 @@ AUPFCharacterPlayer::AUPFCharacterPlayer(const FObjectInitializer& ObjectInitial
 	{
 		JumpAction = InputActionJumpRef.Object;
 	}
-
-	static ConstructorHelpers::FObjectFinder<UUPFAbilityInputMappingData> AbilityInputDataRef(TEXT("/Script/UnrealPortfolio.UPFAbilityInputMappingData'/Game/UnrealPortfolio/DataAssets/AIMD_PlayerCharacter.AIMD_PlayerCharacter'"));
-	if (AbilityInputDataRef.Object)
-	{
-		AbilityInputMappingData = AbilityInputDataRef.Object;
-	}
 }
 
 void AUPFCharacterPlayer::BeginPlay()
@@ -76,6 +70,7 @@ void AUPFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 {
 	// 로컬 컨트롤러 일때만 호출되는 함수
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	UPF_LOG(LogTemp, Log, TEXT("Called, %s"), *GetName());
 
 	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
 
@@ -85,36 +80,30 @@ void AUPFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
-	// Ability Inputs, 여기서 어빌리티 생성 및 부여
-	if (AbilityInputMappingData)
+	// Ability Inputs
+	check(CharacterData && CharacterData->AbilityInputMappingData);
+
+	for(const FUPFAbilityTriggerData& AbilityInputAction : CharacterData->AbilityInputMappingData->AbilityInputActions)
 	{
-		for(const FUPFAbilityInputAction& AbilityInputAction : AbilityInputMappingData->AbilityInputActions)
-		{
-			FGameplayAbilitySpec AbilitySpec(AbilityInputAction.Ability, 1, AbilityInputAction.InputID, this);
-			AbilitySystemComponent->GiveAbility(AbilitySpec);
+		EnhancedInputComponent->BindAction<UAbilitySystemComponent, int32>(
+			AbilityInputAction.InputAction,
+			ETriggerEvent::Triggered,
+			AbilitySystemComponent,
+			&UAbilitySystemComponent::PressInputID,
+			AbilityInputAction.InputID);
 
-			EnhancedInputComponent->BindAction<UAbilitySystemComponent, int32>(
-				AbilityInputAction.InputAction,
-				ETriggerEvent::Triggered,
-				AbilitySystemComponent,
-				&UAbilitySystemComponent::PressInputID,
-				AbilityInputAction.InputID);
-
-			EnhancedInputComponent->BindAction<UAbilitySystemComponent, int32>(
-				AbilityInputAction.InputAction,
-				ETriggerEvent::Completed,
-				AbilitySystemComponent,
-				&UAbilitySystemComponent::ReleaseInputID,
-				AbilityInputAction.InputID);
-		}
+		EnhancedInputComponent->BindAction<UAbilitySystemComponent, int32>(
+			AbilityInputAction.InputAction,
+			ETriggerEvent::Completed,
+			AbilitySystemComponent,
+			&UAbilitySystemComponent::ReleaseInputID,
+			AbilityInputAction.InputID);
 	}
 }
 
 void AUPFCharacterPlayer::ApplyCharacterControlData(const UUPFCharacterControlData* Data)
 {
 	if (!IsLocallyControlled()) return;
-
-	UE_LOG(LogTemp, Log, TEXT("ApplyCharacterControlData"));
 	
 	// Pawn
 	bUseControllerRotationYaw = Data->bUseControllerRotationYaw;
