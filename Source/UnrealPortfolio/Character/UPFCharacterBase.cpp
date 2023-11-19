@@ -11,7 +11,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/UPFAbilitySystemComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Input/UPFAbilityInputMappingData.h"
+#include "Ability/UPFAbilitySet.h"
 #include "Physics/UPFCollision.h"
 #include "Player/UPFPlayerState.h"
 #include "UI/UPFHPBarWidget.h"

@@ -1,5 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Input/UPFAbilityInputMappingData.h"
+#include "Item/ItemInstance/Equipments/UPFRangedWeaponInstance.h"
 

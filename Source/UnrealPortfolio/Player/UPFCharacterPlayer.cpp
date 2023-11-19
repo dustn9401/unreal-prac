@@ -8,9 +8,9 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Ability/UPFAbilitySet.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "DataAssets/UPFCharacterControlData.h"
-#include "Input/UPFAbilityInputMappingData.h"
 
 AUPFCharacterPlayer::AUPFCharacterPlayer(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)

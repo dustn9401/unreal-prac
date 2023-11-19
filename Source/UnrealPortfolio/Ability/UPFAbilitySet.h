@@ -6,14 +6,15 @@
 #include "GameplayTagContainer.h"
 #include "UnrealPortfolio.h"
 #include "Engine/DataAsset.h"
-#include "UPFAbilityInputMappingData.generated.h"
+#include "UPFAbilitySet.generated.h"
 
 
 class UInputAction;
 class UUPFGameplayAbility;
 
 /**
- * 어빌리티를 발동시키기 위한 인풋 및 태그를 묶어놓은 구조체
+ * 어빌리티와, 어빌리티를 발동시키기 위한 트리거 정보들을 묶어놓은 구조체
+ * 인풋이 필요 없는 패시브어빌리티 일 경우, 인풋 관련 데이터가 없을 수도 있음
  */
 USTRUCT(BlueprintType)
 struct FUPFAbilityTriggerData
@@ -40,10 +41,10 @@ public:
 };
 
 /**
- * 어떤 키를 눌러야 어빌리티를 발동시킬지 정리해놓은 데이터 리스트
+ * 캐릭터나 장비 등이 하나씩 가질 수 있는 어빌리티 세트
  */
 UCLASS()
-class UNREALPORTFOLIO_API UUPFAbilityInputMappingData : public UPrimaryDataAsset
+class UNREALPORTFOLIO_API UUPFAbilitySet : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
 

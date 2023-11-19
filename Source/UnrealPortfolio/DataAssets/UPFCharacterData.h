@@ -19,5 +19,5 @@ class UNREALPORTFOLIO_API UUPFCharacterData : public UPrimaryDataAsset
 public:
 	// 이 캐릭터가 보유한 어빌리티들과, 발동시키기 위한 입력 설정
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
-	TObjectPtr<class UUPFAbilityInputMappingData> AbilityInputMappingData;
+	TObjectPtr<class UUPFAbilitySet> AbilityInputMappingData;
 };
