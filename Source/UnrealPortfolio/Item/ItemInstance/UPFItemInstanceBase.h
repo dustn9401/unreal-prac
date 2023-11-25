@@ -4,12 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Item/UPFItemData.h"
 #include "UPFItemInstanceBase.generated.h"
 
 /*
  * 씬에 존재하는 아이템 Actor
  */
-
 
 UCLASS(Abstract)
 class UNREALPORTFOLIO_API AUPFItemInstanceBase : public AActor
@@ -23,4 +23,6 @@ public:
 public:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UMeshComponent> MeshComp;
+
+	virtual void SetData(const UUPFItemData* InData) {}
 };

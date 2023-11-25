@@ -19,6 +19,8 @@ public:
 	AUPFEquipmentInstance();
 
 public:
+	virtual void SetData(const UUPFItemData* InData) override;
+	
 	// 이 장비가 착용된 후 호출됨, 착용한 Pawn에 대한 접근은 Owner를 사용.
 	void OnEquipped();
 };

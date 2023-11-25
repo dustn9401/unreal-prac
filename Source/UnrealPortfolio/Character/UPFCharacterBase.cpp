@@ -175,7 +175,8 @@ void AUPFCharacterBase::FinishDeath()
 void AUPFCharacterBase::EquipItem(const UUPFEquipmentItemData* EquipmentItemData)
 {
 	check(EquipmentComponent);
-	EquipmentComponent->EquipItem(EquipmentItemData);
+	EquipmentComponent->EquipOrSwitchItem(EquipmentItemData);
 
 	// todo: 스텟과 어빌리티를 컴포넌트에서 부여할지 여기서 할지 결정하기
 }
+

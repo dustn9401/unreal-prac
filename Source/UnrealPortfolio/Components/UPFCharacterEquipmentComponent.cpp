@@ -9,9 +9,12 @@
 UUPFCharacterEquipmentComponent::UUPFCharacterEquipmentComponent()
 {
 	bWantsInitializeComponent = true;
-	
-	SocketNames.Add(EEquipmentSocketType::RightHand, FName(TEXT("hand_rSocket")));
-	SocketNames.Add(EEquipmentSocketType::Back, FName(TEXT("spine_03Socket")));
+
+	const FEquipmentSocketData SocketDataRifle(FName(TEXT("hand_rSocket")), FName(TEXT("spine_03Socket")));
+	SocketDatas.Add(Item_Equipment_Weapon_Range_Rifle, SocketDataRifle);
+
+	const FEquipmentSocketData SocketDataPistol(FName(TEXT("hand_rSocket")), FName(TEXT("holsterSocket")));
+	SocketDatas.Add(Item_Equipment_Weapon_Range_Pistol, SocketDataPistol);
 	
 	SetIsReplicated(true);
 }
@@ -28,19 +31,44 @@ void UUPFCharacterEquipmentComponent::GetLifetimeReplicatedProps(TArray<FLifetim
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 }
 
-void UUPFCharacterEquipmentComponent::EquipItem(const UUPFEquipmentItemData* Data)
+void UUPFCharacterEquipmentComponent::EquipOrSwitchItem(const UUPFEquipmentItemData* Data)
 {
-	if (!ensure(SocketNames.Contains(Data->AttachSocket))) return;
+	// 착용중인 장비 제거
+	if (Equipments.Contains(Data->EquipmentType))
+	{
+		Equipments[Data->EquipmentType]->Destroy();
+		Equipments.Remove(Data->EquipmentType);
+	}
 	
-	AUPFEquipmentInstance* SpawnedItem = GetWorld()->SpawnActor<AUPFEquipmentInstance>(Data->InstanceClass);
+	AUPFEquipmentInstance* SpawnedItem = GetWorld()->SpawnActorDeferred<AUPFEquipmentInstance>(Data->InstanceClass, FTransform::Identity);
 	if (!ensure(SpawnedItem)) return;
 
-	SpawnedItem->MeshComp->AttachToComponent(CharacterMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, SocketNames[Data->AttachSocket]);
-	// SpawnedItem->MeshComp->SetupAttachment(CharacterMeshComponent, SocketNames[Data->AttachSocket]);	// 생성자용
+	// Mesh 적용 등 세팅
+	SpawnedItem->SetData(Data);
+	
+	// 소켓에 부착
+	const bool IsCurrentWeaponType = CurrentWeaponType == Data->EquipmentType;
+	const FName AttachSocket = IsHolstered || !IsCurrentWeaponType
+		                           ? SocketDatas[Data->EquipmentType].HolsterSocket
+		                           : SocketDatas[Data->EquipmentType].HandSocket;
+	SpawnedItem->MeshComp->AttachToComponent(CharacterMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, AttachSocket);
+	
+	SpawnedItem->FinishSpawning(FTransform::Identity);
 
-	Equipments.Add(Data->AttachSocket, SpawnedItem);
+	Equipments.Add(Data->EquipmentType, SpawnedItem);
 }
 
-void UUPFCharacterEquipmentComponent::UnequipItem(EEquipmentSocketType Socket)
+void UUPFCharacterEquipmentComponent::ToggleHolsterWeapon()
 {
+	// 아무 장비도 착용하지 않음
+	if (!CurrentWeaponType.IsValid()) return;
+	if (!Equipments.Contains(CurrentWeaponType)) return;
+
+	UAnimInstance* AnimInstance = CharacterMeshComponent->GetAnimInstance();
+	check(AnimInstance);
+
+	AnimInstance->Montage_Play(HolsterMontage, 1.0f);
+
+	// todo: AnimNotifyReload 제작, 구현
+	IsHolstered = !IsHolstered;
 }

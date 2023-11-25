@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Components/ActorComponent.h"
 #include "UPFCharacterEquipmentComponent.generated.h"
 
@@ -11,15 +12,26 @@ class AUPFEquipmentInstance;
 class UUPFEquipmentItemData;
 
 /*
- * 장비 아이템이 착용될 소켓 enum
+ * 장비의 캐릭터 장착을 위한 데이터
  */
-UENUM()
-enum EEquipmentSocketType
+USTRUCT()
+struct FEquipmentSocketData
 {
-	RightHand,
-	Back
+	GENERATED_BODY()
+
+public:
+	// 무기를 쥘 소켓
+	UPROPERTY(EditAnywhere)
+	FName HandSocket;
+
+	// 무기를 수납할 소켓
+	UPROPERTY(EditAnywhere)
+	FName HolsterSocket;
 };
 
+/*
+ * 캐릭터의 장비 아이템을 관리하는 컴포넌트
+ */
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class UNREALPORTFOLIO_API UUPFCharacterEquipmentComponent : public UActorComponent
 {
@@ -34,21 +46,32 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
-	// 장비를 장착한다. Socket에 이미 장비가 있으면, 교체한다.
-	void EquipItem(const UUPFEquipmentItemData* Data);
+	// 장비를 장착한다. 이미 같은 종류의 장비가 있으면, 교체한다.
+	void EquipOrSwitchItem(const UUPFEquipmentItemData* Data);
 
-	// Socket에 장비가 있다면, 해제한다.
-	void UnequipItem(EEquipmentSocketType Socket);
+	// 무기를 손에 들거나 수납한다.
+	void ToggleHolsterWeapon();
 
 protected:
 	UPROPERTY()
 	TObjectPtr<USkeletalMeshComponent> CharacterMeshComponent;
 	
-	// 소켓 enum의 실제 name 맵
+	// 장비 타입 별 Socket 데이터
 	UPROPERTY()
-	TMap<EEquipmentSocketType, FName> SocketNames;
+	TMap<FGameplayTag, FEquipmentSocketData> SocketDatas;
 	
-	// 현재 착용중인 장비 목록
-	UPROPERTY()
-	TMap<EEquipmentSocketType, AUPFEquipmentInstance*> Equipments;
+	// 현재 보유중인 장비 목록
+	UPROPERTY(VisibleAnywhere)
+	TMap<FGameplayTag, AUPFEquipmentInstance*> Equipments;
+
+	// 현재 선택된 무기 타입 (근접무기/라이플/권총 등)
+	FGameplayTag CurrentWeaponType;
+
+	// 무기를 수납중인지 여부
+	bool IsHolstered;
+
+// Animation
+protected:
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UAnimMontage> HolsterMontage;
 };

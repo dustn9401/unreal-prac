@@ -13,6 +13,8 @@ class UUPFAbilitySet;
 class UUPFGameplayAbility;
 UNREALPORTFOLIO_API		UE_DECLARE_GAMEPLAY_TAG_EXTERN(Item_Equipment_Weapon_Melee);
 UNREALPORTFOLIO_API		UE_DECLARE_GAMEPLAY_TAG_EXTERN(Item_Equipment_Weapon_Range);
+UNREALPORTFOLIO_API		UE_DECLARE_GAMEPLAY_TAG_EXTERN(Item_Equipment_Weapon_Range_Rifle);
+UNREALPORTFOLIO_API		UE_DECLARE_GAMEPLAY_TAG_EXTERN(Item_Equipment_Weapon_Range_Pistol);
 
 /**
  * 
@@ -23,7 +25,11 @@ class UNREALPORTFOLIO_API UUPFEquipmentItemData : public UUPFItemData
 	GENERATED_BODY()
 
 public:
-	// 이 아이템의 액터 클래스
+	// 이 아이템의 Skeletal Mesh
+	UPROPERTY(EditAnywhere)
+	TSoftObjectPtr<USkeletalMesh> SkeletalMesh;
+	
+	// 이 아이템이 적용될 액터 클래스
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AUPFEquipmentInstance> InstanceClass;
 	
@@ -35,7 +41,7 @@ public:
 	UPROPERTY(EditAnywhere)
 	FName AttributeSetGroupName;
 
-	// Attach할 소켓 종류
+	// 이 장비의 타입
 	UPROPERTY(EditAnywhere)
-	EEquipmentSocketType AttachSocket;
+	FGameplayTag EquipmentType;
 };
