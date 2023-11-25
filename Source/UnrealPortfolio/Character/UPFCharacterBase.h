@@ -19,6 +19,8 @@
  * 모든 캐릭터들의 base class
  */
 
+class UUPFEquipmentItemData;
+
 UCLASS(Abstract)
 class UNREALPORTFOLIO_API AUPFCharacterBase : public ACharacter,
 public IMeleeAttackAnimationInterface,
@@ -33,8 +35,10 @@ public:
 	// 스스로 정리한 뒤 파괴시킨다. 반드시 캐릭터를 제거할 때는 이 함수를 사용할 것!!
 	virtual void DestroySelf();
 
+// ACharacter overrides
 protected:
 	virtual void PostInitializeComponents() override;
+	virtual bool CanCrouch() const override;
 
 // IAttackAnimationInterface Impl
 public:
@@ -93,7 +97,9 @@ protected:
 	virtual void FinishDeath();
 
 // Equipment
-	
+public:
+	// 장비를 장착한다.
+	void EquipItem(UUPFEquipmentItemData* EquipmentItemData);
 
 	// UPROPERTY()
 	// TWeakObjectPtr<>

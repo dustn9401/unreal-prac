@@ -47,4 +47,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
 	float JumpingThreshold;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
+	uint8 bIsCrouching : 1;
 };

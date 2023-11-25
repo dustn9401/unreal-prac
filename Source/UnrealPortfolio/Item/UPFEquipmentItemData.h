@@ -7,6 +7,7 @@
 #include "Item/UPFItemData.h"
 #include "UPFEquipmentItemData.generated.h"
 
+class AUPFEquipmentInstance;
 class UUPFAbilitySet;
 class UUPFGameplayAbility;
 UNREALPORTFOLIO_API		UE_DECLARE_GAMEPLAY_TAG_EXTERN(Item_Equipment_Weapon_Melee);
@@ -21,9 +22,9 @@ class UNREALPORTFOLIO_API UUPFEquipmentItemData : public UUPFItemData
 	GENERATED_BODY()
 
 public:
-	// 아이템 Mesh
+	// 이 아이템의 액터 클래스
 	UPROPERTY(EditAnywhere)
-	TSoftObjectPtr<USkeletalMesh> SkeletalMesh;
+	TSubclassOf<AUPFEquipmentInstance> InstanceClass;
 	
 	// 이 장비를 착용 시 부여할 어빌리티 (can be null)
 	UPROPERTY(EditAnywhere)

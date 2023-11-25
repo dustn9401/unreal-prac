@@ -12,6 +12,8 @@
 #include "Components/UPFAbilitySystemComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Ability/UPFAbilitySet.h"
+#include "Item/UPFEquipmentItemData.h"
+#include "Item/ItemInstance/Equipments/UPFEquipmentInstance.h"
 #include "Physics/UPFCollision.h"
 #include "Player/UPFPlayerState.h"
 #include "UI/UPFHPBarWidget.h"
@@ -125,6 +127,11 @@ void AUPFCharacterBase::PostInitializeComponents()
 	HPBarWidget->SetData(StatSet);
 }
 
+bool AUPFCharacterBase::CanCrouch() const
+{
+	return Super::CanCrouch();
+}
+
 void AUPFCharacterBase::OnMeleeAttackAnimationHit()
 {
 	// 로컬 컨트롤러만 Notify를 수신한다.
@@ -158,4 +165,10 @@ void AUPFCharacterBase::OnHPZero(AActor* EffectInstigator, AActor* EffectCauser,
 void AUPFCharacterBase::FinishDeath()
 {
 	SetActorHiddenInGame(true);
+}
+
+void AUPFCharacterBase::EquipItem(UUPFEquipmentItemData* EquipmentItemData)
+{
+	AUPFEquipmentInstance* SpawnedItem = GetWorld()->SpawnActor<AUPFEquipmentInstance>(EquipmentItemData->InstanceClass);
+	if (!ensure(SpawnedItem)) return;
 }

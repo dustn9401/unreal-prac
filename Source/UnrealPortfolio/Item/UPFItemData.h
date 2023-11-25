@@ -11,7 +11,7 @@ class UGameplayEffect;
 /**
  * 아이템 데이터 기반 클래스
  */
-UCLASS()
+UCLASS(Abstract)
 class UNREALPORTFOLIO_API UUPFItemData : public UPrimaryDataAsset
 {
 	GENERATED_BODY()

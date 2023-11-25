@@ -6,6 +6,7 @@
 #include "Item/UPFItemData.h"
 #include "UPFConsumableItemData.generated.h"
 
+class AUPFItemInstanceBase;
 /**
  * 
  */
@@ -15,7 +16,7 @@ class UNREALPORTFOLIO_API UUPFConsumableItemData : public UUPFItemData
 	GENERATED_BODY()
 
 public:
-	// 아이템 Mesh
+	// 이 아이템의 액터 클래스
 	UPROPERTY(EditAnywhere)
-	TSoftObjectPtr<UStaticMesh> StaticMesh;
+	TSubclassOf<AUPFItemInstanceBase> InstanceClass;
 };

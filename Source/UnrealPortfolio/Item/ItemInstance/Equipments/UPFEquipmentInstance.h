@@ -17,6 +17,8 @@ class UNREALPORTFOLIO_API AUPFEquipmentInstance : public AUPFItemInstanceBase
 
 public:
 	AUPFEquipmentInstance();
-	
-	virtual void SetData(UUPFEquipmentItemData* InData);
+
+public:
+	// 이 장비가 착용된 후 호출됨, 착용한 Pawn에 대한 접근은 Owner를 사용.
+	void OnEquipped();
 };
