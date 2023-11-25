@@ -7,6 +7,7 @@
 #include "Item/UPFItemData.h"
 #include "UPFEquipmentItemData.generated.h"
 
+enum EEquipmentSocketType : int;
 class AUPFEquipmentInstance;
 class UUPFAbilitySet;
 class UUPFGameplayAbility;
@@ -33,4 +34,8 @@ public:
 	// 이 장비의 스텟 Set 그룹 이름
 	UPROPERTY(EditAnywhere)
 	FName AttributeSetGroupName;
+
+	// Attach할 소켓 종류
+	UPROPERTY(EditAnywhere)
+	EEquipmentSocketType AttachSocket;
 };

@@ -19,6 +19,7 @@
  * 모든 캐릭터들의 base class
  */
 
+class UUPFCharacterEquipmentComponent;
 class UUPFEquipmentItemData;
 
 UCLASS(Abstract)
@@ -99,7 +100,10 @@ protected:
 // Equipment
 public:
 	// 장비를 장착한다.
-	void EquipItem(UUPFEquipmentItemData* EquipmentItemData);
+	void EquipItem(const UUPFEquipmentItemData* EquipmentItemData);
+
+	UPROPERTY()
+	TObjectPtr<UUPFCharacterEquipmentComponent> EquipmentComponent;
 
 	// UPROPERTY()
 	// TWeakObjectPtr<>

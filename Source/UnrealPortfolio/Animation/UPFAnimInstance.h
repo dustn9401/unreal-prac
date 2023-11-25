@@ -24,17 +24,18 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
 	TObjectPtr<class ACharacter> Owner;	// 이 객체를 소유하고 있는 캐릭터
 
+	// 캐릭터의 Movement컴포넌트
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
-	TObjectPtr<class UCharacterMovementComponent> MovementComponent;	// 캐릭터의 Movement컴포넌트
+	TObjectPtr<class UCharacterMovementComponent> MovementComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
 	FVector Velocity;	// 캐릭터의 현재 속도
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
-	float GroundSpeed;	// 캐릭터의 현재 땅에서의 속도
+	float GroundSpeed;	// 캐릭터의 현재 땅에서의 속도 (BlendSpace 에서 사용)
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
-	uint8 bIsIdle : 1;
+	uint8 bIsIdle : 1;	// 캐릭터가 대기 상태인지 여부
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
 	float MovingThreshold;

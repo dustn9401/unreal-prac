@@ -12,6 +12,7 @@
 #include "Components/UPFAbilitySystemComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Ability/UPFAbilitySet.h"
+#include "Components/UPFCharacterEquipmentComponent.h"
 #include "Item/UPFEquipmentItemData.h"
 #include "Item/ItemInstance/Equipments/UPFEquipmentInstance.h"
 #include "Physics/UPFCollision.h"
@@ -91,6 +92,10 @@ AUPFCharacterBase::AUPFCharacterBase(const FObjectInitializer& ObjectInitializer
 	{
 		CharacterData = CharacterDataRef.Object;
 	}
+
+	// Equipment
+	EquipmentComponent = CreateDefaultSubobject<UUPFCharacterEquipmentComponent>(TEXT("EquipmentComponent"));
+	EquipmentComponent->SetIsReplicated(true);
 }
 
 void AUPFCharacterBase::DestroySelf()
@@ -167,8 +172,10 @@ void AUPFCharacterBase::FinishDeath()
 	SetActorHiddenInGame(true);
 }
 
-void AUPFCharacterBase::EquipItem(UUPFEquipmentItemData* EquipmentItemData)
+void AUPFCharacterBase::EquipItem(const UUPFEquipmentItemData* EquipmentItemData)
 {
-	AUPFEquipmentInstance* SpawnedItem = GetWorld()->SpawnActor<AUPFEquipmentInstance>(EquipmentItemData->InstanceClass);
-	if (!ensure(SpawnedItem)) return;
+	check(EquipmentComponent);
+	EquipmentComponent->EquipItem(EquipmentItemData);
+
+	// todo: 스텟과 어빌리티를 컴포넌트에서 부여할지 여기서 할지 결정하기
 }
