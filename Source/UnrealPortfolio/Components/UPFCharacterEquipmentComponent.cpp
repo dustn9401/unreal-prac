@@ -2,6 +2,8 @@
 
 
 #include "UPFCharacterEquipmentComponent.h"
+
+#include "UnrealPortfolio.h"
 #include "Item/UPFEquipmentItemData.h"
 #include "Item/ItemInstance/Equipments/UPFEquipmentInstance.h"
 
@@ -71,4 +73,9 @@ void UUPFCharacterEquipmentComponent::ToggleHolsterWeapon()
 
 	// todo: AnimNotifyReload 제작, 구현
 	IsHolstered = !IsHolstered;
+}
+
+void UUPFCharacterEquipmentComponent::OnAnimNotifyHolster()
+{
+	UPF_LOG_COMPONENT(LogTemp, Log, TEXT("OnAnimNotifyHolster"));
 }

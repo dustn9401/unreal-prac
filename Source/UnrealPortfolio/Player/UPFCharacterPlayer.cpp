@@ -9,6 +9,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Ability/UPFAbilitySet.h"
+#include "Components/UPFCharacterEquipmentComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "DataAssets/UPFCharacterControlData.h"
 
@@ -55,6 +56,12 @@ AUPFCharacterPlayer::AUPFCharacterPlayer(const FObjectInitializer& ObjectInitial
 	{
 		CrouchAction = InputActionCrouchRef.Object;
 	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> InputActionHolsterRef(TEXT("/Script/EnhancedInput.InputAction'/Game/UnrealPortfolio/Input/Actions/IA_Holster.IA_Holster'"));
+	if (InputActionHolsterRef.Object)
+	{
+		HolsterAction = InputActionHolsterRef.Object;
+	}
 }
 
 void AUPFCharacterPlayer::BeginPlay()
@@ -87,6 +94,7 @@ void AUPFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 	EnhancedInputComponent->BindAction<ACharacter, bool>(CrouchAction, ETriggerEvent::Triggered, this, &ACharacter::Crouch, false);
 	EnhancedInputComponent->BindAction<ACharacter, bool>(CrouchAction, ETriggerEvent::Completed, this, &ACharacter::UnCrouch, false);
+	EnhancedInputComponent->BindAction<UUPFCharacterEquipmentComponent>(HolsterAction, ETriggerEvent::Triggered, EquipmentComponent, &UUPFCharacterEquipmentComponent::ToggleHolsterWeapon);
 
 	// Ability Inputs
 	check(CharacterData && CharacterData->AbilityInputMappingData);

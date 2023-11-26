@@ -52,6 +52,10 @@ public:
 	// 무기를 손에 들거나 수납한다.
 	void ToggleHolsterWeapon();
 
+	// 수납 애니메이션 콜백
+	UFUNCTION(BlueprintCallable)
+	void OnAnimNotifyHolster();
+
 protected:
 	UPROPERTY()
 	TObjectPtr<USkeletalMeshComponent> CharacterMeshComponent;
