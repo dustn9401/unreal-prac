@@ -48,14 +48,14 @@ void UUPFCharacterEquipmentComponent::EquipOrSwitchItem(const UUPFEquipmentItemD
 	// Mesh 적용 등 세팅
 	SpawnedItem->SetData(Data);
 	
+	SpawnedItem->FinishSpawning(FTransform::Identity);
+	
 	// 소켓에 부착
 	const bool IsCurrentWeaponType = CurrentWeaponType == Data->EquipmentType;
 	const FName AttachSocket = IsHolstered || !IsCurrentWeaponType
 		                           ? SocketDatas[Data->EquipmentType].HolsterSocket
 		                           : SocketDatas[Data->EquipmentType].HandSocket;
 	SpawnedItem->MeshComp->AttachToComponent(CharacterMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, AttachSocket);
-	
-	SpawnedItem->FinishSpawning(FTransform::Identity);
 
 	Equipments.Add(Data->EquipmentType, SpawnedItem);
 }

@@ -14,9 +14,5 @@ UCLASS()
 class UNREALPORTFOLIO_API UUPFConsumableItemData : public UUPFItemData
 {
 	GENERATED_BODY()
-
-public:
-	// 이 아이템의 액터 클래스
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<AUPFItemInstanceBase> InstanceClass;
+	
 };

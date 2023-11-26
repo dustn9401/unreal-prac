@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/BoxComponent.h"
 #include "GameFramework/Actor.h"
+#include "ItemInstance/UPFItemInstanceBase.h"
 #include "UPFItemContainerBase.generated.h"
 
 class UUPFItemData;
@@ -26,6 +27,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UBoxComponent> BoxComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<AUPFItemInstanceBase> SpawnedItem;
 
 public:
 	// 특정 아이템으로 설정한다.

@@ -3,6 +3,7 @@
 
 #include "Item/UPFItemContainerBase.h"
 #include "Components/BoxComponent.h"
+#include "ItemInstance/Equipments/UPFEquipmentInstance.h"
 #include "Physics/UPFCollision.h"
 
 // Sets default values
@@ -21,13 +22,27 @@ void AUPFItemContainerBase::SetData(UUPFItemData* InItemData)
 {
 	ItemData = InItemData;
 
-	// todo: EquipmentComponent의 아이템 스폰 코드를 적당한곳으로 옮겨서 같이 쓰기
+	SpawnedItem = GetWorld()->SpawnActorDeferred<AUPFItemInstanceBase>(InItemData->InstanceClass, FTransform::Identity);
+	if (!ensure(SpawnedItem)) return;
+
+	// Mesh 적용 등 세팅
+	SpawnedItem->SetData(InItemData);
+
+	SpawnedItem->FinishSpawning(FTransform::Identity);
 }
 
 void AUPFItemContainerBase::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
                                            const FHitResult& SweepHitResult)
 {
 	SetActorEnableCollision(false);
+	
+	if (ItemData == nullptr)
+	{
+		Destroy();
+		return;
+	}
+
+	
 }
 
 void AUPFItemContainerBase::OnEffectFinished(UParticleSystemComponent* ParticleSystem)

@@ -29,10 +29,6 @@ public:
 	UPROPERTY(EditAnywhere)
 	TSoftObjectPtr<USkeletalMesh> SkeletalMesh;
 	
-	// 이 아이템이 적용될 액터 클래스
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<AUPFEquipmentInstance> InstanceClass;
-	
 	// 이 장비를 착용 시 부여할 어빌리티 (can be null)
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UUPFAbilitySet> AbilitiesToGrant;
