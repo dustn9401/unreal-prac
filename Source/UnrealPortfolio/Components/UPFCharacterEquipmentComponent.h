@@ -72,7 +72,7 @@ protected:
 	FGameplayTag CurrentWeaponType;
 
 	// 무기를 수납중인지 여부
-	bool IsHolstered;
+	bool IsHolstered = true;
 
 public:
 	FORCEINLINE bool GetIsHolstered() const
