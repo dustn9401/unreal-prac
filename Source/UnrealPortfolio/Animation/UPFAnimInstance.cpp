@@ -3,10 +3,12 @@
 
 #include "Animation/UPFAnimInstance.h"
 
+#include "Character/UPFCharacterBase.h"
+#include "Components/UPFCharacterEquipmentComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
-UUPFAnimInstance::UUPFAnimInstance(): GroundSpeed(0), bIsIdle(0), MovingThreshold(3.0f), bIsFalling(0), bIsJumping(0), JumpingThreshold(100.0f), bIsCrouching(0)
+UUPFAnimInstance::UUPFAnimInstance(): GroundSpeed(0), bIsIdle(0), MovingThreshold(3.0f), bIsFalling(0), bIsJumping(0), JumpingThreshold(100.0f), bIsCrouching(0), bIsHolstered(0)
 {
 }
 
@@ -14,10 +16,11 @@ void UUPFAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
 
-	Owner = Cast<ACharacter>(GetOwningActor());
+	Owner = Cast<AUPFCharacterBase>(GetOwningActor());
 	if (Owner)
 	{
 		MovementComponent = Owner->GetCharacterMovement();
+		EquipmentComponent = Owner->EquipmentComponent;
 	}
 }
 
@@ -33,5 +36,10 @@ void UUPFAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bIsFalling = MovementComponent->IsFalling();
 		bIsJumping = bIsFalling & (Velocity.Z > JumpingThreshold);
 		bIsCrouching = MovementComponent->IsCrouching();
+	}
+
+	if (EquipmentComponent)
+	{
+		bIsHolstered = EquipmentComponent->GetIsHolstered();
 	}
 }

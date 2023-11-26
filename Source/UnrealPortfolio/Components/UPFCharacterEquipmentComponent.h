@@ -74,7 +74,13 @@ protected:
 	// 무기를 수납중인지 여부
 	bool IsHolstered;
 
-// Animation
+public:
+	FORCEINLINE bool GetIsHolstered() const
+	{
+		return IsHolstered;
+	}
+
+	// Animation
 protected:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UAnimMontage> HolsterMontage;

@@ -22,11 +22,15 @@ protected:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
-	TObjectPtr<class ACharacter> Owner;	// 이 객체를 소유하고 있는 캐릭터
+	TObjectPtr<class AUPFCharacterBase> Owner;	// 이 객체를 소유하고 있는 캐릭터
 
-	// 캐릭터의 Movement컴포넌트
+	// 캐릭터의 Movement 컴포넌트
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
 	TObjectPtr<class UCharacterMovementComponent> MovementComponent;
+
+	// 캐릭터의 Equipment 컴포넌트
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
+	TObjectPtr<class UUPFCharacterEquipmentComponent> EquipmentComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
 	FVector Velocity;	// 캐릭터의 현재 속도
@@ -51,4 +55,7 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
 	uint8 bIsCrouching : 1;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
+	uint8 bIsHolstered : 1;
 };
