@@ -17,6 +17,12 @@ UUPFCharacterEquipmentComponent::UUPFCharacterEquipmentComponent()
 
 	const FEquipmentSocketData SocketDataPistol(FName(TEXT("hand_rSocket")), FName(TEXT("holsterSocket")));
 	SocketDatas.Add(Item_Equipment_Weapon_Range_Pistol, SocketDataPistol);
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> HolsterMontageRef(TEXT("/Script/Engine.AnimMontage'/Game/UnrealPortfolio/Animation/AM_Holster.AM_Holster'"));
+	if (HolsterMontageRef.Object)
+	{
+		HolsterMontage = HolsterMontageRef.Object;
+	}
 	
 	SetIsReplicated(true);
 }
@@ -71,11 +77,18 @@ void UUPFCharacterEquipmentComponent::ToggleHolsterWeapon()
 
 	AnimInstance->Montage_Play(HolsterMontage, 1.0f);
 
-	// todo: AnimNotifyReload 제작, 구현
-	IsHolstered = !IsHolstered;
 }
 
 void UUPFCharacterEquipmentComponent::OnAnimNotifyHolster()
 {
 	UPF_LOG_COMPONENT(LogTemp, Log, TEXT("OnAnimNotifyHolster"));
+
+	if (!CurrentWeaponType.IsValid()) return;
+	if (!Equipments.Contains(CurrentWeaponType)) return;
+	
+	FEquipmentSocketData SocketData = SocketDatas[CurrentWeaponType];
+	FName TargetSocket = IsHolstered ? SocketData.HandSocket : SocketData.HolsterSocket;
+	Equipments[CurrentWeaponType]->MeshComp->AttachToComponent(CharacterMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, TargetSocket);
+	
+	IsHolstered = !IsHolstered;
 }

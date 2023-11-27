@@ -5,9 +5,9 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "Engine/DataAsset.h"
-#include "ItemInstance/UPFItemInstanceBase.h"
 #include "UPFItemData.generated.h"
 
+class AUPFItemInstanceBase;
 class UGameplayEffect;
 /**
  * 아이템 데이터 기반 클래스

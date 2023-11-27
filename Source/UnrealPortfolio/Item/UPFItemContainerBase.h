@@ -33,6 +33,7 @@ protected:
 
 public:
 	// 특정 아이템으로 설정한다.
+	UFUNCTION(BlueprintCallable)
 	void SetData(UUPFItemData* InItemData);
 	
 	FORCEINLINE TObjectPtr<UBoxComponent> GetBoxComponent() const
