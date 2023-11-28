@@ -96,6 +96,8 @@ void AUPFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 	EnhancedInputComponent->BindAction<ACharacter, bool>(CrouchAction, ETriggerEvent::Triggered, this, &ACharacter::Crouch, false);
 	EnhancedInputComponent->BindAction<ACharacter, bool>(CrouchAction, ETriggerEvent::Completed, this, &ACharacter::UnCrouch, false);
+
+	// todo: 무기의 수납이나 재장전을 어빌리티로 구현해야, 점프 중이나 연타 시 인풋 막는것을 편하게 할 수 있을듯
 	EnhancedInputComponent->BindAction<UUPFCharacterEquipmentComponent>(HolsterAction, ETriggerEvent::Triggered, EquipmentComponent, &UUPFCharacterEquipmentComponent::ToggleHolsterWeapon);
 
 	// Ability Inputs
