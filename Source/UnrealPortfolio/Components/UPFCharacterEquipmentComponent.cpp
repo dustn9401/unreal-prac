@@ -57,10 +57,19 @@ void UUPFCharacterEquipmentComponent::EquipOrSwitchItem(const UUPFEquipmentItemD
 	SpawnedItem->FinishSpawning(FTransform::Identity);
 	
 	// 소켓에 부착
+	const bool IsUnarmed = !CurrentWeaponType.IsValid();	// 아무 장비도 착용하지 않았다면, 현재 선택된 장비 타입으로 지정하고 손에 쥐어준다.
 	const bool IsCurrentWeaponType = CurrentWeaponType == Data->EquipmentType;
-	const FName AttachSocket = IsHolstered || !IsCurrentWeaponType
-		                           ? SocketDatas[Data->EquipmentType].HolsterSocket
-		                           : SocketDatas[Data->EquipmentType].HandSocket;
+	const bool AttachToHand = (IsCurrentWeaponType && !IsHolstered) || IsUnarmed;
+	const FName AttachSocket = AttachToHand
+		                           ? SocketDatas[Data->EquipmentType].HandSocket
+		                           : SocketDatas[Data->EquipmentType].HolsterSocket;
+	
+	if (IsUnarmed)
+	{
+		IsHolstered = false;
+		CurrentWeaponType = Data->EquipmentType;
+	}
+	
 	SpawnedItem->MeshComp->AttachToComponent(CharacterMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, AttachSocket);
 
 	Equipments.Add(Data->EquipmentType, SpawnedItem);

@@ -2,8 +2,12 @@
 
 
 #include "Item/UPFItemContainerBase.h"
+
+#include "UnrealPortfolio.h"
 #include "Components/BoxComponent.h"
+#include "Interface/UPFItemContainerInterface.h"
 #include "ItemInstance/Equipments/UPFEquipmentInstance.h"
+#include "Particles/ParticleSystemComponent.h"
 #include "Physics/UPFCollision.h"
 
 // Sets default values
@@ -18,16 +22,35 @@ AUPFItemContainerBase::AUPFItemContainerBase()
 	bReplicates = true;
 }
 
+void AUPFItemContainerBase::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	BoxComponent->OnComponentBeginOverlap.AddDynamic(this, &AUPFItemContainerBase::OnOverlapBegin);
+}
+
+void AUPFItemContainerBase::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// ItemData값이 미리 지정된 경우, 즉시 세팅한다. 
+	if (ItemData)
+	{
+		SetData(ItemData);
+	}
+}
 
 void AUPFItemContainerBase::SetData(UUPFItemData* InItemData)
 {
 	ItemData = InItemData;
 
-	SpawnedItem = GetWorld()->SpawnActorDeferred<AUPFItemInstanceBase>(InItemData->InstanceClass, FTransform::Identity);
+	SpawnedItem = GetWorld()->SpawnActorDeferred<AUPFItemInstanceBase>(InItemData->InstanceClass, FTransform::Identity, this);
 	if (!ensure(SpawnedItem)) return;
 
 	// Mesh 적용 등 세팅
 	SpawnedItem->SetData(InItemData);
+
+	SpawnedItem->AttachToComponent(BoxComponent, FAttachmentTransformRules::KeepRelativeTransform);
 
 	SpawnedItem->FinishSpawning(FTransform::Identity);
 
@@ -45,7 +68,25 @@ void AUPFItemContainerBase::OnOverlapBegin(UPrimitiveComponent* OverlappedCompon
 		return;
 	}
 
-	
+	if (IUPFItemContainerInterface* ItemReceiver = Cast<IUPFItemContainerInterface>(OtherActor))
+	{
+		ItemReceiver->TakeItem(ItemData);
+		PlayEffectAndDestroySelf();
+	}
+}
+
+void AUPFItemContainerBase::PlayEffectAndDestroySelf()
+{
+	if (IsValid(Effect))
+	{
+		Effect->Activate(true);
+		Effect->OnSystemFinished.Clear();
+		Effect->OnSystemFinished.AddDynamic(this, &AUPFItemContainerBase::OnEffectFinished);
+	}
+	else
+	{
+		Destroy();
+	}
 }
 
 void AUPFItemContainerBase::OnEffectFinished(UParticleSystemComponent* ParticleSystem)

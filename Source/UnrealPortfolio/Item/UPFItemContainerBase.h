@@ -11,6 +11,7 @@
 class UUPFItemData;
 /*
  * 아이템 상자 등 아이템을 담고 있는 오브젝트의 베이스 클래스
+ * 기본적으로 아이템 획득 시 사라지는 1회용이다.
  */
 UCLASS(Abstract)
 class UNREALPORTFOLIO_API AUPFItemContainerBase : public AActor
@@ -20,6 +21,10 @@ class UNREALPORTFOLIO_API AUPFItemContainerBase : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AUPFItemContainerBase();
+
+protected:
+	virtual void PostInitializeComponents() override;
+	virtual void BeginPlay() override;
 
 protected:
 	UPROPERTY(EditAnywhere)
@@ -50,6 +55,10 @@ protected:
 
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepHitResult);
+
+	// 이펙트 출력 후 스스로를 파괴시킨다.
+	UFUNCTION()
+	void PlayEffectAndDestroySelf();
 
 	UFUNCTION()
 	void OnEffectFinished(UParticleSystemComponent* ParticleSystem);
