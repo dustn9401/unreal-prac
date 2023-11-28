@@ -5,13 +5,14 @@
 #include "CoreMinimal.h"
 #include "InputActionValue.h"
 #include "Character/UPFCharacterBase.h"
+#include "Interface/UPFItemContainerInterface.h"
 #include "UPFCharacterPlayer.generated.h"
 
 /**
  * 플레이어용 캐릭터
  */
 UCLASS()
-class UNREALPORTFOLIO_API AUPFCharacterPlayer : public AUPFCharacterBase
+class UNREALPORTFOLIO_API AUPFCharacterPlayer : public AUPFCharacterBase, public IUPFItemContainerInterface
 {
 	GENERATED_BODY()
 
@@ -58,4 +59,8 @@ protected:
 
 	void Look(const FInputActionValue& Value);
 	void Move(const FInputActionValue& Value);
+
+// IUPFItemContainerInterface Impl
+public:
+	void TakeItem(UUPFItemData* Data) override;
 };

@@ -12,6 +12,8 @@
 #include "Components/UPFCharacterEquipmentComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "DataAssets/UPFCharacterControlData.h"
+#include "Item/UPFConsumableItemData.h"
+#include "Item/UPFEquipmentItemData.h"
 
 AUPFCharacterPlayer::AUPFCharacterPlayer(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -171,4 +173,21 @@ void AUPFCharacterPlayer::Move(const FInputActionValue& Value)
 	AddMovementInput(ForwardDirection, MovementVector.X);
 	AddMovementInput(RightDirection, MovementVector.Y);
 }
- 
+
+void AUPFCharacterPlayer::TakeItem(UUPFItemData* Data)
+{
+	check(Data);
+
+	if (const UUPFEquipmentItemData* EquipmentData = Cast<UUPFEquipmentItemData>(Data))
+	{
+		EquipmentComponent->EquipOrSwitchItem(EquipmentData);
+	}
+	else if (const UUPFConsumableItemData* ConsumableData = Cast<UUPFConsumableItemData>(Data))
+	{
+		// todo: Consumable 아이템은 픽업 즉시 효과를 적용한다.
+	}
+	else
+	{
+		UPF_LOG(LogTemp, Error, TEXT("Invalid Argument Type: %s"), *Data->GetName());
+	}
+}

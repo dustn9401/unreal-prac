@@ -18,6 +18,7 @@ AUPFItemContainerBase::AUPFItemContainerBase()
 	bReplicates = true;
 }
 
+
 void AUPFItemContainerBase::SetData(UUPFItemData* InItemData)
 {
 	ItemData = InItemData;
@@ -29,6 +30,8 @@ void AUPFItemContainerBase::SetData(UUPFItemData* InItemData)
 	SpawnedItem->SetData(InItemData);
 
 	SpawnedItem->FinishSpawning(FTransform::Identity);
+
+	SetActorEnableCollision(true);
 }
 
 void AUPFItemContainerBase::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
