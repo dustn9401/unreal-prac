@@ -120,7 +120,7 @@ void UUPFGameplayAbility_MeleeAttack::SetNextComboTimerIfPossible()
 
 void UUPFGameplayAbility_MeleeAttack::OnAnimNotify()
 {
-	// 클라이언트에서 실행되는 함수
+	// 로컬 컨트롤러에 의해 호출되는 함수
 	// 이 함수에서 콜리전 Hit 계산을 수행한 뒤, 서버 RPC를 호출한다.
 	
 	AUPFCharacterBase* Instigator = Cast<AUPFCharacterBase>(CurrentActorInfo->OwnerActor);
