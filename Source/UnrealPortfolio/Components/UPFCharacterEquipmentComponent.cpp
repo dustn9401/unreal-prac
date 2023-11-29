@@ -24,7 +24,7 @@ UUPFCharacterEquipmentComponent::UUPFCharacterEquipmentComponent()
 		HolsterMontage = HolsterMontageRef.Object;
 	}
 	
-	SetIsReplicated(true);
+	SetIsReplicatedByDefault(true);
 }
 
 void UUPFCharacterEquipmentComponent::InitializeComponent()
