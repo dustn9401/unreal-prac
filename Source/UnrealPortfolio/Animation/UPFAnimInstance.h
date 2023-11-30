@@ -39,7 +39,7 @@ protected:
 	float GroundSpeed;	// 캐릭터의 현재 땅에서의 속도 (BlendSpace 에서 사용)
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
-	uint8 bIsIdle : 1;	// 캐릭터가 대기 상태인지 여부
+	uint8 bIsMoving : 1;	// 캐릭터가 대기 상태인지 여부
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
 	float MovingThreshold;

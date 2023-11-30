@@ -9,8 +9,8 @@
 #include "UPFAbilitySet.generated.h"
 
 
+class UGameplayAbility;
 class UInputAction;
-class UUPFGameplayAbility;
 
 /**
  * 어빌리티와, 어빌리티를 발동시키기 위한 트리거 정보들을 묶어놓은 구조체
@@ -31,7 +31,7 @@ public:
 	TObjectPtr<const UInputAction> InputAction = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TSubclassOf<UUPFGameplayAbility> Ability;
+	TSubclassOf<UGameplayAbility> Ability;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FGameplayTag InputTag;
