@@ -27,7 +27,8 @@ AUPFCharacterPlayer::AUPFCharacterPlayer(const FObjectInitializer& ObjectInitial
 	// =============================== Camera 설정 =======================================
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 400.0f;
+	CameraBoom->TargetArmLength = 200.0f;
+	CameraBoom->SocketOffset = FVector(0.0f, 50.0f, 50.0f);
 	CameraBoom->bUsePawnControlRotation = true;
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));

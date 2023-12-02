@@ -3,6 +3,7 @@
 
 #include "UPFGameMode.h"
 #include "UPFGameState.h"
+#include "GameFramework/HUD.h"
 #include "Player/UPFPlayerState.h"
 
 AUPFGameMode::AUPFGameMode(const FObjectInitializer& ObjectInitializer)
@@ -18,6 +19,12 @@ AUPFGameMode::AUPFGameMode(const FObjectInitializer& ObjectInitializer)
 	if (DefaultPawnClassRef.Class)
 	{
 		DefaultPawnClass = DefaultPawnClassRef.Class;
+	}
+
+	static ConstructorHelpers::FClassFinder<AHUD> HUDClassRef(TEXT("/Game/UnrealPortfolio/UI/BP_UPFHUD.BP_UPFHUD_C"));
+	if (HUDClassRef.Class)
+	{
+		HUDClass = HUDClassRef.Class;
 	}
 	
 	GameStateClass = AUPFGameState::StaticClass();
