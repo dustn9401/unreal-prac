@@ -33,4 +33,5 @@ enum EUPFGameplayAbilityInputBinds : int
 	Ability7				UMETA(DisplayName = "Ability7 (Space)"),
 	Ability8				UMETA(DisplayName = "Ability8 (B)"),
 	Ability9				UMETA(DisplayName = "Ability9 (T)"),
+	Ability10				UMETA(DisplayName = "Ability10 (H)"),
 };
