@@ -3,9 +3,23 @@
 
 #include "UPFCharacterEquipmentComponent.h"
 
+#include "AbilitySystemComponent.h"
 #include "UnrealPortfolio.h"
 #include "Item/UPFEquipmentItemData.h"
 #include "Item/ItemInstance/Equipments/UPFEquipmentInstance.h"
+#include "Net/UnrealNetwork.h"
+
+void FUPFEquipmentList::PreReplicatedRemove(const TArrayView<int32> RemovedIndices, int32 FinalSize)
+{
+}
+
+void FUPFEquipmentList::PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 FinalSize)
+{
+}
+
+void FUPFEquipmentList::PostReplicatedChange(const TArrayView<int32> ChangedIndices, int32 FinalSize)
+{
+}
 
 // Sets default values for this component's properties
 UUPFCharacterEquipmentComponent::UUPFCharacterEquipmentComponent()
@@ -37,17 +51,18 @@ void UUPFCharacterEquipmentComponent::InitializeComponent()
 void UUPFCharacterEquipmentComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UUPFCharacterEquipmentComponent, EquipmentList);
 }
 
-void UUPFCharacterEquipmentComponent::EquipOrSwitchItem(const UUPFEquipmentItemData* Data)
+bool UUPFCharacterEquipmentComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
 {
-	// 착용중인 장비 제거
-	if (Equipments.Contains(Data->EquipmentType))
-	{
-		Equipments[Data->EquipmentType]->Destroy();
-		Equipments.Remove(Data->EquipmentType);
-	}
-	
+	return Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
+}
+
+void UUPFCharacterEquipmentComponent::EquipItem(const UUPFEquipmentItemData* Data)
+{
+	// 아이템 액터 생성
 	AUPFEquipmentInstance* SpawnedItem = GetWorld()->SpawnActorDeferred<AUPFEquipmentInstance>(Data->InstanceClass, FTransform::Identity);
 	if (!ensure(SpawnedItem)) return;
 
@@ -72,20 +87,42 @@ void UUPFCharacterEquipmentComponent::EquipOrSwitchItem(const UUPFEquipmentItemD
 	
 	SpawnedItem->MeshComp->AttachToComponent(CharacterMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, AttachSocket);
 
-	Equipments.Add(Data->EquipmentType, SpawnedItem);
+	// 장비 목록에 추가
+	FUPFAppliedEquipmentEntry& NewEntry = EquipmentList.Entries.AddDefaulted_GetRef();
+	NewEntry.EquipmentItemData = Data;
+	NewEntry.EquipmentInstance = SpawnedItem;
+	EquipmentList.MarkItemDirty(NewEntry);
+}
+
+void UUPFCharacterEquipmentComponent::UnEquipItem(FGameplayTag EquipmentType)
+{
+	for(auto It = EquipmentList.Entries.CreateIterator(); It; ++It)
+	{
+		FUPFAppliedEquipmentEntry& Entry = *It;
+		if (Entry.EquipmentItemData->EquipmentType == EquipmentType)
+		{
+			if (UAbilitySystemComponent* ASC = GetOwner()->GetComponentByClass<UAbilitySystemComponent>())
+			{
+				Entry.GrantedData.TakeFromASC(ASC);
+			}
+
+			Entry.EquipmentInstance->DestroySelf();
+
+			It.RemoveCurrent();
+			EquipmentList.MarkArrayDirty();
+		}
+	}
 }
 
 void UUPFCharacterEquipmentComponent::ToggleHolsterWeapon()
 {
 	// 아무 장비도 착용하지 않음
 	if (!CurrentWeaponType.IsValid()) return;
-	if (!Equipments.Contains(CurrentWeaponType)) return;
 
 	UAnimInstance* AnimInstance = CharacterMeshComponent->GetAnimInstance();
 	check(AnimInstance);
 
 	AnimInstance->Montage_Play(HolsterMontage, 1.0f);
-
 }
 
 void UUPFCharacterEquipmentComponent::OnAnimNotifyHolster()
@@ -93,11 +130,16 @@ void UUPFCharacterEquipmentComponent::OnAnimNotifyHolster()
 	UPF_LOG_COMPONENT(LogTemp, Log, TEXT("OnAnimNotifyHolster"));
 
 	if (!CurrentWeaponType.IsValid()) return;
-	if (!Equipments.Contains(CurrentWeaponType)) return;
+	const FUPFAppliedEquipmentEntry* TargetEntry = EquipmentList.Entries.FindByPredicate([&](const FUPFAppliedEquipmentEntry& X)
+	{
+		return X.EquipmentItemData->EquipmentType == CurrentWeaponType;
+	});
+	
+	if (TargetEntry == nullptr) return;
 	
 	FEquipmentSocketData SocketData = SocketDatas[CurrentWeaponType];
 	FName TargetSocket = IsHolstered ? SocketData.HandSocket : SocketData.HolsterSocket;
-	Equipments[CurrentWeaponType]->MeshComp->AttachToComponent(CharacterMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, TargetSocket);
+	TargetEntry->EquipmentInstance->MeshComp->AttachToComponent(CharacterMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, TargetSocket);
 	
 	IsHolstered = !IsHolstered;
 }

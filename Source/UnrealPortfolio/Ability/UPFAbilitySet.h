@@ -3,12 +3,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ActiveGameplayEffectHandle.h"
+#include "GameplayAbilitySpecHandle.h"
 #include "GameplayTagContainer.h"
 #include "UnrealPortfolio.h"
 #include "Engine/DataAsset.h"
 #include "UPFAbilitySet.generated.h"
 
 
+class UGameplayEffect;
+struct FActiveGameplayEffectHandle;
+struct FGameplayAbilitySpecHandle;
+class UAbilitySystemComponent;
 class UGameplayAbility;
 class UInputAction;
 
@@ -40,8 +46,33 @@ public:
 	TEnumAsByte<EUPFGameplayAbilityInputBinds> InputID;
 };
 
+/*
+ * Ability 또는 Effect 의 부여 후 생성된 Handle을 임시로 저장하는 데이터
+ * UUPFAbilitySet::GiveToAbilityComp() 로 부여한 어빌리티들을 다시 회수해야 하는 경우 사용되며,
+ * 런타임 에서만 사용되어야 하는 구조체임
+ */
+USTRUCT(BlueprintType)
+struct FUPFGrantedAbilitySetData
+{
+	GENERATED_BODY()
+
+public:
+	void AddAbilitySpecHandle(const FGameplayAbilitySpecHandle& Handle);
+	void AddGameplayEffectHandle(const FActiveGameplayEffectHandle& Handle);
+
+	void TakeFromASC(UAbilitySystemComponent* AbilityComp);
+
+private:
+	UPROPERTY()
+	TArray<FGameplayAbilitySpecHandle> AbilityHandles;
+
+	UPROPERTY()
+	TArray<FActiveGameplayEffectHandle> EffectHandles;
+};
+
 /**
- * 캐릭터나 장비 등이 하나씩 가질 수 있는 어빌리티 세트
+ * 캐릭터나 장비 등이 하나씩 가질 수 있는 어빌리티 세트,
+ * 캐릭터 기능을 편하게 부여/제거하기 위한 용도로 사용
  */
 UCLASS()
 class UNREALPORTFOLIO_API UUPFAbilitySet : public UPrimaryDataAsset
@@ -49,7 +80,14 @@ class UNREALPORTFOLIO_API UUPFAbilitySet : public UPrimaryDataAsset
 	GENERATED_BODY()
 
 public:
-	// 이 캐릭터가 보유한 어빌리티를 발동시키기 위한 입력 설정
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (TitleProperty = "InputAction"))
-	TArray<FUPFAbilityTriggerData> AbilityInputActions;
+	// 부여할 어빌리티 목록
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TArray<FUPFAbilityTriggerData> Abilities;
+
+	// 부여할 Effect 목록
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TArray<TSubclassOf<UGameplayEffect>> Effects;
+
+	// 어빌리티 컴포넌트에 Ability Set 을 부여한다. 추후 제거를 원할 경우, OutGrantData 를 저장해 놨다가 사용할것
+	void GiveToAbilityComp(UAbilitySystemComponent* AbilityComp, UObject* SrcObj, FUPFGrantedAbilitySetData* OutGrantData = nullptr) const;
 };

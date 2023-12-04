@@ -116,7 +116,7 @@ void AUPFCharacterBase::PostInitializeComponents()
 		StatSet->OnInit();
 
 		check(CharacterData);
-		for(const FUPFAbilityTriggerData& AbilityInputAction : CharacterData->AbilityInputMappingData->AbilityInputActions)
+		for(const FUPFAbilityTriggerData& AbilityInputAction : CharacterData->AbilityInputMappingData->Abilities)
 		{
 			const int32 InputID = AbilityInputAction.InputID == None ? INDEX_NONE : AbilityInputAction.InputID;	// enum이 -1값이 안되서 따로 처리
 			FGameplayAbilitySpec AbilitySpec(AbilityInputAction.Ability, 1, InputID, this);
@@ -175,7 +175,7 @@ void AUPFCharacterBase::FinishDeath()
 void AUPFCharacterBase::EquipItem(const UUPFEquipmentItemData* EquipmentItemData)
 {
 	check(EquipmentComponent);
-	EquipmentComponent->EquipOrSwitchItem(EquipmentItemData);
+	EquipmentComponent->EquipItem(EquipmentItemData);
 
 	// todo: 스텟과 어빌리티를 컴포넌트에서 부여할지 여기서 할지 결정하기
 }

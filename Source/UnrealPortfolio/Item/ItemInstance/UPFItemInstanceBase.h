@@ -25,4 +25,7 @@ public:
 	TObjectPtr<UMeshComponent> MeshComp;
 
 	virtual void SetData(const UUPFItemData* InData) {}
+
+	// 자기 자신을 파괴시킨다.
+	virtual void DestroySelf();
 };

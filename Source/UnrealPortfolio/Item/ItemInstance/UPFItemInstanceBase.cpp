@@ -8,3 +8,8 @@ AUPFItemInstanceBase::AUPFItemInstanceBase()
 {
 
 }
+
+void AUPFItemInstanceBase::DestroySelf()
+{
+	Destroy();
+}

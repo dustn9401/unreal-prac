@@ -93,18 +93,13 @@ void AUPFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 	// Native Inputs
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AUPFCharacterPlayer::Look);
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AUPFCharacterPlayer::Move);
-	// EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
-	// EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 	EnhancedInputComponent->BindAction<ACharacter, bool>(CrouchAction, ETriggerEvent::Triggered, this, &ACharacter::Crouch, false);
 	EnhancedInputComponent->BindAction<ACharacter, bool>(CrouchAction, ETriggerEvent::Completed, this, &ACharacter::UnCrouch, false);
-
-	// todo: 무기의 수납이나 재장전을 어빌리티로 구현해야, 점프 중이나 연타 시 인풋 막는것을 편하게 할 수 있을듯
-	EnhancedInputComponent->BindAction<UUPFCharacterEquipmentComponent>(HolsterAction, ETriggerEvent::Triggered, EquipmentComponent, &UUPFCharacterEquipmentComponent::ToggleHolsterWeapon);
 
 	// Ability Inputs
 	check(CharacterData && CharacterData->AbilityInputMappingData);
 
-	for(const FUPFAbilityTriggerData& AbilityInputAction : CharacterData->AbilityInputMappingData->AbilityInputActions)
+	for(const FUPFAbilityTriggerData& AbilityInputAction : CharacterData->AbilityInputMappingData->Abilities)
 	{
 		EnhancedInputComponent->BindAction<UAbilitySystemComponent, int32>(
 			AbilityInputAction.InputAction,
@@ -183,7 +178,7 @@ void AUPFCharacterPlayer::TakeItem(UUPFItemData* Data)
 
 	if (const UUPFEquipmentItemData* EquipmentData = Cast<UUPFEquipmentItemData>(Data))
 	{
-		EquipmentComponent->EquipOrSwitchItem(EquipmentData);
+		EquipmentComponent->EquipItem(EquipmentData);
 	}
 	else if (const UUPFConsumableItemData* ConsumableData = Cast<UUPFConsumableItemData>(Data))
 	{
