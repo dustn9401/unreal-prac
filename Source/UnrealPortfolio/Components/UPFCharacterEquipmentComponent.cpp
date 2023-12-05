@@ -5,6 +5,8 @@
 
 #include "AbilitySystemComponent.h"
 #include "UnrealPortfolio.h"
+#include "UPFAbilitySystemComponent.h"
+#include "Character/UPFCharacterBase.h"
 #include "Item/UPFEquipmentItemData.h"
 #include "Item/ItemInstance/Equipments/UPFEquipmentInstance.h"
 #include "Net/UnrealNetwork.h"
@@ -60,9 +62,10 @@ void UUPFCharacterEquipmentComponent::ServerRPCEquipItem_Implementation(const UU
 	// 어빌리티 부여
 	if (Data->AbilitiesToGrant)
 	{
-		if (UAbilitySystemComponent* ASC = GetOwner()->GetComponentByClass<UAbilitySystemComponent>())
+		AUPFCharacterBase* OwnerCharacter = CastChecked<AUPFCharacterBase>(GetOwner());
+		if (UUPFAbilitySystemComponent* ASC = GetOwner()->GetComponentByClass<UUPFAbilitySystemComponent>())
 		{
-			Data->AbilitiesToGrant->GiveToAbilityComp(ASC, this, &Equipments[Data->EquipmentType].GrantedData);
+			Data->AbilitiesToGrant->GiveToCharacter(OwnerCharacter, this, &Equipments[Data->EquipmentType].GrantedData);
 		}
 	}
 }
@@ -118,12 +121,13 @@ void UUPFCharacterEquipmentComponent::EquipItem(const UUPFEquipmentItemData* Dat
 
 void UUPFCharacterEquipmentComponent::ServerRPCUnEquipItem_Implementation(FGameplayTag EquipmentType)
 {
-	UAbilitySystemComponent* ASC = GetOwner()->GetComponentByClass<UAbilitySystemComponent>();
+	UUPFAbilitySystemComponent* ASC = GetOwner()->GetComponentByClass<UUPFAbilitySystemComponent>();
 	check(ASC);
 
 	if (!Equipments.Contains(EquipmentType)) return;
-	
-	Equipments[EquipmentType].GrantedData.TakeFromASC(ASC);
+
+	AUPFCharacterBase* OwnerCharacter = CastChecked<AUPFCharacterBase>(GetOwner());
+	Equipments[EquipmentType].GrantedData.TakeFromCharacter(OwnerCharacter);
 	
 	MulticastRPCUnEquipItem(EquipmentType);
 }
@@ -144,18 +148,7 @@ void UUPFCharacterEquipmentComponent::ToggleHolsterWeapon()
 {
 	// 아무 장비도 착용하지 않음
 	if (!CurrentWeaponType.IsValid()) return;
-
-	UAnimInstance* AnimInstance = CharacterMeshComponent->GetAnimInstance();
-	check(AnimInstance);
-
-	AnimInstance->Montage_Play(HolsterMontage, 1.0f);
-}
-
-void UUPFCharacterEquipmentComponent::OnAnimNotifyHolster()
-{
-	UPF_LOG_COMPONENT(LogTemp, Log, TEXT("OnAnimNotifyHolster"));
-
-	if (!CurrentWeaponType.IsValid()) return;
+	
 	if (!Equipments.Contains(CurrentWeaponType)) return;
 	
 	FEquipmentSocketData SocketData = SocketDatas[CurrentWeaponType];

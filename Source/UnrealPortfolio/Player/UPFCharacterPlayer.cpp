@@ -59,12 +59,6 @@ AUPFCharacterPlayer::AUPFCharacterPlayer(const FObjectInitializer& ObjectInitial
 	{
 		CrouchAction = InputActionCrouchRef.Object;
 	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> InputActionHolsterRef(TEXT("/Script/EnhancedInput.InputAction'/Game/UnrealPortfolio/Input/Actions/IA_Holster.IA_Holster'"));
-	if (InputActionHolsterRef.Object)
-	{
-		HolsterAction = InputActionHolsterRef.Object;
-	}
 }
 
 void AUPFCharacterPlayer::BeginPlay()
@@ -95,26 +89,6 @@ void AUPFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AUPFCharacterPlayer::Move);
 	EnhancedInputComponent->BindAction<ACharacter, bool>(CrouchAction, ETriggerEvent::Triggered, this, &ACharacter::Crouch, false);
 	EnhancedInputComponent->BindAction<ACharacter, bool>(CrouchAction, ETriggerEvent::Completed, this, &ACharacter::UnCrouch, false);
-
-	// Ability Inputs
-	check(CharacterData && CharacterData->AbilityInputMappingData);
-
-	for(const FUPFAbilityTriggerData& AbilityInputAction : CharacterData->AbilityInputMappingData->Abilities)
-	{
-		EnhancedInputComponent->BindAction<UAbilitySystemComponent, int32>(
-			AbilityInputAction.InputAction,
-			ETriggerEvent::Triggered,
-			AbilitySystemComponent,
-			&UAbilitySystemComponent::PressInputID,
-			AbilityInputAction.InputID);
-
-		EnhancedInputComponent->BindAction<UAbilitySystemComponent, int32>(
-			AbilityInputAction.InputAction,
-			ETriggerEvent::Completed,
-			AbilitySystemComponent,
-			&UAbilitySystemComponent::ReleaseInputID,
-			AbilityInputAction.InputID);
-	}
 }
 
 void AUPFCharacterPlayer::ApplyCharacterControlData(const UUPFCharacterControlData* Data)
@@ -147,6 +121,47 @@ void AUPFCharacterPlayer::ApplyCharacterControlData(const UUPFCharacterControlDa
 	
 	Subsystem->ClearAllMappings();
 	Subsystem->AddMappingContext(Data->InputMappingContext, 0);
+}
+
+void AUPFCharacterPlayer::ClientRPCBindAbilitySetInput_Implementation(const UUPFAbilitySet* AbilitySet, int32 GrandIndex)
+{
+	if (!ensure(IsLocallyControlled())) return;
+	check(AbilitySet);
+	UEnhancedInputComponent* EIC = CastChecked<UEnhancedInputComponent>(InputComponent);
+
+	TArray<FInputBindingHandle> BindingHandles;
+	for(const FUPFAbilityTriggerData& TriggerData : AbilitySet->Abilities)
+	{
+		if (!IsValid(TriggerData.InputAction)) continue;
+		if (TriggerData.InputID == None) continue;
+		
+		FEnhancedInputActionEventBinding& PressedBinding = EIC->BindAction<UAbilitySystemComponent, int32>(
+			TriggerData.InputAction,
+			ETriggerEvent::Triggered,
+			AbilitySystemComponent,
+			&UAbilitySystemComponent::PressInputID,
+			TriggerData.InputID);
+		BindingHandles.Add(PressedBinding);
+
+		FEnhancedInputActionEventBinding& ReleasedBinding = EIC->BindAction<UAbilitySystemComponent, int32>(
+			TriggerData.InputAction,
+			ETriggerEvent::Completed,
+			AbilitySystemComponent,
+			&UAbilitySystemComponent::ReleaseInputID,
+			TriggerData.InputID);
+		BindingHandles.Add(ReleasedBinding);
+	}
+
+	if (BindingHandles.Num() > 0)
+	{
+		AbilityInputBindingHandles.Emplace(GrandIndex, BindingHandles);
+	}
+}
+
+void AUPFCharacterPlayer::ClientRPCRemoveAbilitySetBind_Implementation(int32 GrandIndex)
+{
+	if (AbilityInputBindingHandles.Contains(GrandIndex)) return;
+	// todo
 }
 
 void AUPFCharacterPlayer::Look(const FInputActionValue& Value)

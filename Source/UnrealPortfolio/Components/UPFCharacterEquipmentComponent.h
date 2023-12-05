@@ -49,7 +49,7 @@ private:
 	UPROPERTY(NotReplicated)
 	TObjectPtr<AUPFEquipmentInstance> EquipmentInstance;
 
-	// 서버만 가지고 있는 부여된 어빌리티 및 이펙트 데이터
+	// 부여된 어빌리티 및 이펙트 데이터
 	UPROPERTY(NotReplicated)
 	FUPFGrantedAbilitySetData GrantedData;
 };
@@ -88,11 +88,8 @@ public:
 	void MulticastRPCUnEquipItem(FGameplayTag EquipmentType);
 
 	// 무기를 손에 들거나 수납한다.
-	void ToggleHolsterWeapon();
-
-	// 수납 애니메이션 콜백
 	UFUNCTION(BlueprintCallable)
-	void OnAnimNotifyHolster();
+	void ToggleHolsterWeapon();
 
 protected:
 	// Data에 대한 장비 액터를 생성하고 Equipments 맵에 추가한다.

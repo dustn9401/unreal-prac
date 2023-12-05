@@ -8,6 +8,9 @@
 #include "Interface/UPFItemContainerInterface.h"
 #include "UPFCharacterPlayer.generated.h"
 
+struct FInputBindingHandle;
+struct FUPFGrantedAbilitySetData;
+struct FUPFAbilityTriggerData;
 /**
  * 플레이어용 캐릭터
  */
@@ -38,6 +41,16 @@ protected:
 	TObjectPtr<class UUPFCharacterControlData> CharacterControlData;
 
 // Input Section
+public:
+	UFUNCTION(Client, Reliable)
+	void ClientRPCBindAbilitySetInput(const UUPFAbilitySet* AbilitySet, int32 GrandIndex);
+
+	UFUNCTION(Client, Reliable)
+	void ClientRPCRemoveAbilitySetBind(int32 GrandIndex);
+
+	UPROPERTY()
+	TMap<int32, TArray<FInputBindingHandle>> AbilityInputBindingHandles;
+	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> LookAction;
@@ -50,17 +63,11 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> CrouchAction;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> AttackAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> HolsterAction;
 
 	void Look(const FInputActionValue& Value);
 	void Move(const FInputActionValue& Value);
 
 // IUPFItemContainerInterface Impl
 public:
-	void TakeItem(UUPFItemData* Data) override;
+	virtual void TakeItem(UUPFItemData* Data) override;
 };

@@ -5,6 +5,9 @@
 
 #include "AbilitySystemComponent.h"
 #include "GameplayAbilitySpec.h"
+#include "Character/UPFCharacterBase.h"
+#include "Components/UPFAbilitySystemComponent.h"
+#include "Player/UPFCharacterPlayer.h"
 
 void FUPFGrantedAbilitySetData::AddAbilitySpecHandle(const FGameplayAbilitySpecHandle& Handle)
 {
@@ -30,14 +33,22 @@ void FUPFGrantedAbilitySetData::AddGameplayEffectHandle(const FActiveGameplayEff
 	}
 }
 
-void FUPFGrantedAbilitySetData::TakeFromASC(UAbilitySystemComponent* AbilityComp)
+void FUPFGrantedAbilitySetData::TakeFromCharacter(AUPFCharacterBase* Character)
 {
-	if (!AbilityComp->IsOwnerActorAuthoritative())
+	check(Character);
+	
+	if (!Character->HasAuthority())
 	{
-		UE_LOG(LogTemp, Error, TEXT("!AbilityComp->IsOwnerActorAuthoritative()"));
+		UE_LOG(LogTemp, Error, TEXT("!Character->HasAuthority()"));
 		return;
 	}
+	
+	if (AUPFCharacterPlayer* CharacterPlayer = Cast<AUPFCharacterPlayer>(Character))
+	{
+		CharacterPlayer->ClientRPCRemoveAbilitySetBind(Index);
+	}
 
+	UAbilitySystemComponent* AbilityComp = Character->GetAbilitySystemComponent();
 	for(const FGameplayAbilitySpecHandle& Handle : AbilityHandles)
 	{
 		if (Handle.IsValid())
@@ -58,11 +69,14 @@ void FUPFGrantedAbilitySetData::TakeFromASC(UAbilitySystemComponent* AbilityComp
 	EffectHandles.Reset();
 }
 
-void UUPFAbilitySet::GiveToAbilityComp(UAbilitySystemComponent* AbilityComp, UObject* SrcObj, FUPFGrantedAbilitySetData* OutGrantData) const
+void UUPFAbilitySet::GiveToCharacter(AUPFCharacterBase* Character, UObject* SrcObj, FUPFGrantedAbilitySetData* OutGrantData) const
 {
+	UAbilitySystemComponent* AbilityComp = Character->GetAbilitySystemComponent();
+	
 	for(const FUPFAbilityTriggerData& Data : Abilities)
 	{
-		FGameplayAbilitySpec AbilitySpec(Data.Ability, 1, Data.InputID, SrcObj);
+		const int32 InputID = Data.InputID == None ? INDEX_NONE : Data.InputID;		// byte enum이 -1값이 안되서 따로 처리
+		FGameplayAbilitySpec AbilitySpec(Data.Ability, 1, InputID, SrcObj);
 		FGameplayAbilitySpecHandle AbilityHandle = AbilityComp->GiveAbility(AbilitySpec);
 		
 		if (OutGrantData)
@@ -80,6 +94,14 @@ void UUPFAbilitySet::GiveToAbilityComp(UAbilitySystemComponent* AbilityComp, UOb
 		if (OutGrantData)
 		{
 			OutGrantData->AddGameplayEffectHandle(EffectHandle);
+		}
+	}
+
+	if (AUPFCharacterPlayer* CharacterPlayer = Cast<AUPFCharacterPlayer>(Character))
+	{
+		if (OutGrantData)
+		{
+			CharacterPlayer->ClientRPCBindAbilitySetInput(this, OutGrantData->Index);
 		}
 	}
 }

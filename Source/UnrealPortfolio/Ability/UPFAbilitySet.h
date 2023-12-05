@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ActiveGameplayEffectHandle.h"
+#include "EnhancedInputComponent.h"
 #include "GameplayAbilitySpecHandle.h"
 #include "GameplayTagContainer.h"
 #include "UnrealPortfolio.h"
@@ -11,6 +12,8 @@
 #include "UPFAbilitySet.generated.h"
 
 
+class AUPFCharacterBase;
+class UUPFAbilitySystemComponent;
 class UGameplayEffect;
 struct FActiveGameplayEffectHandle;
 struct FGameplayAbilitySpecHandle;
@@ -57,12 +60,21 @@ struct FUPFGrantedAbilitySetData
 	GENERATED_BODY()
 
 public:
+	FUPFGrantedAbilitySetData()
+	{
+		Index = GlobalIndex++;
+	}
+	
+	int32 Index;
+	
 	void AddAbilitySpecHandle(const FGameplayAbilitySpecHandle& Handle);
 	void AddGameplayEffectHandle(const FActiveGameplayEffectHandle& Handle);
 
-	void TakeFromASC(UAbilitySystemComponent* AbilityComp);
+	void TakeFromCharacter(AUPFCharacterBase* Character);
 
 private:
+	inline static int32 GlobalIndex = 0;
+	
 	UPROPERTY()
 	TArray<FGameplayAbilitySpecHandle> AbilityHandles;
 
@@ -88,6 +100,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TArray<TSubclassOf<UGameplayEffect>> Effects;
 
-	// 어빌리티 컴포넌트에 Ability Set 을 부여한다. 추후 제거를 원할 경우, OutGrantData 를 저장해 놨다가 사용할것
-	void GiveToAbilityComp(UAbilitySystemComponent* AbilityComp, UObject* SrcObj, FUPFGrantedAbilitySetData* OutGrantData = nullptr) const;
+	// 캐릭터에 Ability Set 을 부여한다. 추후 제거를 원할 경우, OutGrantData 를 저장해 놨다가 사용할것
+	void GiveToCharacter(AUPFCharacterBase* Character, UObject* SrcObj, FUPFGrantedAbilitySetData* OutGrantData = nullptr) const;
 };

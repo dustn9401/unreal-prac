@@ -10,7 +10,6 @@
 /*
  * 씬에 존재하는 아이템 Actor
  */
-
 UCLASS(Abstract)
 class UNREALPORTFOLIO_API AUPFItemInstanceBase : public AActor
 {

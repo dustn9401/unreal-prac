@@ -14,6 +14,8 @@ UUPFGameplayAbility_Holster::UUPFGameplayAbility_Holster()
 void UUPFGameplayAbility_Holster::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
                                                   const FGameplayEventData* TriggerEventData)
 {
+	UE_LOG(LogTemp, Log, TEXT("UUPFGameplayAbility_Holster::ActivateAbility"));
+	
 	CommitAbility(Handle, ActorInfo, ActivationInfo);
 
 	const TWeakObjectPtr<UAbilitySystemComponent> ASC = ActorInfo->AbilitySystemComponent;
