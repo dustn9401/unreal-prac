@@ -99,9 +99,6 @@ protected:
 
 // Equipment
 public:
-	// 장비를 장착한다.
-	void EquipItem(const UUPFEquipmentItemData* EquipmentItemData);
-
 	UPROPERTY()
 	TObjectPtr<UUPFCharacterEquipmentComponent> EquipmentComponent;
 

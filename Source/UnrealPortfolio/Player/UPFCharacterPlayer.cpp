@@ -178,7 +178,7 @@ void AUPFCharacterPlayer::TakeItem(UUPFItemData* Data)
 
 	if (const UUPFEquipmentItemData* EquipmentData = Cast<UUPFEquipmentItemData>(Data))
 	{
-		EquipmentComponent->EquipItem(EquipmentData);
+		EquipmentComponent->ServerRPCEquipItem(EquipmentData);
 	}
 	else if (const UUPFConsumableItemData* ConsumableData = Cast<UUPFConsumableItemData>(Data))
 	{

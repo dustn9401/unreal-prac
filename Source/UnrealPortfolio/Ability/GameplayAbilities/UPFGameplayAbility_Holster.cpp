@@ -4,6 +4,8 @@
 #include "Ability/GameplayAbilities/UPFGameplayAbility_Holster.h"
 
 #include "AbilitySystemComponent.h"
+#include "Components/UPFCharacterEquipmentComponent.h"
+#include "GameFramework/Character.h"
 
 UUPFGameplayAbility_Holster::UUPFGameplayAbility_Holster()
 {
@@ -28,11 +30,4 @@ void UUPFGameplayAbility_Holster::ActivateAbility(const FGameplayAbilitySpecHand
 void UUPFGameplayAbility_Holster::OnMontageEnd(UAnimMontage* TargetMontage, bool IsProperlyEnded)
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-}
-
-void UUPFGameplayAbility_Holster::OnAnimNotifyHolster()
-{
-	if (!CurrentActorInfo->OwnerActor.IsValid()) return;
-
-	
 }

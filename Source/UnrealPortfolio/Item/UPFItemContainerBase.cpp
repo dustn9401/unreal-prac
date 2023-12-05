@@ -25,7 +25,7 @@ AUPFItemContainerBase::AUPFItemContainerBase()
 void AUPFItemContainerBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-
+	
 	BoxComponent->OnComponentBeginOverlap.AddDynamic(this, &AUPFItemContainerBase::OnOverlapBegin);
 }
 
@@ -60,7 +60,11 @@ void AUPFItemContainerBase::SetData(UUPFItemData* InItemData)
 void AUPFItemContainerBase::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
                                            const FHitResult& SweepHitResult)
 {
+	// 우선 모든 플레이어는 각자의 콜리전을 막는다.
 	SetActorEnableCollision(false);
+
+	// 이후는 서버만 수행
+	if (!HasAuthority()) return;
 	
 	if (ItemData == nullptr)
 	{

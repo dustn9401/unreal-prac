@@ -9,18 +9,6 @@
 #include "Item/ItemInstance/Equipments/UPFEquipmentInstance.h"
 #include "Net/UnrealNetwork.h"
 
-void FUPFEquipmentList::PreReplicatedRemove(const TArrayView<int32> RemovedIndices, int32 FinalSize)
-{
-}
-
-void FUPFEquipmentList::PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 FinalSize)
-{
-}
-
-void FUPFEquipmentList::PostReplicatedChange(const TArrayView<int32> ChangedIndices, int32 FinalSize)
-{
-}
-
 // Sets default values for this component's properties
 UUPFCharacterEquipmentComponent::UUPFCharacterEquipmentComponent()
 {
@@ -39,6 +27,8 @@ UUPFCharacterEquipmentComponent::UUPFCharacterEquipmentComponent()
 	}
 	
 	SetIsReplicatedByDefault(true);
+
+	bIsHolstered = true;
 }
 
 void UUPFCharacterEquipmentComponent::InitializeComponent()
@@ -52,12 +42,39 @@ void UUPFCharacterEquipmentComponent::GetLifetimeReplicatedProps(TArray<FLifetim
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UUPFCharacterEquipmentComponent, EquipmentList);
+	// DOREPLIFETIME(UUPFCharacterEquipmentComponent, bIsHolstered);
+	// DOREPLIFETIME(UUPFCharacterEquipmentComponent, CurrentWeaponType);
 }
 
-bool UUPFCharacterEquipmentComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
+void UUPFCharacterEquipmentComponent::ServerRPCEquipItem_Implementation(const UUPFEquipmentItemData* Data)
 {
-	return Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
+	UPF_LOG_COMPONENT(LogTemp, Log, TEXT("Called"));
+
+	MulticastRPCEquipItem(Data);
+
+	if (!ensure(Equipments.Contains(Data->EquipmentType)))
+	{
+		return;
+	}
+
+	// 어빌리티 부여
+	if (Data->AbilitiesToGrant)
+	{
+		if (UAbilitySystemComponent* ASC = GetOwner()->GetComponentByClass<UAbilitySystemComponent>())
+		{
+			Data->AbilitiesToGrant->GiveToAbilityComp(ASC, this, &Equipments[Data->EquipmentType].GrantedData);
+		}
+	}
+}
+
+bool UUPFCharacterEquipmentComponent::ServerRPCEquipItem_Validate(const UUPFEquipmentItemData* Data)
+{
+	return true;
+}
+
+void UUPFCharacterEquipmentComponent::MulticastRPCEquipItem_Implementation(const UUPFEquipmentItemData* Data)
+{
+	EquipItem(Data);
 }
 
 void UUPFCharacterEquipmentComponent::EquipItem(const UUPFEquipmentItemData* Data)
@@ -74,44 +91,53 @@ void UUPFCharacterEquipmentComponent::EquipItem(const UUPFEquipmentItemData* Dat
 	// 소켓에 부착
 	const bool IsUnarmed = !CurrentWeaponType.IsValid();	// 아무 장비도 착용하지 않았다면, 현재 선택된 장비 타입으로 지정하고 손에 쥐어준다.
 	const bool IsCurrentWeaponType = CurrentWeaponType == Data->EquipmentType;
-	const bool AttachToHand = (IsCurrentWeaponType && !IsHolstered) || IsUnarmed;
+	const bool AttachToHand = (IsCurrentWeaponType && !bIsHolstered) || IsUnarmed;
 	const FName AttachSocket = AttachToHand
-		                           ? SocketDatas[Data->EquipmentType].HandSocket
-		                           : SocketDatas[Data->EquipmentType].HolsterSocket;
+								   ? SocketDatas[Data->EquipmentType].HandSocket
+								   : SocketDatas[Data->EquipmentType].HolsterSocket;
 	
 	if (IsUnarmed)
 	{
-		IsHolstered = false;
+		bIsHolstered = false;
 		CurrentWeaponType = Data->EquipmentType;
 	}
-	
-	SpawnedItem->MeshComp->AttachToComponent(CharacterMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, AttachSocket);
+
+	// 여기서 Owner 변경되어 Replicate됨
+	if (!SpawnedItem->MeshComp->AttachToComponent(CharacterMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, AttachSocket))
+	{
+		UPF_LOG_COMPONENT(LogTemp, Error, TEXT("AttachToComponent Failed"));
+	}
 
 	// 장비 목록에 추가
-	FUPFAppliedEquipmentEntry& NewEntry = EquipmentList.Entries.AddDefaulted_GetRef();
+	FUPFAppliedEquipmentEntry NewEntry;
 	NewEntry.EquipmentItemData = Data;
 	NewEntry.EquipmentInstance = SpawnedItem;
-	EquipmentList.MarkItemDirty(NewEntry);
+
+	Equipments.Emplace(Data->EquipmentType, NewEntry);
+}
+
+void UUPFCharacterEquipmentComponent::ServerRPCUnEquipItem_Implementation(FGameplayTag EquipmentType)
+{
+	UAbilitySystemComponent* ASC = GetOwner()->GetComponentByClass<UAbilitySystemComponent>();
+	check(ASC);
+
+	if (!Equipments.Contains(EquipmentType)) return;
+	
+	Equipments[EquipmentType].GrantedData.TakeFromASC(ASC);
+	
+	MulticastRPCUnEquipItem(EquipmentType);
+}
+
+void UUPFCharacterEquipmentComponent::MulticastRPCUnEquipItem_Implementation(FGameplayTag EquipmentType)
+{
+	UnEquipItem(EquipmentType);
 }
 
 void UUPFCharacterEquipmentComponent::UnEquipItem(FGameplayTag EquipmentType)
 {
-	for(auto It = EquipmentList.Entries.CreateIterator(); It; ++It)
-	{
-		FUPFAppliedEquipmentEntry& Entry = *It;
-		if (Entry.EquipmentItemData->EquipmentType == EquipmentType)
-		{
-			if (UAbilitySystemComponent* ASC = GetOwner()->GetComponentByClass<UAbilitySystemComponent>())
-			{
-				Entry.GrantedData.TakeFromASC(ASC);
-			}
-
-			Entry.EquipmentInstance->DestroySelf();
-
-			It.RemoveCurrent();
-			EquipmentList.MarkArrayDirty();
-		}
-	}
+	if (!Equipments.Contains(EquipmentType)) return;
+	Equipments[EquipmentType].EquipmentInstance->DestroySelf();
+	Equipments.Remove(EquipmentType);
 }
 
 void UUPFCharacterEquipmentComponent::ToggleHolsterWeapon()
@@ -130,16 +156,11 @@ void UUPFCharacterEquipmentComponent::OnAnimNotifyHolster()
 	UPF_LOG_COMPONENT(LogTemp, Log, TEXT("OnAnimNotifyHolster"));
 
 	if (!CurrentWeaponType.IsValid()) return;
-	const FUPFAppliedEquipmentEntry* TargetEntry = EquipmentList.Entries.FindByPredicate([&](const FUPFAppliedEquipmentEntry& X)
-	{
-		return X.EquipmentItemData->EquipmentType == CurrentWeaponType;
-	});
-	
-	if (TargetEntry == nullptr) return;
+	if (!Equipments.Contains(CurrentWeaponType)) return;
 	
 	FEquipmentSocketData SocketData = SocketDatas[CurrentWeaponType];
-	FName TargetSocket = IsHolstered ? SocketData.HandSocket : SocketData.HolsterSocket;
-	TargetEntry->EquipmentInstance->MeshComp->AttachToComponent(CharacterMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, TargetSocket);
+	FName TargetSocket = bIsHolstered ? SocketData.HandSocket : SocketData.HolsterSocket;
+	Equipments[CurrentWeaponType].EquipmentInstance->MeshComp->AttachToComponent(CharacterMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, TargetSocket);
 	
-	IsHolstered = !IsHolstered;
+	bIsHolstered = !bIsHolstered;
 }

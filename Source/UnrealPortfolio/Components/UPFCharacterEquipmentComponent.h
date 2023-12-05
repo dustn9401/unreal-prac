@@ -6,14 +6,12 @@
 #include "GameplayTagContainer.h"
 #include "Ability/UPFAbilitySet.h"
 #include "Components/ActorComponent.h"
-#include "Net/Serialization/FastArraySerializer.h"
 #include "UPFCharacterEquipmentComponent.generated.h"
 
 
 class UUPFCharacterEquipmentComponent;
 class AUPFEquipmentInstance;
 class UUPFEquipmentItemData;
-struct FUPFEquipmentList;
 
 /*
  * 장비의 캐릭터 장착을 위한 데이터
@@ -37,55 +35,23 @@ public:
  * 캐릭터가 착용충인 하나의 장비 아이템에 대한 데이터
  */
 USTRUCT()
-struct FUPFAppliedEquipmentEntry : public FFastArraySerializerItem
+struct FUPFAppliedEquipmentEntry
 {
 	GENERATED_BODY()
 
 private:
-	friend FUPFEquipmentList;
 	friend UUPFCharacterEquipmentComponent;
 	
 	UPROPERTY()
 	TObjectPtr<const UUPFEquipmentItemData> EquipmentItemData;
 
-	UPROPERTY()
+	// 각 플레이어가 관리
+	UPROPERTY(NotReplicated)
 	TObjectPtr<AUPFEquipmentInstance> EquipmentInstance;
 
 	// 서버만 가지고 있는 부여된 어빌리티 및 이펙트 데이터
 	UPROPERTY(NotReplicated)
 	FUPFGrantedAbilitySetData GrantedData;
-};
-
-USTRUCT(BlueprintType)
-struct FUPFEquipmentList : public FFastArraySerializer
-{
-	GENERATED_BODY()
-
-	FUPFEquipmentList() {}
-
-public:
-	//~FFastArraySerializer contract
-	void PreReplicatedRemove(const TArrayView<int32> RemovedIndices, int32 FinalSize);
-	void PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 FinalSize);
-	void PostReplicatedChange(const TArrayView<int32> ChangedIndices, int32 FinalSize);
-	//~End of FFastArraySerializer contract
-
-	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParms)
-	{
-		return FFastArraySerializer::FastArrayDeltaSerialize<FUPFAppliedEquipmentEntry, FUPFEquipmentList>(Entries, DeltaParms, *this);
-	}
-
-private:
-	friend UUPFCharacterEquipmentComponent;
-	
-	UPROPERTY()
-	TArray<FUPFAppliedEquipmentEntry> Entries;
-};
-
-template<>
-struct TStructOpsTypeTraits<FUPFEquipmentList> : public TStructOpsTypeTraitsBase2<FUPFEquipmentList>
-{
-	enum { WithNetDeltaSerializer = true };
 };
 
 /*
@@ -103,15 +69,23 @@ public:
 	virtual void InitializeComponent() override;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
-	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
-
+	
 public:
-	// 장비를 장착한다.
-	void EquipItem(const UUPFEquipmentItemData* Data);
+	// 장비 장착 시킬때 호출하는 함수.
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerRPCEquipItem(const UUPFEquipmentItemData* Data);
 
-	// 특정 타입의 장비를 해제한다. 
-	void UnEquipItem(FGameplayTag EquipmentType);
+	// 모두에게 이 캐릭터에게 장비 장착 명령
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastRPCEquipItem(const UUPFEquipmentItemData* Data);
+
+	// 특정 타입의 장비를 해제한다.
+	UFUNCTION(Server, Reliable)
+	void ServerRPCUnEquipItem(FGameplayTag EquipmentType);
+
+	// 모두에게 이 캐릭터의 장비 해제 명령
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastRPCUnEquipItem(FGameplayTag EquipmentType);
 
 	// 무기를 손에 들거나 수납한다.
 	void ToggleHolsterWeapon();
@@ -121,6 +95,12 @@ public:
 	void OnAnimNotifyHolster();
 
 protected:
+	// Data에 대한 장비 액터를 생성하고 Equipments 맵에 추가한다.
+	void EquipItem(const UUPFEquipmentItemData* Data);
+
+	// 특정 타입의 장비가 착용되어 있다면 제거한다.
+	void UnEquipItem(FGameplayTag EquipmentType);
+	
 	UPROPERTY()
 	TObjectPtr<USkeletalMeshComponent> CharacterMeshComponent;
 	
@@ -128,20 +108,20 @@ protected:
 	UPROPERTY()
 	TMap<FGameplayTag, FEquipmentSocketData> SocketDatas;
 
-	// 현재 착용중인 장비 목록
-	UPROPERTY(Replicated)
-	FUPFEquipmentList EquipmentList;
+	// 현재 착용중인 장비 목록, EquipmentType 과 데이터 pair
+	UPROPERTY()
+	TMap<FGameplayTag, FUPFAppliedEquipmentEntry> Equipments;
 
 	// 현재 선택된 무기 타입 (근접무기/라이플/권총 등)
 	FGameplayTag CurrentWeaponType;
 
 	// 무기를 수납중인지 여부
-	bool IsHolstered = true;
+	uint8 bIsHolstered : 1;
 
 public:
 	FORCEINLINE bool GetIsHolstered() const
 	{
-		return IsHolstered;
+		return bIsHolstered;
 	}
 
 	// Animation

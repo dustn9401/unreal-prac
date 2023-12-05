@@ -27,8 +27,4 @@ protected:
 
 	// EndAbility가 호출되는 함수
 	void OnMontageEnd(UAnimMontage* TargetMontage, bool IsProperlyEnded);
-
-public:
-	UFUNCTION(BlueprintCallable)
-	void OnAnimNotifyHolster();
 };
