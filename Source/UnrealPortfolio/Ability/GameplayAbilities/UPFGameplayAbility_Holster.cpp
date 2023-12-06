@@ -30,6 +30,12 @@ void UUPFGameplayAbility_Holster::ActivateAbility(const FGameplayAbilitySpecHand
 	// Task->Activate();
 }
 
+void UUPFGameplayAbility_Holster::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
+{
+	// 수납 중 인풋이 또 들어오면 수납 취소
+	CancelAbility(Handle, ActorInfo, ActivationInfo, true);
+}
+
 void UUPFGameplayAbility_Holster::OnEventReceived(FGameplayEventData Payload)
 {
 	if (CurrentActorInfo == nullptr) return;
@@ -37,7 +43,7 @@ void UUPFGameplayAbility_Holster::OnEventReceived(FGameplayEventData Payload)
 	AUPFCharacterBase* UPFCharacter = CastChecked<AUPFCharacterBase>(CurrentActorInfo->OwnerActor);
 	UPFCharacter->EquipmentComponent->ToggleHolsterWeapon();
 
-	// 여기는 아직 몽타주가 조금 남은 상태이지만, 편의를 위해 여기서 종료시킴
+	// 여기서 어빌리티를 종료시켜서 다시 인풋이 들어왔을 때 취소 시키지 않는다.
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 }
 
