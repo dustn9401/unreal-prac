@@ -109,19 +109,11 @@ void AUPFCharacterBase::PostInitializeComponents()
 
 	UPF_LOG(LogTemp, Log, TEXT("Called, %s"), *GetName());
 
-	// 스텟 초기화 및 기본 어빌리티 부여, 서버만 수행
+	// 스텟 초기화, 서버만 수행
 	if (HasAuthority())
 	{
 		IGameplayAbilitiesModule::Get().GetAbilitySystemGlobals()->GetAttributeSetInitter()->InitAttributeSetDefaults(AbilitySystemComponent, GetStatGroup(), 1, true);
 		StatSet->OnInit();
-
-		check(CharacterData);
-		for(const FUPFAbilityTriggerData& AbilityInputAction : CharacterData->AbilityInputMappingData->Abilities)
-		{
-			const int32 InputID = AbilityInputAction.InputID == None ? INDEX_NONE : AbilityInputAction.InputID;	// enum이 -1값이 안되서 따로 처리
-			FGameplayAbilitySpec AbilitySpec(AbilityInputAction.Ability, 1, InputID, this);
-			AbilitySystemComponent->GiveAbility(AbilitySpec);
-		}
 	}
 	
 	StatSet->OnHPZero.AddUObject(this, &AUPFCharacterBase::OnHPZero);

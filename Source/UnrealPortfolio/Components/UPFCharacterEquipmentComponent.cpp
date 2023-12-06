@@ -63,10 +63,7 @@ void UUPFCharacterEquipmentComponent::ServerRPCEquipItem_Implementation(const UU
 	if (Data->AbilitiesToGrant)
 	{
 		AUPFCharacterBase* OwnerCharacter = CastChecked<AUPFCharacterBase>(GetOwner());
-		if (UUPFAbilitySystemComponent* ASC = GetOwner()->GetComponentByClass<UUPFAbilitySystemComponent>())
-		{
-			Data->AbilitiesToGrant->GiveToCharacter(OwnerCharacter, this, &Equipments[Data->EquipmentType].GrantedData);
-		}
+		Data->AbilitiesToGrant->GiveToCharacter(OwnerCharacter, this, &Equipments[Data->EquipmentType].GrantedData);
 	}
 }
 

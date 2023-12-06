@@ -21,6 +21,6 @@ public:
 public:
 	virtual void AbilityLocalInputPressed(int32 InputID) override;
 	virtual void AbilityLocalInputReleased(int32 InputID) override;
-	void OnGiveAbilitySet(const UUPFAbilitySet* AbilitySet);
-	void OnRemoveAbilitySet(const UUPFAbilitySet* AbilitySet);
+	// void OnGiveAbilitySet(const UUPFAbilitySet* AbilitySet);
+	// void OnRemoveAbilitySet(const UUPFAbilitySet* AbilitySet);
 };

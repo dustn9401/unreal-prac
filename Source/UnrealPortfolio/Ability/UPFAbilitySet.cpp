@@ -99,9 +99,6 @@ void UUPFAbilitySet::GiveToCharacter(AUPFCharacterBase* Character, UObject* SrcO
 
 	if (AUPFCharacterPlayer* CharacterPlayer = Cast<AUPFCharacterPlayer>(Character))
 	{
-		if (OutGrantData)
-		{
-			CharacterPlayer->ClientRPCBindAbilitySetInput(this, OutGrantData->Index);
-		}
+		CharacterPlayer->ClientRPCBindAbilitySetInput(this, OutGrantData ? OutGrantData->Index : INDEX_NONE);
 	}
 }
