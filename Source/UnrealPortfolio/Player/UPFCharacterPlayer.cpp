@@ -153,8 +153,7 @@ void AUPFCharacterPlayer::ServerRPCGiveCharacterAbilitySet_Implementation()
 void AUPFCharacterPlayer::ClientRPCBindAbilitySetInput_Implementation(const UUPFAbilitySet* AbilitySet, int32 GrantKey)
 {
 	UPF_LOG(LogTemp, Log, TEXT("Name=%s"), *GetName());
-	// 여기서 Controller가 아직 null임
-	// if (!ensure(IsLocallyControlled())) return;
+	if (!ensure(IsLocallyControlled())) return;
 	check(AbilitySet);
 
 	UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(InputComponent);
