@@ -33,9 +33,6 @@ public:
 	// Sets default values for this character's properties
 	AUPFCharacterBase(const FObjectInitializer& ObjectInitializer);
 
-	// 스스로 정리한 뒤 파괴시킨다. 반드시 캐릭터를 제거할 때는 이 함수를 사용할 것!!
-	virtual void DestroySelf();
-
 // ACharacter overrides
 protected:
 	virtual void PostInitializeComponents() override;

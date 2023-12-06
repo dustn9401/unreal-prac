@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "NativeGameplayTags.h"
 #include "Ability/UPFGameplayAbility.h"
 #include "UPFGameplayAbility_Holster.generated.h"
 
@@ -22,9 +23,11 @@ public:
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
+	UFUNCTION()
+	void OnEventReceived(FGameplayEventData Payload);
+
+	virtual void CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility) override;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UAnimMontage> HolsterMontage;
-
-	// EndAbility가 호출되는 함수
-	void OnMontageEnd(UAnimMontage* TargetMontage, bool IsProperlyEnded);
 };

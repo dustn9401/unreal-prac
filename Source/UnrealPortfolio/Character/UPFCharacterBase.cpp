@@ -98,11 +98,6 @@ AUPFCharacterBase::AUPFCharacterBase(const FObjectInitializer& ObjectInitializer
 	EquipmentComponent->SetIsReplicated(true);
 }
 
-void AUPFCharacterBase::DestroySelf()
-{
-	Destroy();
-}
-
 void AUPFCharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
