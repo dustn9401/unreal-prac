@@ -12,6 +12,7 @@
 #include "Components/UPFAbilitySystemComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Ability/UPFAbilitySet.h"
+#include "Components/TimelineComponent.h"
 #include "Components/UPFCharacterEquipmentComponent.h"
 #include "Item/UPFEquipmentItemData.h"
 #include "Item/ItemInstance/Equipments/UPFEquipmentInstance.h"

@@ -122,6 +122,7 @@ void AUPFCharacterPlayer::ApplyCharacterControlData(const UUPFCharacterControlDa
 
 	// Camera
 	CameraBoom->TargetArmLength = Data->TargetArmLength;
+	CameraBoom->SocketOffset = Data->SocketOffset;
 	CameraBoom->SetRelativeRotation(Data->RelativeRotation);
 	CameraBoom->bUsePawnControlRotation = Data->bUsePawnControlRotation;
 	CameraBoom->bInheritPitch = Data->bInheritPitch;

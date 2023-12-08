@@ -17,3 +17,31 @@ bool UUPFGameplayAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Ha
 	return Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags) &&
 		ActorInfo->GetAnimInstance();
 }
+
+AController* UUPFGameplayAbility::GetControllerFromActorInfoRecursive() const
+{
+	if (!CurrentActorInfo) return nullptr;
+
+	if (AController* PC = CurrentActorInfo->PlayerController.Get())
+	{
+		return PC;
+	}
+	
+	AActor* TestActor = CurrentActorInfo->OwnerActor.Get();
+	while (TestActor)
+	{
+		if (AController* C = Cast<AController>(TestActor))
+		{
+			return C;
+		}
+
+		if (const APawn* Pawn = Cast<APawn>(TestActor))
+		{
+			return Pawn->GetController();
+		}
+
+		TestActor = TestActor->GetOwner();
+	}
+
+	return nullptr;
+}

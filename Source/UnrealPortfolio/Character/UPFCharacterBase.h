@@ -19,6 +19,7 @@
  * 모든 캐릭터들의 base class
  */
 
+class UTimelineComponent;
 class UUPFCharacterEquipmentComponent;
 class UUPFEquipmentItemData;
 

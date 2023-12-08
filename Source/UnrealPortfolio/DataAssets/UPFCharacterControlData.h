@@ -32,8 +32,11 @@ public:
 	UPROPERTY(EditAnywhere, Category=CharacterMovement)
 	FRotator RotationRate;
 
-	UPROPERTY(EditAnywhere, Category=SpringArm)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=SpringArm)
 	float TargetArmLength;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=SpringArm)
+	FVector SocketOffset;
 
 	UPROPERTY(EditAnywhere, Category=SpringArm)
 	FRotator RelativeRotation;

@@ -6,6 +6,7 @@
 #include "Ability/UPFGameplayAbility.h"
 #include "UPFGameplayAbility_RangedWeapon.generated.h"
 
+class AUPFRangedWeaponInstance;
 /**
  * 원거리 무기가 가지는 어빌리티의 base class
  * 발사, 장전 등으로 파생된다.
@@ -15,5 +16,9 @@ class UNREALPORTFOLIO_API UUPFGameplayAbility_RangedWeapon : public UUPFGameplay
 {
 	GENERATED_BODY()
 
+public:
 	UUPFGameplayAbility_RangedWeapon();
+
+protected:
+	AUPFRangedWeaponInstance* GetWeaponInstance() const;
 };
