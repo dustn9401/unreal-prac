@@ -72,7 +72,7 @@ void UUPFGameplayAbility_FireWeapon::ActivateAbility(const FGameplayAbilitySpecH
 			.AddUObject(this, &UUPFGameplayAbility_FireWeapon::OnTargetDataReadyCallback);
 	}
 
-	const FTimerDelegate TimerCallback = FTimerDelegate::CreateLambda(this, [&]{
+	const FTimerDelegate TimerCallback = FTimerDelegate::CreateWeakLambda(this, [&]{
 			EndAbility(Handle, ActorInfo, ActivationInfo, false, false); });
 	
 	AUPFRangedWeaponInstance* WeaponInstance = GetWeaponInstance();

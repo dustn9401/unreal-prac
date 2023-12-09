@@ -32,6 +32,10 @@ struct FUPFServerSideHitMarkerBatch
 	uint8 UniqueId = 0;
 };
 
+/*
+ * 플레이어 화면에 데미지 효과 적용을 위한 컴포넌트
+ * 컨트롤러가 소유한다.
+ */
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class UNREALPORTFOLIO_API UUPFWeaponStateComponent : public UActorComponent
 {
