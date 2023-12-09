@@ -25,3 +25,11 @@ void AUPFEquipmentInstance::SetData(const UUPFItemData* InData)
 									: EquipmentItemData->SkeletalMesh.Get();
 	SMC->SetSkeletalMesh(EquipmentMesh);
 }
+
+void AUPFEquipmentInstance::OnEquipped(AUPFCharacterBase* EquippedCharacter)
+{
+}
+
+void AUPFEquipmentInstance::OnUnEquipped(AUPFCharacterBase* UnEquippedCharacter)
+{
+}

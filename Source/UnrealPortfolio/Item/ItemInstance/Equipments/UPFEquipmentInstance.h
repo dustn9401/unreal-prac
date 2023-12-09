@@ -6,6 +6,7 @@
 #include "Item/ItemInstance/UPFItemInstanceBase.h"
 #include "UPFEquipmentInstance.generated.h"
 
+class AUPFCharacterBase;
 class UUPFEquipmentItemData;
 /**
  * 폰이 착용하는 아이템, UUPFEquipmentItemData 와 일대일 대응
@@ -21,4 +22,7 @@ public:
 public:
 	// ItemData 를 받아서 오브젝트를 초기화 시킨다.
 	virtual void SetData(const UUPFItemData* InData) override;
+
+	virtual void OnEquipped(AUPFCharacterBase* EquippedCharacter);
+	virtual void OnUnEquipped(AUPFCharacterBase* UnEquippedCharacter);
 };

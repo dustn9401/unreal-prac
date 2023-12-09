@@ -45,7 +45,7 @@ void UUPFAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	if (Owner)
 	{
-		ControlRotator = Owner->GetControlRotation();
+		ControlRotator = Velocity.Rotation();//Owner->GetControlRotation();
 		bIsAiming = Owner->bIsAiming;
 	}
 }

@@ -6,6 +6,7 @@
 #include "Item/ItemInstance/Equipments/UPFEquipmentInstance.h"
 #include "UPFRangedWeaponInstance.generated.h"
 
+class AUPFCharacterBase;
 /**
  * 
  */
@@ -16,6 +17,9 @@ class UNREALPORTFOLIO_API AUPFRangedWeaponInstance : public AUPFEquipmentInstanc
 
 public:
 	virtual void SetData(const UUPFItemData* InData) override;
+	virtual void OnEquipped(AUPFCharacterBase* EquippedCharacter) override;
+	virtual void OnUnEquipped(AUPFCharacterBase* UnEquippedCharacter) override;
+
 
 	void AddSpread();
 
@@ -193,4 +197,10 @@ private:
 
 		return FMath::Clamp(NewHeat, MinHeat, MaxHeat);
 	}
+
+// Animation
+protected:
+	// ALI_RangedWeaponLayer 구현한 애니메이션 인스턴스, 장비 착용 시 추가되고, 해제 시 다시 제거된다.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<UAnimInstance> AnimLayer;
 };

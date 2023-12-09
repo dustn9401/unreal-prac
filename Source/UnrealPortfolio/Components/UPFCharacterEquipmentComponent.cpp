@@ -115,6 +115,11 @@ void UUPFCharacterEquipmentComponent::EquipItem(const UUPFEquipmentItemData* Dat
 	NewEntry.EquipmentInstance = SpawnedItem;
 
 	Equipments.Emplace(Data->EquipmentType, NewEntry);
+
+	AUPFCharacterBase* EquipCharacter = Cast<AUPFCharacterBase>(GetOwner());
+	check(EquipCharacter);
+	
+	SpawnedItem->OnEquipped(EquipCharacter);
 }
 
 void UUPFCharacterEquipmentComponent::ServerRPCUnEquipItem_Implementation(FGameplayTag EquipmentType)
@@ -138,7 +143,14 @@ void UUPFCharacterEquipmentComponent::MulticastRPCUnEquipItem_Implementation(FGa
 void UUPFCharacterEquipmentComponent::UnEquipItem(FGameplayTag EquipmentType)
 {
 	if (!Equipments.Contains(EquipmentType)) return;
-	Equipments[EquipmentType].EquipmentInstance->DestroySelf();
+
+	const FUPFAppliedEquipmentEntry& RemovedEntry = Equipments[EquipmentType];
+	
+	AUPFCharacterBase* EquipCharacter = Cast<AUPFCharacterBase>(GetOwner());
+	check(EquipCharacter);
+	RemovedEntry.EquipmentInstance->OnUnEquipped(EquipCharacter);
+	
+	RemovedEntry.EquipmentInstance->DestroySelf();
 	Equipments.Remove(EquipmentType);
 }
 

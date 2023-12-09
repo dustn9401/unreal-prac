@@ -3,11 +3,29 @@
 
 #include "Item/ItemInstance/Equipments/UPFRangedWeaponInstance.h"
 
+#include "Character/UPFCharacterBase.h"
+
 void AUPFRangedWeaponInstance::SetData(const UUPFItemData* InData)
 {
 	Super::SetData(InData);
 
 	// TODO: cache FireDelay
+}
+
+void AUPFRangedWeaponInstance::OnEquipped(AUPFCharacterBase* EquippedCharacter)
+{
+	Super::OnEquipped(EquippedCharacter);
+	
+	if (!ensure(EquippedCharacter)) return;
+	EquippedCharacter->GetMesh()->LinkAnimClassLayers(AnimLayer);
+}
+
+void AUPFRangedWeaponInstance::OnUnEquipped(AUPFCharacterBase* UnEquippedCharacter)
+{
+	Super::OnUnEquipped(UnEquippedCharacter);
+	
+	if (!ensure(UnEquippedCharacter)) return;
+	UnEquippedCharacter->GetMesh()->UnlinkAnimClassLayers(AnimLayer);
 }
 
 void AUPFRangedWeaponInstance::AddSpread()
