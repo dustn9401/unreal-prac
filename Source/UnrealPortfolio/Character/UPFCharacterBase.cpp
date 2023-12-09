@@ -97,6 +97,8 @@ AUPFCharacterBase::AUPFCharacterBase(const FObjectInitializer& ObjectInitializer
 	// Equipment
 	EquipmentComponent = CreateDefaultSubobject<UUPFCharacterEquipmentComponent>(TEXT("EquipmentComponent"));
 	EquipmentComponent->SetIsReplicated(true);
+
+	bIsAiming = false;
 }
 
 void AUPFCharacterBase::PostInitializeComponents()
@@ -158,4 +160,16 @@ void AUPFCharacterBase::OnHPZero(AActor* EffectInstigator, AActor* EffectCauser,
 void AUPFCharacterBase::FinishDeath()
 {
 	SetActorHiddenInGame(true);
+}
+
+void AUPFCharacterBase::OnAimingStart()
+{
+	bIsAiming = true;
+	K2_OnAimingStart();
+}
+
+void AUPFCharacterBase::OnAimingEnd()
+{
+	bIsAiming = false;
+	K2_OnAimingEnd();
 }

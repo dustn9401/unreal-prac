@@ -58,4 +58,10 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
 	uint8 bIsHolstered : 1;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
+	FRotator ControlRotator;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
+	uint8 bIsAiming : 1;
 };

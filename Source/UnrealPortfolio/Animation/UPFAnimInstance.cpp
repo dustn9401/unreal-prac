@@ -8,7 +8,7 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
-UUPFAnimInstance::UUPFAnimInstance(): GroundSpeed(0), bIsMoving(0), MovingThreshold(3.0f), bIsFalling(0), bIsJumping(0), JumpingThreshold(100.0f), bIsCrouching(0), bIsHolstered(0)
+UUPFAnimInstance::UUPFAnimInstance(): GroundSpeed(0), bIsMoving(0), MovingThreshold(3.0f), bIsFalling(0), bIsJumping(0), JumpingThreshold(100.0f), bIsCrouching(0), bIsHolstered(0), bIsAiming(0)
 {
 }
 
@@ -41,5 +41,11 @@ void UUPFAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	if (EquipmentComponent)
 	{
 		bIsHolstered = EquipmentComponent->GetIsHolstered();
+	}
+
+	if (Owner)
+	{
+		ControlRotator = Owner->GetControlRotation();
+		bIsAiming = Owner->bIsAiming;
 	}
 }

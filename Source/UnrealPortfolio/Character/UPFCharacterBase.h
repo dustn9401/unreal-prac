@@ -100,6 +100,20 @@ public:
 	UPROPERTY()
 	TObjectPtr<UUPFCharacterEquipmentComponent> EquipmentComponent;
 
-	// UPROPERTY()
-	// TWeakObjectPtr<>
+// Aiming
+public:
+	UFUNCTION(BlueprintCallable)
+	void OnAimingStart();
+
+	UFUNCTION(BlueprintImplementableEvent, DisplayName="OnAimingStartCpp")
+	void K2_OnAimingStart();
+
+	UFUNCTION(BlueprintCallable)
+	void OnAimingEnd();
+
+	UFUNCTION(BlueprintImplementableEvent, DisplayName="OnAimingEndCpp")
+	void K2_OnAimingEnd();
+	
+	UPROPERTY(Transient, BlueprintReadOnly)
+	uint8 bIsAiming : 1;
 };
