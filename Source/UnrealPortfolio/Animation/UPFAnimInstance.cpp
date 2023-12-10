@@ -8,7 +8,10 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
-UUPFAnimInstance::UUPFAnimInstance(): GroundSpeed(0), bIsMoving(0), MovingThreshold(3.0f), bIsFalling(0), bIsJumping(0), JumpingThreshold(100.0f), bIsCrouching(0), bIsHolstered(0), bIsAiming(0)
+UUPFAnimInstance::UUPFAnimInstance(): GroundSpeed(0), bIsMoving(0), MovingThreshold(3.0f), bIsFalling(0), bIsJumping(0), JumpingThreshold(100.0f), bIsCrouching(0), bIsHolstered(0),
+                                      AimOffsetYaw(0),
+                                      AimOffsetPitch(0),
+                                      bIsAiming(0)
 {
 }
 
@@ -45,7 +48,14 @@ void UUPFAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	if (Owner)
 	{
-		ControlRotator = Velocity.Rotation();//Owner->GetControlRotation();
+		// 캐릭터가 허리를 얼마나 꺾어야 하는지 계산
+		const FRotator& AimRot = Owner->GetBaseAimRotation();
+		AimOffsetPitch = AimRot.Pitch;
+		
+		// 캐릭터가 허리를 얼마나 돌려야 하는지 계산
+		const FRotator& ActorRot = Owner->GetActorRotation();
+		AimOffsetYaw = FRotator::NormalizeAxis(ActorRot.Yaw - AimRot.Yaw);
+		
 		bIsAiming = Owner->bIsAiming;
 	}
 }

@@ -152,6 +152,14 @@ void UUPFCharacterEquipmentComponent::UnEquipItem(FGameplayTag EquipmentType)
 	
 	RemovedEntry.EquipmentInstance->DestroySelf();
 	Equipments.Remove(EquipmentType);
+
+	// 손에 들고있던 무기가 제거된 경우 처리
+	if (EquipmentType == CurrentWeaponType)
+	{
+		// todo: 다른 장비로 교체해주기
+		CurrentWeaponType = FGameplayTag::EmptyTag;
+		bIsHolstered = true;
+	}
 }
 
 void UUPFCharacterEquipmentComponent::ToggleHolsterWeapon()

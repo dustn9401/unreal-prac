@@ -60,7 +60,10 @@ protected:
 	uint8 bIsHolstered : 1;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
-	FRotator ControlRotator;
+	float AimOffsetYaw;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
+	float AimOffsetPitch;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
 	uint8 bIsAiming : 1;
