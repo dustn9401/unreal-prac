@@ -4,21 +4,31 @@
 
 #include "CoreMinimal.h"
 
+// Global
+#define UPF_LINE_LOG(Format, ...) UE_LOG(LogTemp, Log, TEXT("%s:%d %s"), *FString(__FUNCTION__), __LINE__, *FString::Printf(Format, ##__VA_ARGS__))
+
+// Actor
 #define LOG_LOCAL_ROLE_INFO *(UEnum::GetValueAsString(TEXT("Engine.ENetRole"), GetLocalRole()))
 #define LOG_REMOTE_ROLE_INFO *(UEnum::GetValueAsString(TEXT("Engine.ENetRole"), GetRemoteRole()))
 #define LOG_NET_MODE_INFO (GetNetMode() == ENetMode::NM_Client ? *FString::Printf(TEXT("CLIENT_%d"), GPlayInEditorID) : GetNetMode() == ENetMode::NM_Standalone ? TEXT("STANDALONE") : TEXT("SERVER"))
+#define UPF_LOG(LogCat, Verbosity, Format, ...) UE_LOG(LogCat, Verbosity, TEXT("[%s][%s/%s] %s %s"), LOG_NET_MODE_INFO, LOG_LOCAL_ROLE_INFO, LOG_REMOTE_ROLE_INFO, *FString(__FUNCTION__), *FString::Printf(Format, ##__VA_ARGS__))
 
+// Component
 #define LOG_SUB_LOCAL_ROLE_INFO *(UEnum::GetValueAsString(TEXT("Engine.ENetRole"), GetOwner()->GetLocalRole()))
 #define LOG_SUB_REMOTE_ROLE_INFO *(UEnum::GetValueAsString(TEXT("Engine.ENetRole"), GetOwner()->GetRemoteRole()))
+#define UPF_LOG_COMPONENT(LogCat, Verbosity, Format, ...) UE_LOG(LogCat, Verbosity, TEXT("[%s][%s/%s] %s %s"), LOG_NET_MODE_INFO, LOG_SUB_LOCAL_ROLE_INFO, LOG_SUB_REMOTE_ROLE_INFO, *FString(__FUNCTION__), *FString::Printf(Format, ##__VA_ARGS__))
 
+// Attribute
 #define LOG_ATTRIBUTE_LOCAL_ROLE_INFO *(UEnum::GetValueAsString(TEXT("Engine.ENetRole"), GetOwningActor()->GetLocalRole()))
 #define LOG_ATTRIBUTE_REMOTE_ROLE_INFO *(UEnum::GetValueAsString(TEXT("Engine.ENetRole"), GetOwningActor()->GetRemoteRole()))
 #define LOG_NET_MODE_INFO_ATTRIBUTE (GetOwningActor()->GetNetMode() == ENetMode::NM_Client ? *FString::Printf(TEXT("CLIENT_%d"), GPlayInEditorID) : GetOwningActor()->GetNetMode() == ENetMode::NM_Standalone ? TEXT("STANDALONE") : TEXT("SERVER"))
-
-#define UPF_LINE_LOG(Format, ...) UE_LOG(LogTemp, Log, TEXT("%s:%d %s"), *FString(__FUNCTION__), __LINE__, *FString::Printf(Format, ##__VA_ARGS__))
-#define UPF_LOG(LogCat, Verbosity, Format, ...) UE_LOG(LogCat, Verbosity, TEXT("[%s][%s/%s] %s %s"), LOG_NET_MODE_INFO, LOG_LOCAL_ROLE_INFO, LOG_REMOTE_ROLE_INFO, *FString(__FUNCTION__), *FString::Printf(Format, ##__VA_ARGS__))
-#define UPF_LOG_COMPONENT(LogCat, Verbosity, Format, ...) UE_LOG(LogCat, Verbosity, TEXT("[%s][%s/%s] %s %s"), LOG_NET_MODE_INFO, LOG_SUB_LOCAL_ROLE_INFO, LOG_SUB_REMOTE_ROLE_INFO, *FString(__FUNCTION__), *FString::Printf(Format, ##__VA_ARGS__))
 #define UPF_LOG_ATTRIBUTE(LogCat, Verbosity, Format, ...) UE_LOG(LogCat, Verbosity, TEXT("[%s][%s/%s] %s %s"), LOG_NET_MODE_INFO_ATTRIBUTE, LOG_ATTRIBUTE_LOCAL_ROLE_INFO, LOG_ATTRIBUTE_REMOTE_ROLE_INFO, *FString(__FUNCTION__), *FString::Printf(Format, ##__VA_ARGS__))
+
+// Ability
+#define LOG_LOCAL_ROLE_INFO_ABILITY *(UEnum::GetValueAsString(TEXT("Engine.ENetRole"), CurrentActorInfo->OwnerActor->GetLocalRole()))
+#define LOG_REMOTE_ROLE_INFO_ABILITY *(UEnum::GetValueAsString(TEXT("Engine.ENetRole"), CurrentActorInfo->OwnerActor->GetRemoteRole()))
+#define LOG_NET_MODE_INFO_ABILITY (CurrentActorInfo->OwnerActor->GetNetMode() == ENetMode::NM_Client ? *FString::Printf(TEXT("CLIENT_%d"), GPlayInEditorID) : CurrentActorInfo->OwnerActor->GetNetMode() == ENetMode::NM_Standalone ? TEXT("STANDALONE") : TEXT("SERVER"))
+#define UPF_LOG_ABILITY(LogCat, Verbosity, Format, ...) UE_LOG(LogCat, Verbosity, TEXT("[%s][%s/%s] %s %s"), LOG_NET_MODE_INFO_ABILITY, LOG_LOCAL_ROLE_INFO_ABILITY, LOG_REMOTE_ROLE_INFO_ABILITY, *FString(__FUNCTION__), *FString::Printf(Format, ##__VA_ARGS__))
 
 UENUM(BlueprintType)
 enum EUPFGameplayAbilityInputBinds : int

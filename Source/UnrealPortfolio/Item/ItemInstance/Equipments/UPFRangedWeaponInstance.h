@@ -203,4 +203,12 @@ protected:
 	// ALI_RangedWeaponLayer 구현한 애니메이션 인스턴스, 장비 착용 시 추가되고, 해제 시 다시 제거된다.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<UAnimInstance> AnimLayer;
+
+// OnFire
+public:
+	void OnFire();
+
+protected:
+	UFUNCTION(BlueprintImplementableEvent, DisplayName="OnFireCpp")
+	void K2_OnFire();
 };

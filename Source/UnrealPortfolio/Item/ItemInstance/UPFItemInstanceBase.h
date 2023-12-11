@@ -20,7 +20,7 @@ public:
 	AUPFItemInstanceBase();
 
 public:
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UMeshComponent> MeshComp;
 
 	virtual void SetData(const UUPFItemData* InData) {}

@@ -6,6 +6,8 @@
 #include "AbilitySystemComponent.h"
 #include "AIController.h"
 #include "AIController.h"
+#include "UnrealPortfolio.h"
+#include "Abilities/Tasks/AbilityTask_WaitDelay.h"
 #include "Components/UPFWeaponStateComponent.h"
 #include "Item/ItemInstance/Equipments/UPFRangedWeaponInstance.h"
 #include "Physics/UPFCollision.h"
@@ -39,6 +41,7 @@ bool UUPFGameplayAbility_FireWeapon::CanActivateAbility(const FGameplayAbilitySp
 {
 	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
 	{
+		UPF_LOG_ABILITY(LogTemp, Log, TEXT("Return false"));
 		return false;
 	}
 
@@ -72,13 +75,21 @@ void UUPFGameplayAbility_FireWeapon::ActivateAbility(const FGameplayAbilitySpecH
 			.AddUObject(this, &UUPFGameplayAbility_FireWeapon::OnTargetDataReadyCallback);
 	}
 
-	const FTimerDelegate TimerCallback = FTimerDelegate::CreateWeakLambda(this, [&]{
-			EndAbility(Handle, ActorInfo, ActivationInfo, false, false); });
-	
+	// 애니메이션 재생
+	ActorInfo->AbilitySystemComponent->PlayMontage(this, ActivationInfo, FireMontage, 1.0f);
+
 	AUPFRangedWeaponInstance* WeaponInstance = GetWeaponInstance();
 	check(WeaponInstance);
 	
-	GetWorld()->GetTimerManager().SetTimer(FireTimer, TimerCallback, WeaponInstance->GetFireDelay(), false);
+	// 타이머 사용하여 발사 딜레이 후 EndAbility 호출
+	UAbilityTask_WaitDelay* Task = UAbilityTask_WaitDelay::WaitDelay(this, WeaponInstance->GetFireDelay());
+	Task->OnFinish.AddDynamic(this, &UUPFGameplayAbility_FireWeapon::OnFinishWait);
+	Task->ReadyForActivation();
+}
+
+void UUPFGameplayAbility_FireWeapon::OnFinishWait()
+{
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 }
 
 int32 UUPFGameplayAbility_FireWeapon::FindFirstPawnHitResult(const TArray<FHitResult>& HitResults)
@@ -464,6 +475,7 @@ FTransform UUPFGameplayAbility_FireWeapon::GetTargetingTransform(APawn* SourcePa
 
 void UUPFGameplayAbility_FireWeapon::OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData, FGameplayTag ApplicationTag)
 {
+	UPF_LOG_ABILITY(LogTemp, Log, TEXT("InData Num: %d"), InData.Num());
 	UAbilitySystemComponent* MyAbilityComponent = CurrentActorInfo->AbilitySystemComponent.Get();
 	check(MyAbilityComponent);
 
@@ -519,13 +531,20 @@ void UUPFGameplayAbility_FireWeapon::OnTargetDataReadyCallback(const FGameplayAb
 		// See if we still have ammo
 		if (bIsTargetDataValid && CommitAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo))
 		{
-			// We fired the weapon, add spread
-			AUPFRangedWeaponInstance* WeaponData = GetWeaponInstance();
-			check(WeaponData);
-			WeaponData->AddSpread();
+			// 탄 퍼짐 적용
+			AUPFRangedWeaponInstance* WeaponInst = GetWeaponInstance();
+			check(WeaponInst);
+			WeaponInst->AddSpread();
 
-			// Let the blueprint do stuff like apply effects to the targets
-			OnRangedWeaponTargetDataReady(LocalTargetDataHandle);
+			// 무기에서 발생하는 sfx 및 particle 적용
+			WeaponInst->OnFire();
+
+			// 데미지 적용
+			if (HasAuthority(&CurrentActivationInfo))
+			{
+				// ReSharper disable once CppExpressionWithoutSideEffects
+				ApplyGameplayEffectToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, LocalTargetDataHandle, DamageEffectClass, 1.0f);
+			}
 		}
 		else
 		{

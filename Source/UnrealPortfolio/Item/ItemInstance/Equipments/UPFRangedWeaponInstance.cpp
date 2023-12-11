@@ -61,3 +61,8 @@ void AUPFRangedWeaponInstance::ComputeHeatRange(float& MinHeat, float& MaxHeat)
 	MinHeat = FMath::Min(FMath::Min(Min1, Min2), Min3);
 	MaxHeat = FMath::Max(FMath::Max(Max1, Max2), Max3);
 }
+
+void AUPFRangedWeaponInstance::OnFire()
+{
+	K2_OnFire();
+}

@@ -42,6 +42,9 @@ public:
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
+	UFUNCTION()
+	void OnFinishWait();
+
 protected:
 	struct FRangedWeaponFiringInput
 	{
@@ -91,16 +94,15 @@ protected:
 	FTransform GetTargetingTransform(APawn* SourcePawn, EUPFAbilityTargetingSource Source) const;
 	
 	void OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData, FGameplayTag ApplicationTag);
-
-	// Called when target data is ready
-	UFUNCTION(BlueprintImplementableEvent)
-	void OnRangedWeaponTargetDataReady(const FGameplayAbilityTargetDataHandle& TargetData);
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UAnimMontage> FireMontage;
 
 	// 사격 후 다음 사격 가능시까지 쿨타임 계산용 타이머 핸들 (연사력)
 	FTimerHandle FireTimer;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<UGameplayEffect> DamageEffectClass;
 	
 private:
 	FDelegateHandle OnTargetDataReadyCallbackDelegateHandle;
