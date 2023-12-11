@@ -6,6 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "UnrealPortfolio.h"
 #include "UPFAbilitySystemComponent.h"
+#include "UPFGameplayTags.h"
 #include "Character/UPFCharacterBase.h"
 #include "Item/UPFEquipmentItemData.h"
 #include "Item/ItemInstance/Equipments/UPFEquipmentInstance.h"
@@ -17,10 +18,10 @@ UUPFCharacterEquipmentComponent::UUPFCharacterEquipmentComponent()
 	bWantsInitializeComponent = true;
 
 	const FEquipmentSocketData SocketDataRifle(FName(TEXT("hand_rSocket")), FName(TEXT("spine_03Socket")));
-	SocketDatas.Add(Item_Equipment_Weapon_Range_Rifle, SocketDataRifle);
+	SocketDatas.Add(UPFGameplayTags::Item_Equipment_Weapon_Range_Rifle, SocketDataRifle);
 
 	const FEquipmentSocketData SocketDataPistol(FName(TEXT("hand_rSocket")), FName(TEXT("holsterSocket")));
-	SocketDatas.Add(Item_Equipment_Weapon_Range_Pistol, SocketDataPistol);
+	SocketDatas.Add(UPFGameplayTags::Item_Equipment_Weapon_Range_Pistol, SocketDataPistol);
 
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> HolsterMontageRef(TEXT("/Script/Engine.AnimMontage'/Game/UnrealPortfolio/Animation/AM_Holster.AM_Holster'"));
 	if (HolsterMontageRef.Object)
@@ -116,10 +117,13 @@ void UUPFCharacterEquipmentComponent::EquipItem(const UUPFEquipmentItemData* Dat
 
 	Equipments.Emplace(Data->EquipmentType, NewEntry);
 
-	AUPFCharacterBase* EquipCharacter = Cast<AUPFCharacterBase>(GetOwner());
+	ACharacter* EquipCharacter = Cast<ACharacter>(GetOwner());
 	check(EquipCharacter);
-	
-	SpawnedItem->OnEquipped(EquipCharacter);
+
+	if (AttachToHand)
+	{
+		SpawnedItem->OnAttachedToHand(EquipCharacter);
+	}
 }
 
 void UUPFCharacterEquipmentComponent::ServerRPCUnEquipItem_Implementation(FGameplayTag EquipmentType)
@@ -146,9 +150,9 @@ void UUPFCharacterEquipmentComponent::UnEquipItem(FGameplayTag EquipmentType)
 
 	const FUPFAppliedEquipmentEntry& RemovedEntry = Equipments[EquipmentType];
 	
-	AUPFCharacterBase* EquipCharacter = Cast<AUPFCharacterBase>(GetOwner());
+	ACharacter* EquipCharacter = Cast<ACharacter>(GetOwner());
 	check(EquipCharacter);
-	RemovedEntry.EquipmentInstance->OnUnEquipped(EquipCharacter);
+	RemovedEntry.EquipmentInstance->OnDetachedFromHand(EquipCharacter);
 	
 	RemovedEntry.EquipmentInstance->DestroySelf();
 	Equipments.Remove(EquipmentType);
@@ -171,7 +175,18 @@ void UUPFCharacterEquipmentComponent::ToggleHolsterWeapon()
 	
 	FEquipmentSocketData SocketData = SocketDatas[CurrentWeaponType];
 	FName TargetSocket = bIsHolstered ? SocketData.HandSocket : SocketData.HolsterSocket;
-	Equipments[CurrentWeaponType].EquipmentInstance->MeshComp->AttachToComponent(CharacterMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, TargetSocket);
+	AUPFEquipmentInstance* EquipmentInstance = Equipments[CurrentWeaponType].EquipmentInstance;
+	EquipmentInstance->MeshComp->AttachToComponent(CharacterMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, TargetSocket);
 	
 	bIsHolstered = !bIsHolstered;
+
+	ACharacter* OwnerCharacter = CastChecked<ACharacter>(GetOwner());
+	if (bIsHolstered)
+	{
+		EquipmentInstance->OnDetachedFromHand(OwnerCharacter);
+	}
+	else
+	{
+		EquipmentInstance->OnAttachedToHand(OwnerCharacter);
+	}
 }

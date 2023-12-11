@@ -17,8 +17,8 @@ class UNREALPORTFOLIO_API AUPFRangedWeaponInstance : public AUPFEquipmentInstanc
 
 public:
 	virtual void SetData(const UUPFItemData* InData) override;
-	virtual void OnEquipped(AUPFCharacterBase* EquippedCharacter) override;
-	virtual void OnUnEquipped(AUPFCharacterBase* UnEquippedCharacter) override;
+	virtual void OnAttachedToHand(ACharacter* EquippedCharacter) override;
+	virtual void OnDetachedFromHand(ACharacter* UnEquippedCharacter) override;
 
 
 	void AddSpread();

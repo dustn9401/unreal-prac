@@ -14,4 +14,10 @@ namespace UPFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_ActivateFail_ActivationGroup, "Ability.ActivateFail.ActivationGroup", "Ability failed to activate because of its activation group.");
 
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Active_Holster, "Ability.Active.Holster");
+
+	// Items
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Item_Equipment_Weapon_Melee, "Item.Equipment.Weapon.Melee", "근접 공격용 무기")
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Item_Equipment_Weapon_Range, "Item.Equipment.Weapon.Range", "원거리 공격용 무기")
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Item_Equipment_Weapon_Range_Rifle, "Item.Equipment.Weapon.Range.Rifle", "소총")
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Item_Equipment_Weapon_Range_Pistol, "Item.Equipment.Weapon.Range.Pistol", "권총")
 }

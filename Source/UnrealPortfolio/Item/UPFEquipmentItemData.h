@@ -11,10 +11,6 @@ enum EEquipmentSocketType : int;
 class AUPFEquipmentInstance;
 class UUPFAbilitySet;
 class UUPFGameplayAbility;
-UNREALPORTFOLIO_API		UE_DECLARE_GAMEPLAY_TAG_EXTERN(Item_Equipment_Weapon_Melee);
-UNREALPORTFOLIO_API		UE_DECLARE_GAMEPLAY_TAG_EXTERN(Item_Equipment_Weapon_Range);
-UNREALPORTFOLIO_API		UE_DECLARE_GAMEPLAY_TAG_EXTERN(Item_Equipment_Weapon_Range_Rifle);
-UNREALPORTFOLIO_API		UE_DECLARE_GAMEPLAY_TAG_EXTERN(Item_Equipment_Weapon_Range_Pistol);
 
 /**
  * 

@@ -22,7 +22,7 @@ public:
 public:
 	// ItemData 를 받아서 오브젝트를 초기화 시킨다.
 	virtual void SetData(const UUPFItemData* InData) override;
-
-	virtual void OnEquipped(AUPFCharacterBase* EquippedCharacter);
-	virtual void OnUnEquipped(AUPFCharacterBase* UnEquippedCharacter);
+	
+	virtual void OnAttachedToHand(ACharacter* EquippedCharacter);
+	virtual void OnDetachedFromHand(ACharacter* UnEquippedCharacter);
 };
