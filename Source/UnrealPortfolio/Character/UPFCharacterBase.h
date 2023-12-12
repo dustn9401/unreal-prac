@@ -15,8 +15,8 @@
  * 모든 캐릭터들의 base class
  */
 
+class UUPFCharacterStatSet;
 class UUPFHPSet;
-class UUPFStatSet;
 class UTimelineComponent;
 class UUPFCharacterEquipmentComponent;
 class UUPFEquipmentItemData;
@@ -56,20 +56,17 @@ protected:
 // Stat
 protected:
 	// 어트리뷰트 셋 변수가 PlayerState 또는 캐릭터 클래스에 있어야 ASC가 초기화 시 인식할 수 있기 때문에, 여기에 선언함
-	UPROPERTY()
-	TObjectPtr<UUPFHPSet> HPSet;
-
-	UPROPERTY()
-	TObjectPtr<UUPFStatSet> StatSet;
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UUPFCharacterStatSet> CharacterStatAttributeSet;
 
 	virtual FName GetStatGroup() {return FName("Default");}
 
 	
 
 public:
-	FORCEINLINE TObjectPtr<UUPFStatSet> GetStatSet() const
+	FORCEINLINE TObjectPtr<UUPFCharacterStatSet> GetStatSet() const
 	{
-		return StatSet;
+		return CharacterStatAttributeSet;
 	}
 
 // Widget

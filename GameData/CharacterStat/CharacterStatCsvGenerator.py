@@ -11,29 +11,28 @@ with open(csv_path, 'w', newline='', encoding='utf-8') as file:
     csv_writer.writerow(header)
     
     groups = ['Default', 'Player', 'Enemy']
-    attribute_set_hp = 'HP'
-    attribute_set_stat = 'Stat'
+    attribute_set = 'CharacterStat'
     for group in groups:
-        row = [f'{group}.{attribute_set_hp}.MaxHP'] + \
+        row = [f'{group}.{attribute_set}.MaxHP'] + \
               [200 + i*50 for i in range(num_lvl)]
         csv_writer.writerow(row)
 
-        row = [f'{group}.{attribute_set_stat}.Attack'] + \
+        row = [f'{group}.{attribute_set}.Attack'] + \
               [(100 + i*50 if group == 'Player' else 40 + i*20) for i in range(num_lvl)]
         csv_writer.writerow(row)
 
-        row = [f'{group}.{attribute_set_stat}.AttackRange'] + \
+        row = [f'{group}.{attribute_set}.AttackRange'] + \
               [40 for i in range(num_lvl)]
         csv_writer.writerow(row)
 
-        row = [f'{group}.{attribute_set_stat}.AttackSpeed'] + \
+        row = [f'{group}.{attribute_set}.AttackSpeed'] + \
               [round(1 + i*0.05, 2) for i in range(num_lvl)]
         csv_writer.writerow(row)
 
-        row = [f'{group}.{attribute_set_stat}.MovementSpeed'] + \
+        row = [f'{group}.{attribute_set}.MovementSpeed'] + \
               [400 for i in range(num_lvl)]
         csv_writer.writerow(row)
 
-        row = [f'{group}.{attribute_set_stat}.Defense'] + \
+        row = [f'{group}.{attribute_set}.Defense'] + \
               [i*10 for i in range(num_lvl)]
         csv_writer.writerow(row)

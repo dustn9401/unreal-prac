@@ -3,26 +3,25 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystemComponent.h"
-#include "Ability/Attributes/UPFAttributeSet.h"
-#include "UPFStatSet.generated.h"
+#include "Ability/Attributes/UPFHPSet.h"
+#include "UPFCharacterStatSet.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class UNREALPORTFOLIO_API UUPFStatSet : public UUPFAttributeSet
+class UNREALPORTFOLIO_API UUPFCharacterStatSet : public UUPFHPSet
 {
 	GENERATED_BODY()
 
 public:
-	UUPFStatSet();
+	UUPFCharacterStatSet();
 	
-	ATTRIBUTE_ACCESSORS(UUPFStatSet, Attack);
-	ATTRIBUTE_ACCESSORS(UUPFStatSet, AttackRange);
-	ATTRIBUTE_ACCESSORS(UUPFStatSet, AttackSpeed);
-	ATTRIBUTE_ACCESSORS(UUPFStatSet, MovementSpeed);
-	ATTRIBUTE_ACCESSORS(UUPFStatSet, Defense);
+	ATTRIBUTE_ACCESSORS(UUPFCharacterStatSet, Attack);
+	ATTRIBUTE_ACCESSORS(UUPFCharacterStatSet, AttackRange);
+	ATTRIBUTE_ACCESSORS(UUPFCharacterStatSet, AttackSpeed);
+	ATTRIBUTE_ACCESSORS(UUPFCharacterStatSet, MovementSpeed);
+	ATTRIBUTE_ACCESSORS(UUPFCharacterStatSet, Defense);
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_Attack, Category = "UPF|Stat", Meta = (AllowPrivateAccess = true))
