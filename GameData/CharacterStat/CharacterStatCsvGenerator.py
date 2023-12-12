@@ -11,7 +11,7 @@ with open(csv_path, 'w', newline='', encoding='utf-8') as file:
     csv_writer.writerow(header)
     
     groups = ['Default', 'Player', 'Enemy']
-    attribute_set = 'CharacterStat'
+    attribute_set = 'HP'
     for group in groups:
         row = [f'{group}.{attribute_set}.MaxHP'] + \
               [200 + i*50 for i in range(num_lvl)]

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Ability/Attributes/UPFCharacterStatSet.h"
+#include "Ability/Attributes/UPFHPSet.h"
 #include "Components/ActorComponent.h"
 #include "UPFCharacterStatComponent.generated.h"
 
@@ -26,12 +26,12 @@ public:
 	void InitializeAttributes(UAbilitySystemComponent* ASC, FName GroupName, int32 Level);
 
 public:
-	TObjectPtr<const UUPFCharacterStatSet> GetBaseStat() const
+	TObjectPtr<const UUPFHPSet> GetBaseStat() const
 	{
 		return StatSet;
 	}
 
 protected:
 	UPROPERTY(Transient, VisibleInstanceOnly, Category=Stat, meta=(AllowPrivateAccess="true"))
-	TObjectPtr<const UUPFCharacterStatSet> StatSet;
+	TObjectPtr<const UUPFHPSet> StatSet;
 };

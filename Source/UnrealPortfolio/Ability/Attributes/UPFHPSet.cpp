@@ -1,18 +1,18 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Ability/Attributes/UPFCharacterStatSet.h"
+#include "Ability/Attributes/UPFHPSet.h"
 
 #include "GameplayEffectExtension.h"
 #include "UnrealPortfolio.h"
 #include "Net/UnrealNetwork.h"
 
-UUPFCharacterStatSet::UUPFCharacterStatSet()
+UUPFHPSet::UUPFHPSet()
 {
 	bIsOnHPZeroInvoked = false;
 }
 
-void UUPFCharacterStatSet::OnInit()
+void UUPFHPSet::OnInit()
 {
 	Super::OnInit();
 
@@ -21,20 +21,20 @@ void UUPFCharacterStatSet::OnInit()
 	InitCurrentHP(GetMaxHP());	// CurrentHP 값은 테이블에 없기 때문에, 여기서 MaxHP값으로 초기화
 }
 
-void UUPFCharacterStatSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void UUPFHPSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION_NOTIFY(UUPFCharacterStatSet, CurrentHP, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UUPFCharacterStatSet, MaxHP, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UUPFCharacterStatSet, Attack, COND_OwnerOnly, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UUPFCharacterStatSet, AttackRange, COND_OwnerOnly, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UUPFCharacterStatSet, AttackSpeed, COND_OwnerOnly, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UUPFCharacterStatSet, MovementSpeed, COND_OwnerOnly, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UUPFCharacterStatSet, Defense, COND_OwnerOnly, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UUPFHPSet, CurrentHP, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UUPFHPSet, MaxHP, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UUPFHPSet, Attack, COND_OwnerOnly, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UUPFHPSet, AttackRange, COND_OwnerOnly, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UUPFHPSet, AttackSpeed, COND_OwnerOnly, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UUPFHPSet, MovementSpeed, COND_OwnerOnly, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UUPFHPSet, Defense, COND_OwnerOnly, REPNOTIFY_Always);
 }
 
-bool UUPFCharacterStatSet::PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data)
+bool UUPFHPSet::PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data)
 {
 	// 서버전용
 	// UPF_LOG_ATTRIBUTE(LogTemp, Log, TEXT("Called"));
@@ -44,7 +44,7 @@ bool UUPFCharacterStatSet::PreGameplayEffectExecute(FGameplayEffectModCallbackDa
 	return Super::PreGameplayEffectExecute(Data);
 }
 
-void UUPFCharacterStatSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
+void UUPFHPSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
 	// 서버전용
 	Super::PostGameplayEffectExecute(Data);
@@ -79,21 +79,21 @@ void UUPFCharacterStatSet::PostGameplayEffectExecute(const FGameplayEffectModCal
 	}
 }
 
-void UUPFCharacterStatSet::PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const
+void UUPFHPSet::PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const
 {
 	Super::PreAttributeBaseChange(Attribute, NewValue);
 	
 	ClampAttribute(Attribute, NewValue);
 }
 
-void UUPFCharacterStatSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
+void UUPFHPSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
 {
 	Super::PreAttributeChange(Attribute, NewValue);
 	
 	ClampAttribute(Attribute, NewValue);
 }
 
-void UUPFCharacterStatSet::PostAttributeBaseChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) const
+void UUPFHPSet::PostAttributeBaseChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) const
 {
 	Super::PostAttributeBaseChange(Attribute, OldValue, NewValue);
 
@@ -103,7 +103,7 @@ void UUPFCharacterStatSet::PostAttributeBaseChange(const FGameplayAttribute& Att
 	// }
 }
 
-void UUPFCharacterStatSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
+void UUPFHPSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
 {
 	Super::PostAttributeChange(Attribute, OldValue, NewValue);
 
@@ -125,7 +125,7 @@ void UUPFCharacterStatSet::PostAttributeChange(const FGameplayAttribute& Attribu
 	}
 }
 
-void UUPFCharacterStatSet::ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const
+void UUPFHPSet::ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const
 {
 	if (Attribute == GetCurrentHPAttribute())
 	{
@@ -137,9 +137,9 @@ void UUPFCharacterStatSet::ClampAttribute(const FGameplayAttribute& Attribute, f
 	}
 }
 
-void UUPFCharacterStatSet::OnRep_CurrentHP(const FGameplayAttributeData& OldValue)
+void UUPFHPSet::OnRep_CurrentHP(const FGameplayAttributeData& OldValue)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UUPFCharacterStatSet, CurrentHP, OldValue);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UUPFHPSet, CurrentHP, OldValue);
 
 	const float CurHP = GetCurrentHP();
 	const float EstimatedMagnitude = CurHP - OldValue.GetCurrentValue();
@@ -162,40 +162,40 @@ void UUPFCharacterStatSet::OnRep_CurrentHP(const FGameplayAttributeData& OldValu
 	bIsOnHPZeroInvoked = CurHP <= 0.0f;
 }
 
-void UUPFCharacterStatSet::OnRep_MaxHP(const FGameplayAttributeData& OldValue)
+void UUPFHPSet::OnRep_MaxHP(const FGameplayAttributeData& OldValue)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UUPFCharacterStatSet, MaxHP, OldValue);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UUPFHPSet, MaxHP, OldValue);
 
 	UPF_LOG_ATTRIBUTE(LogTemp, Log, TEXT("Called, %f -> %f"), OldValue.GetCurrentValue(), GetMaxHP());
 	OnMaxHPChanged.Broadcast(GetCurrentHP(), GetMaxHP());
 }
 
-void UUPFCharacterStatSet::OnRep_Attack(const FGameplayAttributeData& OldValue)
+void UUPFHPSet::OnRep_Attack(const FGameplayAttributeData& OldValue)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UUPFCharacterStatSet, Attack, OldValue);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UUPFHPSet, Attack, OldValue);
 }
 
-void UUPFCharacterStatSet::OnRep_AttackRange(const FGameplayAttributeData& OldValue)
+void UUPFHPSet::OnRep_AttackRange(const FGameplayAttributeData& OldValue)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UUPFCharacterStatSet, AttackRange, OldValue);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UUPFHPSet, AttackRange, OldValue);
 }
 
-void UUPFCharacterStatSet::OnRep_AttackSpeed(const FGameplayAttributeData& OldValue)
+void UUPFHPSet::OnRep_AttackSpeed(const FGameplayAttributeData& OldValue)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UUPFCharacterStatSet, AttackSpeed, OldValue);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UUPFHPSet, AttackSpeed, OldValue);
 }
 
-void UUPFCharacterStatSet::OnRep_MovementSpeed(const FGameplayAttributeData& OldValue)
+void UUPFHPSet::OnRep_MovementSpeed(const FGameplayAttributeData& OldValue)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UUPFCharacterStatSet, MovementSpeed, OldValue);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UUPFHPSet, MovementSpeed, OldValue);
 }
 
-void UUPFCharacterStatSet::OnRep_Defense(const FGameplayAttributeData& OldValue)
+void UUPFHPSet::OnRep_Defense(const FGameplayAttributeData& OldValue)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UUPFCharacterStatSet, Defense, OldValue);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UUPFHPSet, Defense, OldValue);
 }
 
-FString UUPFCharacterStatSet::ToString() const
+FString UUPFHPSet::ToString() const
 {
 	return FString::Printf(TEXT("MaxHP=%f, Attack=%f"), MaxHP.GetCurrentValue(), Attack.GetCurrentValue());
 }

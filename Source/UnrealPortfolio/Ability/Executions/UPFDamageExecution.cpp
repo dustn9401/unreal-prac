@@ -3,7 +3,7 @@
 
 #include "Ability/Executions/UPFDamageExecution.h"
 
-#include "Ability/Attributes/UPFCharacterStatSet.h"
+#include "Ability/Attributes/UPFHPSet.h"
 
 struct FDamageStatics
 {
@@ -14,8 +14,8 @@ struct FDamageStatics
 	{
 		// InSnapshot: GameplayEffectSpec이 생성될 때 어트리뷰트를 캡쳐할지 여부
 		// true로 설정 시 PreAttributeChange() 가 호출되지 않게 된다.
-		BaseDamageDef = FGameplayEffectAttributeCaptureDefinition(UUPFCharacterStatSet::GetAttackAttribute(), EGameplayEffectAttributeCaptureSource::Source, true);
-		BaseDefenseDef = FGameplayEffectAttributeCaptureDefinition(UUPFCharacterStatSet::GetDefenseAttribute(), EGameplayEffectAttributeCaptureSource::Target, false);
+		BaseDamageDef = FGameplayEffectAttributeCaptureDefinition(UUPFHPSet::GetAttackAttribute(), EGameplayEffectAttributeCaptureSource::Source, true);
+		BaseDefenseDef = FGameplayEffectAttributeCaptureDefinition(UUPFHPSet::GetDefenseAttribute(), EGameplayEffectAttributeCaptureSource::Target, false);
 	}
 };
 
@@ -59,6 +59,6 @@ void UUPFDamageExecution::Execute_Implementation(const FGameplayEffectCustomExec
 
 	if (const float FinalDamage = FMath::Max(0.0f, BaseDamage * MultiplierByDefense); FinalDamage > 0.0f)
 	{
-		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(UUPFCharacterStatSet::GetCurrentHPAttribute(), EGameplayModOp::Additive, -FinalDamage));
+		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(UUPFHPSet::GetCurrentHPAttribute(), EGameplayModOp::Additive, -FinalDamage));
 	}
 }

@@ -2,5 +2,5 @@
 
 
 #include "Ability/UPFAbilitySystemGlobals.h"
-#include "Attributes/UPFCharacterStatSet.h"
+#include "Attributes/UPFHPSet.h"
 

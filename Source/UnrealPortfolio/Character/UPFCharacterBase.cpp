@@ -73,7 +73,7 @@ AUPFCharacterBase::AUPFCharacterBase(const FObjectInitializer& ObjectInitializer
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	// Character Stat
-	StatSet = CreateDefaultSubobject<UUPFCharacterStatSet>(TEXT("StatSet"));
+	StatSet = CreateDefaultSubobject<UUPFHPSet>(TEXT("StatSet"));
 
 	// Widget: HP Bar
 	HPBarWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));

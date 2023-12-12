@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "AbilitySystemComponent.h"
 #include "Ability/Attributes/UPFAttributeSet.h"
-#include "UPFCharacterStatSet.generated.h"
+#include "UPFHPSet.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnHPChangedDelegate, float /*CurrentHP*/, float /*MaxHP*/)
 
@@ -13,22 +13,22 @@ DECLARE_MULTICAST_DELEGATE_TwoParams(FOnHPChangedDelegate, float /*CurrentHP*/, 
  * 캐릭터가 가지고 있는 스텟 데이터
  */
 UCLASS()
-class UNREALPORTFOLIO_API UUPFCharacterStatSet : public UUPFAttributeSet
+class UNREALPORTFOLIO_API UUPFHPSet : public UUPFAttributeSet
 {
 	GENERATED_BODY()
 
 public:
-	UUPFCharacterStatSet();
+	UUPFHPSet();
 
 	virtual void OnInit() override;
 
-	ATTRIBUTE_ACCESSORS(UUPFCharacterStatSet, CurrentHP);
-	ATTRIBUTE_ACCESSORS(UUPFCharacterStatSet, MaxHP);
-	ATTRIBUTE_ACCESSORS(UUPFCharacterStatSet, Attack);
-	ATTRIBUTE_ACCESSORS(UUPFCharacterStatSet, AttackRange);
-	ATTRIBUTE_ACCESSORS(UUPFCharacterStatSet, AttackSpeed);
-	ATTRIBUTE_ACCESSORS(UUPFCharacterStatSet, MovementSpeed);
-	ATTRIBUTE_ACCESSORS(UUPFCharacterStatSet, Defense);
+	ATTRIBUTE_ACCESSORS(UUPFHPSet, CurrentHP);
+	ATTRIBUTE_ACCESSORS(UUPFHPSet, MaxHP);
+	ATTRIBUTE_ACCESSORS(UUPFHPSet, Attack);
+	ATTRIBUTE_ACCESSORS(UUPFHPSet, AttackRange);
+	ATTRIBUTE_ACCESSORS(UUPFHPSet, AttackSpeed);
+	ATTRIBUTE_ACCESSORS(UUPFHPSet, MovementSpeed);
+	ATTRIBUTE_ACCESSORS(UUPFHPSet, Defense);
 
 	// for UIs
 	mutable FOnHPChangedDelegate OnMaxHPChanged;

@@ -3,9 +3,9 @@
 
 #include "UI/UPFHPBarWidget.h"
 
-#include "Ability/Attributes/UPFCharacterStatSet.h"
+#include "Ability/Attributes/UPFHPSet.h"
 
-void UUPFHPBarWidget::SetData(const UUPFCharacterStatSet* StatSet)
+void UUPFHPBarWidget::SetData(const UUPFHPSet* StatSet)
 {
 	K2_UpdateHPBarInstant(StatSet->GetCurrentHP(), StatSet->GetMaxHP());
 	StatSet->OnTakeDamage.AddUObject(this, &UUPFHPBarWidget::OnTakeDamage);

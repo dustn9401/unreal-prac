@@ -7,7 +7,7 @@
 #include "UPFHPBarWidget.generated.h"
 
 struct FGameplayEffectSpec;
-class UUPFCharacterStatSet;
+class UUPFHPSet;
 /**
  * 
  */
@@ -17,7 +17,7 @@ class UNREALPORTFOLIO_API UUPFHPBarWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	void SetData(const UUPFCharacterStatSet* StatSet);
+	void SetData(const UUPFHPSet* StatSet);
 
 protected:
 	UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName="UpdateHPBarInstantCpp"))

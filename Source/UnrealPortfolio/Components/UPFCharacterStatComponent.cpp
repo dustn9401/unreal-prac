@@ -15,7 +15,7 @@ void UUPFCharacterStatComponent::InitializeAttributes(UAbilitySystemComponent* A
 {
 	if (!ensure(ASC)) return;
 	
-	StatSet = ASC->GetSet<UUPFCharacterStatSet>();
+	StatSet = ASC->GetSet<UUPFHPSet>();
 	if (!StatSet)
 	{
 		UE_LOG(LogTemp, Error, TEXT("AbilitySystemComponent.InitializeComponent() 가 호출된 이후에 이 함수를 호출하세요"));
