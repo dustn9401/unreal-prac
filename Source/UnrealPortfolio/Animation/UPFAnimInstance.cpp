@@ -56,6 +56,8 @@ void UUPFAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		const FRotator& ActorRot = Owner->GetActorRotation();
 		AimOffsetYaw = FRotator::NormalizeAxis(ActorRot.Yaw - AimRot.Yaw);
 		
+		// todo: FMath::FInterpTo() 사용하여 보간시키기
+		
 		bIsAiming = Owner->bIsAiming;
 	}
 }
