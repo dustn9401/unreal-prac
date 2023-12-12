@@ -12,6 +12,8 @@
 #include "Components/UPFAbilitySystemComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Ability/UPFAbilitySet.h"
+#include "Ability/Attributes/UPFHPSet.h"
+#include "Ability/Attributes/UPFStatSet.h"
 #include "Components/TimelineComponent.h"
 #include "Components/UPFCharacterEquipmentComponent.h"
 #include "Item/UPFEquipmentItemData.h"
@@ -73,7 +75,8 @@ AUPFCharacterBase::AUPFCharacterBase(const FObjectInitializer& ObjectInitializer
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	// Character Stat
-	StatSet = CreateDefaultSubobject<UUPFHPSet>(TEXT("StatSet"));
+	HPSet = CreateDefaultSubobject<UUPFHPSet>(TEXT("HP"));
+	StatSet = CreateDefaultSubobject<UUPFStatSet>(TEXT("Stat"));
 
 	// Widget: HP Bar
 	HPBarWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
@@ -111,15 +114,15 @@ void AUPFCharacterBase::PostInitializeComponents()
 	if (HasAuthority())
 	{
 		IGameplayAbilitiesModule::Get().GetAbilitySystemGlobals()->GetAttributeSetInitter()->InitAttributeSetDefaults(AbilitySystemComponent, GetStatGroup(), 1, true);
-		StatSet->OnInit();
+		HPSet->OnInit();
 	}
 	
-	StatSet->OnHPZero.AddUObject(this, &AUPFCharacterBase::OnHPZero);
+	HPSet->OnHPZero.AddUObject(this, &AUPFCharacterBase::OnHPZero);
 
 	// 위젯 초기화
 	HPBarWidgetComp->InitWidget(); // 여기선 아직 Widget이 생성 안된 상태라 수동으로 초기화
 	UUPFHPBarWidget* HPBarWidget = CastChecked<UUPFHPBarWidget>(HPBarWidgetComp->GetWidget());
-	HPBarWidget->SetData(StatSet);
+	HPBarWidget->SetData(HPSet);
 }
 
 bool AUPFCharacterBase::CanCrouch() const

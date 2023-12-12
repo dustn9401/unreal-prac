@@ -6,12 +6,8 @@
 #include "GameFramework/Character.h"
 #include "..\Interface\MeleeAttackAnimationInterface.h"
 #include "AbilitySystemInterface.h"
-#include "Ability/UPFGameplayAbility.h"
-#include "Ability/Attributes/UPFHPSet.h"
 #include "Components/UPFAbilitySystemComponent.h"
-#include "Components/UPFCharacterStatComponent.h"
 #include "Components/WidgetComponent.h"
-#include "DataAssets/ComboAttackData.h"
 #include "DataAssets/UPFCharacterData.h"
 #include "UPFCharacterBase.generated.h"
 
@@ -19,6 +15,8 @@
  * 모든 캐릭터들의 base class
  */
 
+class UUPFHPSet;
+class UUPFStatSet;
 class UTimelineComponent;
 class UUPFCharacterEquipmentComponent;
 class UUPFEquipmentItemData;
@@ -59,14 +57,17 @@ protected:
 protected:
 	// 어트리뷰트 셋 변수가 PlayerState 또는 캐릭터 클래스에 있어야 ASC가 초기화 시 인식할 수 있기 때문에, 여기에 선언함
 	UPROPERTY()
-	TObjectPtr<UUPFHPSet> StatSet;
+	TObjectPtr<UUPFHPSet> HPSet;
+
+	UPROPERTY()
+	TObjectPtr<UUPFStatSet> StatSet;
 
 	virtual FName GetStatGroup() {return FName("Default");}
 
 	
 
 public:
-	FORCEINLINE TObjectPtr<UUPFHPSet> GetStatSet() const
+	FORCEINLINE TObjectPtr<UUPFStatSet> GetStatSet() const
 	{
 		return StatSet;
 	}

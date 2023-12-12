@@ -4,6 +4,7 @@
 #include "Ability/Executions/UPFDamageExecution.h"
 
 #include "Ability/Attributes/UPFHPSet.h"
+#include "Ability/Attributes/UPFStatSet.h"
 
 struct FDamageStatics
 {
@@ -14,8 +15,8 @@ struct FDamageStatics
 	{
 		// InSnapshot: GameplayEffectSpec이 생성될 때 어트리뷰트를 캡쳐할지 여부
 		// true로 설정 시 PreAttributeChange() 가 호출되지 않게 된다.
-		BaseDamageDef = FGameplayEffectAttributeCaptureDefinition(UUPFHPSet::GetAttackAttribute(), EGameplayEffectAttributeCaptureSource::Source, true);
-		BaseDefenseDef = FGameplayEffectAttributeCaptureDefinition(UUPFHPSet::GetDefenseAttribute(), EGameplayEffectAttributeCaptureSource::Target, false);
+		BaseDamageDef = FGameplayEffectAttributeCaptureDefinition(UUPFStatSet::GetAttackAttribute(), EGameplayEffectAttributeCaptureSource::Source, true);
+		BaseDefenseDef = FGameplayEffectAttributeCaptureDefinition(UUPFStatSet::GetDefenseAttribute(), EGameplayEffectAttributeCaptureSource::Target, false);
 	}
 };
 

@@ -27,11 +27,6 @@ void UUPFHPSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetim
 
 	DOREPLIFETIME_CONDITION_NOTIFY(UUPFHPSet, CurrentHP, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UUPFHPSet, MaxHP, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UUPFHPSet, Attack, COND_OwnerOnly, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UUPFHPSet, AttackRange, COND_OwnerOnly, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UUPFHPSet, AttackSpeed, COND_OwnerOnly, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UUPFHPSet, MovementSpeed, COND_OwnerOnly, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UUPFHPSet, Defense, COND_OwnerOnly, REPNOTIFY_Always);
 }
 
 bool UUPFHPSet::PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data)
@@ -168,34 +163,4 @@ void UUPFHPSet::OnRep_MaxHP(const FGameplayAttributeData& OldValue)
 
 	UPF_LOG_ATTRIBUTE(LogTemp, Log, TEXT("Called, %f -> %f"), OldValue.GetCurrentValue(), GetMaxHP());
 	OnMaxHPChanged.Broadcast(GetCurrentHP(), GetMaxHP());
-}
-
-void UUPFHPSet::OnRep_Attack(const FGameplayAttributeData& OldValue)
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UUPFHPSet, Attack, OldValue);
-}
-
-void UUPFHPSet::OnRep_AttackRange(const FGameplayAttributeData& OldValue)
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UUPFHPSet, AttackRange, OldValue);
-}
-
-void UUPFHPSet::OnRep_AttackSpeed(const FGameplayAttributeData& OldValue)
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UUPFHPSet, AttackSpeed, OldValue);
-}
-
-void UUPFHPSet::OnRep_MovementSpeed(const FGameplayAttributeData& OldValue)
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UUPFHPSet, MovementSpeed, OldValue);
-}
-
-void UUPFHPSet::OnRep_Defense(const FGameplayAttributeData& OldValue)
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UUPFHPSet, Defense, OldValue);
-}
-
-FString UUPFHPSet::ToString() const
-{
-	return FString::Printf(TEXT("MaxHP=%f, Attack=%f"), MaxHP.GetCurrentValue(), Attack.GetCurrentValue());
 }

@@ -24,11 +24,6 @@ public:
 
 	ATTRIBUTE_ACCESSORS(UUPFHPSet, CurrentHP);
 	ATTRIBUTE_ACCESSORS(UUPFHPSet, MaxHP);
-	ATTRIBUTE_ACCESSORS(UUPFHPSet, Attack);
-	ATTRIBUTE_ACCESSORS(UUPFHPSet, AttackRange);
-	ATTRIBUTE_ACCESSORS(UUPFHPSet, AttackSpeed);
-	ATTRIBUTE_ACCESSORS(UUPFHPSet, MovementSpeed);
-	ATTRIBUTE_ACCESSORS(UUPFHPSet, Defense);
 
 	// for UIs
 	mutable FOnHPChangedDelegate OnMaxHPChanged;
@@ -39,26 +34,11 @@ public:
 	mutable FUPFAttributeEvent OnHealing;
 
 private:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentHP, Category = "UPF|Stat", Meta = (AllowPrivateAccess = true))
+	UPROPERTY(Transient, EditAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentHP, Category = "UPF|Stat", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData CurrentHP;	// 현재 체력
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_MaxHP, Category = "UPF|Stat", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData MaxHP;	// 최대 체력
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_Attack, Category = "UPF|Stat", Meta = (AllowPrivateAccess = true))
-	FGameplayAttributeData Attack;	// 공격력
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_AttackRange, Category = "UPF|Stat", Meta = (AllowPrivateAccess = true))
-	FGameplayAttributeData AttackRange;	// 공격 범위
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_AttackSpeed, Category = "UPF|Stat", Meta = (AllowPrivateAccess = true))
-	FGameplayAttributeData AttackSpeed;	// 공격 속도
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_MovementSpeed, Category = "UPF|Stat", Meta = (AllowPrivateAccess = true))
-	FGameplayAttributeData MovementSpeed;	// 이동속도
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_Defense, Category = "UPF|Stat", Meta = (AllowPrivateAccess = true))
-	FGameplayAttributeData Defense;	// 방어력
 
 	bool bIsOnHPZeroInvoked;
 	float PrevHP = 0.0f;
@@ -82,22 +62,4 @@ protected:
 
 	UFUNCTION()
 	void OnRep_MaxHP(const FGameplayAttributeData& OldValue);
-
-	UFUNCTION()
-	void OnRep_Attack(const FGameplayAttributeData& OldValue);
-
-	UFUNCTION()
-	void OnRep_AttackRange(const FGameplayAttributeData& OldValue);
-
-	UFUNCTION()
-	void OnRep_AttackSpeed(const FGameplayAttributeData& OldValue);
-
-	UFUNCTION()
-	void OnRep_MovementSpeed(const FGameplayAttributeData& OldValue);
-
-	UFUNCTION()
-	void OnRep_Defense(const FGameplayAttributeData& OldValue);
-
-public:
-	FString ToString() const;
 };
