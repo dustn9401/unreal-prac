@@ -143,17 +143,17 @@ void AUPFCharacterPlayer::ApplyCharacterControlData(const UUPFCharacterControlDa
 
 void AUPFCharacterPlayer::ServerRPCGiveCharacterAbilitySet_Implementation()
 {
-	UPF_LOG(LogTemp, Log, TEXT("Name=%s"), *GetName());
 	if (!ensure(HasAuthority())) return;
 	
 	check(CharacterData);
 	check(CharacterData->AbilityInputMappingData);
+
+	// 아래의 함수에서 ClientRPCBindAbilitySetInput 호출되어 클라이언트에 인풋 바인딩
 	CharacterData->AbilityInputMappingData->GiveToCharacter(this, this);
 }
 
 void AUPFCharacterPlayer::ClientRPCBindAbilitySetInput_Implementation(const UUPFAbilitySet* AbilitySet, int32 GrantKey)
 {
-	UPF_LOG(LogTemp, Log, TEXT("Name=%s"), *GetName());
 	if (!ensure(IsLocallyControlled())) return;
 	check(AbilitySet);
 
@@ -174,6 +174,14 @@ void AUPFCharacterPlayer::ClientRPCBindAbilitySetInput_Implementation(const UUPF
 			TriggerData.InputID);
 		BindingHandles.Add(PressedBinding.GetHandle());
 
+		FEnhancedInputActionEventBinding& HeldBinding = EIC->BindAction<UUPFAbilitySystemComponent, int32>(
+			TriggerData.InputAction,
+			ETriggerEvent::Ongoing,
+			AbilitySystemComponent,
+			&UUPFAbilitySystemComponent::AbilityLocalInputPressing,
+			TriggerData.InputID);
+		BindingHandles.Add(HeldBinding.GetHandle());
+		
 		FEnhancedInputActionEventBinding& ReleasedBinding = EIC->BindAction<UAbilitySystemComponent, int32>(
 			TriggerData.InputAction,
 			ETriggerEvent::Completed,

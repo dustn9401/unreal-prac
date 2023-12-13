@@ -75,7 +75,6 @@ void UUPFAbilitySet::GiveToCharacter(AUPFCharacterBase* Character, UObject* SrcO
 	
 	for(const FUPFAbilityTriggerData& Data : Abilities)
 	{
-		// const int32 InputID = Data.InputID == None ? INDEX_NONE : Data.InputID;		// byte enum이 -1값이 안되서 따로 처리
 		FGameplayAbilitySpec AbilitySpec(Data.Ability, 1, Data.InputID, SrcObj);
 		FGameplayAbilitySpecHandle AbilityHandle = AbilityComp->GiveAbility(AbilitySpec);
 		

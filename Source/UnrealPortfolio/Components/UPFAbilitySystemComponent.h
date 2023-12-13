@@ -19,8 +19,7 @@ public:
 	UUPFAbilitySystemComponent();
 
 public:
-	virtual void AbilityLocalInputPressed(int32 InputID) override;
-	virtual void AbilityLocalInputReleased(int32 InputID) override;
-	// void OnGiveAbilitySet(const UUPFAbilitySet* AbilitySet);
-	// void OnRemoveAbilitySet(const UUPFAbilitySet* AbilitySet);
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+	void AbilityLocalInputPressing(int32 InputID);
 };

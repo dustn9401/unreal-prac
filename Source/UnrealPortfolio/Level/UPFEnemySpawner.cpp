@@ -9,7 +9,7 @@
 // Sets default values
 AUPFEnemySpawner::AUPFEnemySpawner()
 {
-	bReplicates = true;
+	
 }
 
 // Called when the game starts or when spawned
@@ -26,6 +26,7 @@ void AUPFEnemySpawner::BeginPlay()
 void AUPFEnemySpawner::SpawnEnemy()
 {
 	if (!ensure(EnemyClass)) return;
+	if (!ensure(HasAuthority())) return;
 	
 	AUPFCharacterNonPlayer* SpawnedEnemy = GetWorld()->SpawnActor<AUPFCharacterNonPlayer>(EnemyClass, GetActorLocation(), GetActorRotation());
 	SpawnedEnemy->OnDestroyed.AddDynamic(this, &AUPFEnemySpawner::OnSpawnActorDestroyed);
@@ -33,7 +34,6 @@ void AUPFEnemySpawner::SpawnEnemy()
 
 void AUPFEnemySpawner::OnSpawnActorDestroyed(AActor* DestroyedActor)
 {
-	UPF_LOG(LogTemp, Log, TEXT("Called"));
 	DestroyedActor->OnDestroyed.RemoveDynamic(this, &AUPFEnemySpawner::OnSpawnActorDestroyed);
 	
 	if (HasAuthority())

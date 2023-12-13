@@ -7,34 +7,35 @@
 
 UUPFAbilitySystemComponent::UUPFAbilitySystemComponent()
 {
+	PrimaryComponentTick.bCanEverTick = true;
 }
 
-void UUPFAbilitySystemComponent::AbilityLocalInputPressed(int32 InputID)
+void UUPFAbilitySystemComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	// UE_LOG(LogTemp, Log, TEXT("AbilityLocalInputPressed, %d"), InputID);
-	Super::AbilityLocalInputPressed(InputID);
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	for(const FGameplayAbilitySpec& AbilitySpec : ActivatableAbilities.Items)
+	{
+		if (AbilitySpec.InputPressed)
+		{
+			UPF_LOG_COMPONENT(LogTemp, Log, TEXT("Pressed: %d"), AbilitySpec.InputID);
+		}
+	}
 }
 
-void UUPFAbilitySystemComponent::AbilityLocalInputReleased(int32 InputID)
+void UUPFAbilitySystemComponent::AbilityLocalInputPressing(int32 InputID)
 {
-	// UE_LOG(LogTemp, Log, TEXT("AbilityLocalInputReleased, %d"), InputID);
-	Super::AbilityLocalInputReleased(InputID);
+	ABILITYLIST_SCOPE_LOCK();
+	for (FGameplayAbilitySpec& Spec : ActivatableAbilities.Items)
+	{
+		if (Spec.InputID == InputID)
+		{
+			if (Spec.Ability)
+			{
+				Spec.InputPressed = true;
+				if (Spec.IsActive()) break;
+				TryActivateAbility(Spec.Handle);
+			}
+		}
+	}
 }
-
-// void UUPFAbilitySystemComponent::OnGiveAbilitySet(const UUPFAbilitySet* AbilitySet)
-// {
-// 	AUPFCharacterPlayer* CharacterPlayer = Cast<AUPFCharacterPlayer>(GetOwner());
-// 	if (!IsValid(CharacterPlayer)) return;
-// 	if (!CharacterPlayer->IsLocallyControlled()) return;
-//
-// 	CharacterPlayer->BindAbilityInput(AbilitySet);
-// }
-//
-// void UUPFAbilitySystemComponent::OnRemoveAbilitySet(const UUPFAbilitySet* AbilitySet)
-// {
-// 	AUPFCharacterPlayer* CharacterPlayer = Cast<AUPFCharacterPlayer>(GetOwner());
-// 	if (!IsValid(CharacterPlayer)) return;
-// 	if (!CharacterPlayer->IsLocallyControlled()) return;
-//
-// 	CharacterPlayer->UnBindAbilityInput(AbilitySet);
-// }

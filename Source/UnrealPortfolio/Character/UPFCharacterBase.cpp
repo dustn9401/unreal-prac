@@ -148,7 +148,6 @@ UAbilitySystemComponent* AUPFCharacterBase::GetAbilitySystemComponent() const
 
 void AUPFCharacterBase::OnHPZero(AActor* EffectInstigator, AActor* EffectCauser, const FGameplayEffectSpec* EffectSpec, float EffectMagnitude, float OldValue, float NewValue)
 {
-	UPF_LOG(LogTemp, Log, TEXT("Called"));
 	GetCharacterMovement()->SetMovementMode(MOVE_None);
 	SetActorEnableCollision(false);	// 시체가 걸리적거리지 않도록
 	HPBarWidgetComp->SetHiddenInGame(true);	// 사망 연출 중 hp bar는 숨긴다.
