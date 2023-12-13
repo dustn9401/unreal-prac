@@ -2,5 +2,10 @@
 
 
 #include "Ability/UPFAbilitySystemGlobals.h"
-#include "Attributes/UPFHPSet.h"
 
+#include "Attributes/FUPFAttributeSetInitter.h"
+
+void UUPFAbilitySystemGlobals::AllocAttributeSetInitter()
+{
+	GlobalAttributeSetInitter = MakeShared<FUPFAttributeSetInitter>();
+}

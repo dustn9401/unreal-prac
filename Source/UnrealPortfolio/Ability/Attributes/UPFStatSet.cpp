@@ -5,6 +5,10 @@
 
 #include "Net/UnrealNetwork.h"
 
+UUPFStatSet::UUPFStatSet()
+{
+}
+
 void UUPFStatSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

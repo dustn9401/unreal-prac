@@ -18,7 +18,7 @@ DECLARE_MULTICAST_DELEGATE_SixParams(FUPFAttributeEvent, AActor* /*EffectInstiga
 /**
  * 
  */
-UCLASS()
+UCLASS(Abstract)
 class UNREALPORTFOLIO_API UUPFAttributeSet : public UAttributeSet
 {
 	GENERATED_BODY()

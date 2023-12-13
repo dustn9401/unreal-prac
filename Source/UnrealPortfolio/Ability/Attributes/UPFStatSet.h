@@ -16,6 +16,8 @@ class UNREALPORTFOLIO_API UUPFStatSet : public UUPFAttributeSet
 	GENERATED_BODY()
 
 public:
+	UUPFStatSet();
+	
 	ATTRIBUTE_ACCESSORS(UUPFStatSet, Attack);
 	ATTRIBUTE_ACCESSORS(UUPFStatSet, AttackRange);
 	ATTRIBUTE_ACCESSORS(UUPFStatSet, AttackSpeed);
