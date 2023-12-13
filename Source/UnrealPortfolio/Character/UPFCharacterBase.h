@@ -72,6 +72,11 @@ public:
 		return StatSet;
 	}
 
+	FORCEINLINE TObjectPtr<UUPFHPSet> GetHPSet() const
+	{
+		return HPSet;
+	}
+
 // Widget
 protected:
 	// HP bar 표시용 컴포넌트

@@ -162,7 +162,7 @@ void AUPFCharacterBase::OnHPZero(AActor* EffectInstigator, AActor* EffectCauser,
 
 void AUPFCharacterBase::FinishDeath()
 {
-	SetActorHiddenInGame(true);
+	Destroy();
 }
 
 void AUPFCharacterBase::OnAimingStart()
