@@ -16,4 +16,6 @@ class UNREALPORTFOLIO_API UUPFAbilitySystemGlobals : public UAbilitySystemGlobal
 {
 	GENERATED_BODY()
 
+protected:
+	virtual void AllocAttributeSetInitter() override;
 };
