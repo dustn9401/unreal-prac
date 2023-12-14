@@ -31,10 +31,13 @@ public IAbilitySystemInterface
 public:
 	// Sets default values for this character's properties
 	AUPFCharacterBase(const FObjectInitializer& ObjectInitializer);
-
+	
+	virtual void PreInitializeComponents() override;
+	virtual void PostInitializeComponents() override;
+	
 // ACharacter overrides
 protected:
-	virtual void PostInitializeComponents() override;
+	
 	virtual bool CanCrouch() const override;
 
 // IAttackAnimationInterface Impl

@@ -74,10 +74,6 @@ AUPFCharacterBase::AUPFCharacterBase(const FObjectInitializer& ObjectInitializer
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
-	// Character Stat
-	HPSet = CreateDefaultSubobject<UUPFHPSet>(TEXT("HP"));
-	StatSet = CreateDefaultSubobject<UUPFStatSet>(TEXT("Stat"));
-
 	// Widget: HP Bar
 	HPBarWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
 	HPBarWidgetComp->SetupAttachment(GetMesh(), FName(TEXT("rootSocket")));
@@ -104,6 +100,15 @@ AUPFCharacterBase::AUPFCharacterBase(const FObjectInitializer& ObjectInitializer
 	bIsAiming = false;
 }
 
+void AUPFCharacterBase::PreInitializeComponents()
+{
+	Super::PreInitializeComponents();
+
+	// Character Stat
+	HPSet = NewObject<UUPFHPSet>(this, TEXT("HP"));
+	StatSet = NewObject<UUPFStatSet>(this, TEXT("Stat"));
+}
+
 void AUPFCharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
@@ -113,7 +118,9 @@ void AUPFCharacterBase::PostInitializeComponents()
 	// 스텟 초기화, 서버만 수행
 	if (HasAuthority())
 	{
-		IGameplayAbilitiesModule::Get().GetAbilitySystemGlobals()->GetAttributeSetInitter()->InitAttributeSetDefaults(AbilitySystemComponent, GetStatGroup(), 1, true);
+		IGameplayAbilitiesModule::Get().GetAbilitySystemGlobals()
+			->GetAttributeSetInitter()
+			->InitAttributeSetDefaults(AbilitySystemComponent, GetStatGroup(), 1, true);
 		HPSet->OnInit();
 	}
 	

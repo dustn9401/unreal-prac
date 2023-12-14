@@ -42,18 +42,18 @@ void FUPFAttributeSetInitter::PreloadAttributeSetData(const TArray<UCurveTable*>
 
 			// Attribute Set 클래스 이름은 반드시 이 양식을 따라야 함
 			FString ClassName = FString::Printf(TEXT("UPF%sSet"), *SetName);
-			TSubclassOf<UUPFAttributeSet>* SetPtr = ClassList.FindByPredicate([&](const UClass* X)
+			const TSubclassOf<UUPFAttributeSet>* AttributeSetPtr = ClassList.FindByPredicate([&](const UClass* X)
 			{
 				return X->GetName().Equals(ClassName);
 			});
 			
-			if (!SetPtr)
+			if (!AttributeSetPtr)
 			{
 				ABILITY_LOG(Error, TEXT("FUPFAttributeSetInitter::PreloadAttributeSetData cannot find class!!, SetName: %s, TargetClassName: %s"), *SetName, *ClassName);
 				continue;
 			}
 
-			TSubclassOf<UUPFAttributeSet> Set = *SetPtr;
+			TSubclassOf<UUPFAttributeSet> Set = *AttributeSetPtr;
 
 			// Find the FProperty
 			FProperty* Property = FindFProperty<FProperty>(*Set, *AttributeName);
