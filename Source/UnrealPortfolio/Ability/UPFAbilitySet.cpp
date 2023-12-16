@@ -75,7 +75,12 @@ void UUPFAbilitySet::GiveToCharacter(AUPFCharacterBase* Character, UObject* SrcO
 	
 	for(const FUPFAbilityTriggerData& Data : Abilities)
 	{
-		FGameplayAbilitySpec AbilitySpec(Data.Ability, 1, Data.InputID, SrcObj);
+		FGameplayAbilitySpec AbilitySpec(Data.Ability, 1, INDEX_NONE, SrcObj);
+		if (Data.InputTag.IsValid())
+		{
+			AbilitySpec.DynamicAbilityTags.AddTag(Data.InputTag);
+		}
+		
 		FGameplayAbilitySpecHandle AbilityHandle = AbilityComp->GiveAbility(AbilitySpec);
 		
 		if (OutGrantData)

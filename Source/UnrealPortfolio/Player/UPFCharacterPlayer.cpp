@@ -164,7 +164,7 @@ void AUPFCharacterPlayer::ClientRPCBindAbilitySetInput_Implementation(const UUPF
 	for(const FUPFAbilityTriggerData& TriggerData : AbilitySet->Abilities)
 	{
 		if (!IsValid(TriggerData.InputAction)) continue;
-		if (TriggerData.InputID == None) continue;
+		if (!TriggerData.InputTag.IsValid()) continue;
 		
 		FEnhancedInputActionEventBinding& PressedBinding = EIC->BindAction<UUPFAbilitySystemComponent, FGameplayTag>(
 			TriggerData.InputAction,

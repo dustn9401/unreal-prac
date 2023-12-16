@@ -30,7 +30,7 @@ struct FUPFAbilityTriggerData
 {
 	GENERATED_BODY()
 
-	FUPFAbilityTriggerData(): InputID(EUPFGameplayAbilityInputBinds::Ability1)
+	FUPFAbilityTriggerData()
 	{
 	}
 
@@ -44,9 +44,6 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FGameplayTag InputTag;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TEnumAsByte<EUPFGameplayAbilityInputBinds> InputID;
 };
 
 /*
