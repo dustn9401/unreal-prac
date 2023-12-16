@@ -72,6 +72,11 @@ public:
 
 	void TakeFromCharacter(AUPFCharacterBase* Character);
 
+	bool IsEmpty() const
+	{
+		return AbilityHandles.Num() == 0 && EffectHandles.Num() == 0;
+	}
+
 private:
 	inline static int32 GlobalIndex = 0;
 	

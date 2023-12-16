@@ -166,28 +166,28 @@ void AUPFCharacterPlayer::ClientRPCBindAbilitySetInput_Implementation(const UUPF
 		if (!IsValid(TriggerData.InputAction)) continue;
 		if (TriggerData.InputID == None) continue;
 		
-		FEnhancedInputActionEventBinding& PressedBinding = EIC->BindAction<UAbilitySystemComponent, int32>(
+		FEnhancedInputActionEventBinding& PressedBinding = EIC->BindAction<UUPFAbilitySystemComponent, FGameplayTag>(
 			TriggerData.InputAction,
 			ETriggerEvent::Triggered,
 			AbilitySystemComponent,
-			&UAbilitySystemComponent::PressInputID,
-			TriggerData.InputID);
+			&UUPFAbilitySystemComponent::AbilityInputTagPressed,
+			TriggerData.InputTag);
 		BindingHandles.Add(PressedBinding.GetHandle());
 
-		FEnhancedInputActionEventBinding& HeldBinding = EIC->BindAction<UUPFAbilitySystemComponent, int32>(
+		FEnhancedInputActionEventBinding& HeldBinding = EIC->BindAction<UUPFAbilitySystemComponent, FGameplayTag>(
 			TriggerData.InputAction,
 			ETriggerEvent::Ongoing,
 			AbilitySystemComponent,
-			&UUPFAbilitySystemComponent::AbilityLocalInputPressing,
-			TriggerData.InputID);
+			&UUPFAbilitySystemComponent::AbilityInputTagPressing,
+			TriggerData.InputTag);
 		BindingHandles.Add(HeldBinding.GetHandle());
 		
-		FEnhancedInputActionEventBinding& ReleasedBinding = EIC->BindAction<UAbilitySystemComponent, int32>(
+		FEnhancedInputActionEventBinding& ReleasedBinding = EIC->BindAction<UUPFAbilitySystemComponent, FGameplayTag>(
 			TriggerData.InputAction,
 			ETriggerEvent::Completed,
 			AbilitySystemComponent,
-			&UAbilitySystemComponent::ReleaseInputID,
-			TriggerData.InputID);
+			&UUPFAbilitySystemComponent::AbilityInputTagReleased,
+			TriggerData.InputTag);
 		BindingHandles.Add(ReleasedBinding.GetHandle());
 	}
 
@@ -200,11 +200,13 @@ void AUPFCharacterPlayer::ClientRPCBindAbilitySetInput_Implementation(const UUPF
 void AUPFCharacterPlayer::ClientRPCRemoveAbilitySetBind_Implementation(int32 GrantKey)
 {
 	if (!ensure(IsLocallyControlled())) return;
-	if (AbilityInputBindingHandles.Contains(GrantKey)) return;
+
+	TArray<int32>* HandlesPtr = AbilityInputBindingHandles.Find(GrantKey);
+	if (HandlesPtr == nullptr) return;
 
 	UEnhancedInputComponent* EIC = CastChecked<UEnhancedInputComponent>(InputComponent);
 
-	for(const int32 Handle : AbilityInputBindingHandles[GrantKey])
+	for(const int32 Handle : *HandlesPtr)
 	{
 		EIC->RemoveBindingByHandle(Handle);
 	}
@@ -241,7 +243,7 @@ void AUPFCharacterPlayer::TakeItem(UUPFItemData* Data)
 
 	if (const UUPFEquipmentItemData* EquipmentData = Cast<UUPFEquipmentItemData>(Data))
 	{
-		EquipmentComponent->ServerRPCEquipItem(EquipmentData);
+		EquipmentComponent->EquipItem(EquipmentData);
 	}
 	else if (const UUPFConsumableItemData* ConsumableData = Cast<UUPFConsumableItemData>(Data))
 	{

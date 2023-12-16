@@ -19,7 +19,7 @@ public:
 	UUPFAbilitySystemComponent();
 
 public:
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
-	void AbilityLocalInputPressing(int32 InputID);
+	void AbilityInputTagPressed(FGameplayTag InputTag);
+	void AbilityInputTagPressing(FGameplayTag InputTag);
+	void AbilityInputTagReleased(FGameplayTag InputTag);
 };

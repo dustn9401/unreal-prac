@@ -66,3 +66,4 @@ void AUPFRangedWeaponInstance::OnFire()
 {
 	K2_OnFire();
 }
+

@@ -49,37 +49,21 @@ void UUPFCharacterEquipmentComponent::GetLifetimeReplicatedProps(TArray<FLifetim
 	// DOREPLIFETIME(UUPFCharacterEquipmentComponent, CurrentWeaponType);
 }
 
-void UUPFCharacterEquipmentComponent::ServerRPCEquipItem_Implementation(const UUPFEquipmentItemData* Data)
+void UUPFCharacterEquipmentComponent::EquipItem(const UUPFEquipmentItemData* Data)
 {
-	UPF_LOG_COMPONENT(LogTemp, Log, TEXT("Called"));
-
+	// 각 플레이어에는 장비 스폰 및 이 캐릭터에 장착시키고, AppliedEquipmentEntry 를 맵에 추가
 	MulticastRPCEquipItem(Data);
 
-	if (!ensure(Equipments.Contains(Data->EquipmentType)))
-	{
-		return;
-	}
-
-	// 어빌리티 부여
-	if (Data->AbilitiesToGrant)
-	{
-		AUPFCharacterBase* OwnerCharacter = CastChecked<AUPFCharacterBase>(GetOwner());
-		FUPFAppliedEquipmentEntry& Entry = Equipments[Data->EquipmentType];
-		Data->AbilitiesToGrant->GiveToCharacter(OwnerCharacter, Entry.EquipmentInstance, &Entry.GrantedData);
-	}
-}
-
-bool UUPFCharacterEquipmentComponent::ServerRPCEquipItem_Validate(const UUPFEquipmentItemData* Data)
-{
-	return true;
+	// 서버는 추가된 AppliedEquipmentEntry 를 사용해서 어빌리티를 지급한다.
+	ServerRPCGiveEquipmentAbility(Data->EquipmentType);
 }
 
 void UUPFCharacterEquipmentComponent::MulticastRPCEquipItem_Implementation(const UUPFEquipmentItemData* Data)
 {
-	EquipItem(Data);
+	InternalMulticastEquipItem(Data);
 }
 
-void UUPFCharacterEquipmentComponent::EquipItem(const UUPFEquipmentItemData* Data)
+void UUPFCharacterEquipmentComponent::InternalMulticastEquipItem(const UUPFEquipmentItemData* Data)
 {
 	// 아이템 액터 생성
 	AUPFEquipmentInstance* SpawnedItem = GetWorld()->SpawnActorDeferred<AUPFEquipmentInstance>(Data->InstanceClass, FTransform::Identity);
@@ -126,25 +110,21 @@ void UUPFCharacterEquipmentComponent::EquipItem(const UUPFEquipmentItemData* Dat
 	}
 }
 
-void UUPFCharacterEquipmentComponent::ServerRPCUnEquipItem_Implementation(FGameplayTag EquipmentType)
+void UUPFCharacterEquipmentComponent::UnEquipItem(FGameplayTag EquipmentType)
 {
-	UUPFAbilitySystemComponent* ASC = GetOwner()->GetComponentByClass<UUPFAbilitySystemComponent>();
-	check(ASC);
+	// 어빌리티부터 제거
+	ServerRPCTakeEquipmentAbility(EquipmentType);
 
-	if (!Equipments.Contains(EquipmentType)) return;
-
-	AUPFCharacterBase* OwnerCharacter = CastChecked<AUPFCharacterBase>(GetOwner());
-	Equipments[EquipmentType].GrantedData.TakeFromCharacter(OwnerCharacter);
-	
+	// 그다음 각 플레이어에게 이 캐릭터의 장비 제거 신호
 	MulticastRPCUnEquipItem(EquipmentType);
 }
 
 void UUPFCharacterEquipmentComponent::MulticastRPCUnEquipItem_Implementation(FGameplayTag EquipmentType)
 {
-	UnEquipItem(EquipmentType);
+	InternalMulticastUnEquipItem(EquipmentType);
 }
 
-void UUPFCharacterEquipmentComponent::UnEquipItem(FGameplayTag EquipmentType)
+void UUPFCharacterEquipmentComponent::InternalMulticastUnEquipItem(FGameplayTag EquipmentType)
 {
 	if (!Equipments.Contains(EquipmentType)) return;
 
@@ -166,16 +146,68 @@ void UUPFCharacterEquipmentComponent::UnEquipItem(FGameplayTag EquipmentType)
 	}
 }
 
+void UUPFCharacterEquipmentComponent::ServerRPCGiveEquipmentAbility_Implementation(FGameplayTag EquipmentType)
+{
+	FUPFAppliedEquipmentEntry* EntryPtr = Equipments.Find(EquipmentType);
+	if (!ensure(EntryPtr)) return;
+	if (!ensure(!EntryPtr->IsAbilityGranted())) return; // 이미 어빌리티가 지급된 상태임
+	if (!EntryPtr->EquipmentItemData->AbilitiesToGrant) return;
+	
+	AUPFCharacterBase* OwnerCharacter = CastChecked<AUPFCharacterBase>(GetOwner());
+	EntryPtr->EquipmentItemData->AbilitiesToGrant->GiveToCharacter(OwnerCharacter, EntryPtr->EquipmentInstance, &EntryPtr->GrantedData);
+}
+
+bool UUPFCharacterEquipmentComponent::ServerRPCGiveEquipmentAbility_Validate(FGameplayTag EquipmentType)
+{
+	return true;
+}
+
+void UUPFCharacterEquipmentComponent::ServerRPCTakeEquipmentAbility_Implementation(FGameplayTag EquipmentType)
+{
+	FUPFAppliedEquipmentEntry* EntryPtr = Equipments.Find(EquipmentType);
+	if (!ensure(EntryPtr)) return;
+	if (!EntryPtr->IsAbilityGranted()) return;
+
+	AUPFCharacterBase* OwnerCharacter = CastChecked<AUPFCharacterBase>(GetOwner());
+	EntryPtr->GrantedData.TakeFromCharacter(OwnerCharacter);
+}
+
+bool UUPFCharacterEquipmentComponent::ServerRPCTakeEquipmentAbility_Validate(FGameplayTag EquipmentType)
+{
+	return true;
+}
+
+bool UUPFCharacterEquipmentComponent::CanToggleHolster()
+{
+	// 아무 장비도 착용하지 않음
+	if (!CurrentWeaponType.IsValid())
+	{
+		return false;
+	}
+
+	FUPFAppliedEquipmentEntry* EntryPtr = Equipments.Find(CurrentWeaponType);
+	if (!ensure(EntryPtr))
+	{
+		return false;	// 여기로 오면 안됨
+	}
+	
+	return true;
+}
+
 void UUPFCharacterEquipmentComponent::ToggleHolsterWeapon()
 {
 	// 아무 장비도 착용하지 않음
 	if (!CurrentWeaponType.IsValid()) return;
-	
-	if (!Equipments.Contains(CurrentWeaponType)) return;
-	
+
+	FUPFAppliedEquipmentEntry* EntryPtr = Equipments.Find(CurrentWeaponType);
+	if (!EntryPtr) return;
+
+	// 부착할 캐릭터의 소켓를 구한다.
 	FEquipmentSocketData SocketData = SocketDatas[CurrentWeaponType];
 	FName TargetSocket = bIsHolstered ? SocketData.HandSocket : SocketData.HolsterSocket;
-	AUPFEquipmentInstance* EquipmentInstance = Equipments[CurrentWeaponType].EquipmentInstance;
+	AUPFEquipmentInstance* EquipmentInstance = EntryPtr->EquipmentInstance;
+
+	// Socket 이동
 	EquipmentInstance->MeshComp->AttachToComponent(CharacterMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, TargetSocket);
 	
 	bIsHolstered = !bIsHolstered;
@@ -184,9 +216,21 @@ void UUPFCharacterEquipmentComponent::ToggleHolsterWeapon()
 	if (bIsHolstered)
 	{
 		EquipmentInstance->OnDetachedFromHand(OwnerCharacter);
+
+		// 수납 중 어빌리티를 제거한다.
+		if (GetOwner()->HasAuthority())
+		{
+			ServerRPCTakeEquipmentAbility(CurrentWeaponType);
+		}
 	}
 	else
 	{
 		EquipmentInstance->OnAttachedToHand(OwnerCharacter);
+
+		// 어빌리티를 다시 지급힌다.
+		if (GetOwner()->HasAuthority())
+		{
+			ServerRPCGiveEquipmentAbility(CurrentWeaponType);
+		}
 	}
 }

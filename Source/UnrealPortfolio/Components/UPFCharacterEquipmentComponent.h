@@ -52,10 +52,18 @@ private:
 	// 부여된 어빌리티 및 이펙트 데이터
 	UPROPERTY(NotReplicated)
 	FUPFGrantedAbilitySetData GrantedData;
+
+public:
+	// 캐릭터가 장비를 보유 중이어도, 수납된 상태인 경우 등 어빌리티가 지급되지 않은 상태일 수도 있음.  그걸 확인하는 용도의 함수
+	bool IsAbilityGranted() const
+	{
+		return !GrantedData.IsEmpty();
+	}
 };
 
 /*
  * 캐릭터의 장비 아이템을 관리하는 컴포넌트
+ * 하는일: 장비 아이템의 데이터 관리, 장비 아이템 액터 관리, 캐릭터 메시에 장비 아이템 탈부착
  */
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class UNREALPORTFOLIO_API UUPFCharacterEquipmentComponent : public UActorComponent
@@ -69,35 +77,44 @@ public:
 	virtual void InitializeComponent() override;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	
+
+// 장비의 장착 / 해제
 public:
 	// 장비 장착 시킬때 호출하는 함수.
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerRPCEquipItem(const UUPFEquipmentItemData* Data);
-
+	void EquipItem(const UUPFEquipmentItemData* Data);
+	
+	// 특정 타입의 장비를 해제한다.
+	void UnEquipItem(FGameplayTag EquipmentType);
+	
+protected:
 	// 모두에게 이 캐릭터에게 장비 장착 명령
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastRPCEquipItem(const UUPFEquipmentItemData* Data);
-
-	// 특정 타입의 장비를 해제한다.
-	UFUNCTION(Server, Reliable)
-	void ServerRPCUnEquipItem(FGameplayTag EquipmentType);
+	void InternalMulticastEquipItem(const UUPFEquipmentItemData* Data);
 
 	// 모두에게 이 캐릭터의 장비 해제 명령
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastRPCUnEquipItem(FGameplayTag EquipmentType);
+	void InternalMulticastUnEquipItem(FGameplayTag EquipmentType);
 
+	// 현재 보유중인 EquipmentType 장비의 어빌리티 셋을 캐릭터에 부여한다.
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerRPCGiveEquipmentAbility(FGameplayTag EquipmentType);
+
+	// 현재 보유중인 EquipmentType 장비의 어빌리티 셋을 캐릭터에서 제거한다.
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerRPCTakeEquipmentAbility(FGameplayTag EquipmentType);
+
+// Holster
+public:
+	// 현재 캐릭터가 Holster 액션을 수행 가능한 상태인지 여부
+	bool CanToggleHolster();
+	
 	// 무기를 손에 들거나 수납한다.
 	UFUNCTION(BlueprintCallable)
 	void ToggleHolsterWeapon();
 
 protected:
-	// Data에 대한 장비 액터를 생성하고 Equipments 맵에 추가한다.
-	void EquipItem(const UUPFEquipmentItemData* Data);
-
-	// 특정 타입의 장비가 착용되어 있다면 제거한다.
-	void UnEquipItem(FGameplayTag EquipmentType);
-	
 	UPROPERTY()
 	TObjectPtr<USkeletalMeshComponent> CharacterMeshComponent;
 	
