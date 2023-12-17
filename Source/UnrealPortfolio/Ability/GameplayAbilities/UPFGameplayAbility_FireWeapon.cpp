@@ -9,6 +9,8 @@
 #include "UnrealPortfolio.h"
 #include "Abilities/Tasks/AbilityTask_WaitDelay.h"
 #include "Components/UPFWeaponStateComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/PawnMovementComponent.h"
 #include "Item/ItemInstance/Equipments/UPFRangedWeaponInstance.h"
 #include "Physics/UPFCollision.h"
 
@@ -36,21 +38,20 @@ namespace UPFConsoleVariables
 		ECVF_Default);
 }
 
+UUPFGameplayAbility_FireWeapon::UUPFGameplayAbility_FireWeapon()
+{
+	MaxWalkSpeedOnFiringWeapon = 230.0f;
+}
+
 bool UUPFGameplayAbility_FireWeapon::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags,
                                                         const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
 {
 	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
 	{
-		UPF_LOG_ABILITY(LogTemp, Log, TEXT("Return false"));
 		return false;
 	}
 
 	if (!GetWeaponInstance())
-	{
-		return false;
-	}
-	
-	if (FireTimer.IsValid())
 	{
 		return false;
 	}
@@ -78,6 +79,13 @@ void UUPFGameplayAbility_FireWeapon::ActivateAbility(const FGameplayAbilitySpecH
 	// 애니메이션 재생
 	ActorInfo->AbilitySystemComponent->PlayMontage(this, ActivationInfo, FireMontage, 1.0f);
 
+	// 이동속도 제한
+	if (UCharacterMovementComponent* CharacterMovementComponent = Cast<UCharacterMovementComponent>(ActorInfo->MovementComponent))
+	{
+		MaxWalkSpeedCache = CharacterMovementComponent->MaxWalkSpeed;
+		CharacterMovementComponent->MaxWalkSpeed = MaxWalkSpeedOnFiringWeapon;
+	}
+
 	AUPFRangedWeaponInstance* WeaponInstance = GetWeaponInstance();
 	check(WeaponInstance);
 	
@@ -89,6 +97,15 @@ void UUPFGameplayAbility_FireWeapon::ActivateAbility(const FGameplayAbilitySpecH
 
 void UUPFGameplayAbility_FireWeapon::OnFinishWait()
 {
+	if (ensure(CurrentActorInfo))
+	{
+		// 이동속도 제한 복구
+		if (UCharacterMovementComponent* CharacterMovementComponent = Cast<UCharacterMovementComponent>(CurrentActorInfo->MovementComponent))
+		{
+			CharacterMovementComponent->MaxWalkSpeed = MaxWalkSpeedCache;
+		}
+	}
+	
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 }
 

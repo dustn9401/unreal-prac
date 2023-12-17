@@ -37,10 +37,13 @@ class UNREALPORTFOLIO_API UUPFGameplayAbility_FireWeapon : public UUPFGameplayAb
 	GENERATED_BODY()
 
 public:
+	UUPFGameplayAbility_FireWeapon();
+	
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const override;
-
+	
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+
 
 	UFUNCTION()
 	void OnFinishWait();
@@ -98,11 +101,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UAnimMontage> FireMontage;
 
-	// 사격 후 다음 사격 가능시까지 쿨타임 계산용 타이머 핸들 (연사력)
-	FTimerHandle FireTimer;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<UGameplayEffect> DamageEffectClass;
+
+	// 캐릭터가 무기 발사 중일때의 최대 속도
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Character)
+	float MaxWalkSpeedOnFiringWeapon;
+	float MaxWalkSpeedCache = 0.0f;
 	
 private:
 	FDelegateHandle OnTargetDataReadyCallbackDelegateHandle;

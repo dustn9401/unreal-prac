@@ -39,7 +39,7 @@ public:
 protected:
 	
 	virtual bool CanCrouch() const override;
-
+	
 // IAttackAnimationInterface Impl
 public:
 	virtual void OnMeleeAttackAnimationHit() override;
