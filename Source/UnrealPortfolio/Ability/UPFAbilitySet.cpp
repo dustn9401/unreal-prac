@@ -70,7 +70,7 @@ void FUPFGrantedAbilitySetData::TakeFromCharacter(const IAbilitySystemInterface*
 	AttributePtrs.Reset();
 }
 
-void UUPFAbilitySet::GiveToCharacter(const IAbilitySystemInterface* ASCInterface, UObject* SrcObj, FUPFGrantedAbilitySetData* OutGrantData) const
+void UUPFAbilitySet::GiveToAbilityComp(const IAbilitySystemInterface* ASCInterface, UObject* SrcObj, FUPFGrantedAbilitySetData* OutGrantData) const
 {
 	UAbilitySystemComponent* ASC = ASCInterface->GetAbilitySystemComponent();
 	

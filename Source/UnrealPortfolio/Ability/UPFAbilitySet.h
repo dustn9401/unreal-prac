@@ -111,5 +111,5 @@ public:
 	 * 추후 제거를 원할 경우, OutGrantData 를 저장해 놨다가 사용할것
 	 * 어빌리티의 인풋은 여기서 바인딩 하지 않음
 	 */
-	void GiveToCharacter(const IAbilitySystemInterface* ASCInterface, UObject* SrcObj, FUPFGrantedAbilitySetData* OutGrantData = nullptr) const;
+	void GiveToAbilityComp(const IAbilitySystemInterface* ASCInterface, UObject* SrcObj, FUPFGrantedAbilitySetData* OutGrantData = nullptr) const;
 };

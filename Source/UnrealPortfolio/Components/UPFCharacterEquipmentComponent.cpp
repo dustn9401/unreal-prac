@@ -179,7 +179,7 @@ void UUPFCharacterEquipmentComponent::GiveEquipmentAbility(const IAbilitySystemI
 	if (HasAuthority())
 	{
 		check(!EntryPtr->IsAbilityGranted());	// 어빌리티가 이미 지급된 상태면 중복 호출임
-		EntryPtr->EquipmentItemData->AbilitiesToGrant->GiveToCharacter(ASCInterface, EntryPtr->EquipmentInstance, &EntryPtr->GrantedData);
+		EntryPtr->EquipmentItemData->AbilitiesToGrant->GiveToAbilityComp(ASCInterface, EntryPtr->EquipmentInstance, &EntryPtr->GrantedData);
 	}
 
 	// 로컬컨트롤러는 인풋 바인딩
