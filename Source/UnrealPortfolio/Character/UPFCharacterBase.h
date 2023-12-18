@@ -32,13 +32,23 @@ public:
 	// Sets default values for this character's properties
 	AUPFCharacterBase(const FObjectInitializer& ObjectInitializer);
 	
-	virtual void PreInitializeComponents() override;
 	virtual void PostInitializeComponents() override;
+
+	virtual void BeginPlay() override;
 	
 // ACharacter overrides
 protected:
-	
 	virtual bool CanCrouch() const override;
+
+// Character Data
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UUPFCharacterData> CharacterData;
+
+	void SetData_Server(UUPFCharacterData* InData);
+
+	void SetData_Local(UUPFCharacterData* InData);
+
 	
 // IAttackAnimationInterface Impl
 public:
@@ -53,11 +63,9 @@ protected:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Ability")
 	TObjectPtr<UUPFAbilitySystemComponent> AbilitySystemComponent;		// 이 캐릭터가 보유한 어빌리티를 관리할 컴포넌트
 
-	UPROPERTY(EditDefaultsOnly, Category="Ability")
-	TObjectPtr<UUPFCharacterData> CharacterData;
-
-// Stat
-protected:
+	
+	// Stat
+	
 	// 어트리뷰트 셋 변수가 PlayerState 또는 캐릭터 클래스에 있어야 ASC가 초기화 시 인식할 수 있기 때문에, 여기에 선언함
 	UPROPERTY()
 	TObjectPtr<UUPFHPSet> HPSet;

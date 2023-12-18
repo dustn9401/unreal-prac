@@ -11,6 +11,7 @@
 #include "Item/UPFEquipmentItemData.h"
 #include "Item/ItemInstance/Equipments/UPFEquipmentInstance.h"
 #include "Net/UnrealNetwork.h"
+#include "Player/UPFCharacterPlayer.h"
 
 // Sets default values for this component's properties
 UUPFCharacterEquipmentComponent::UUPFCharacterEquipmentComponent()
@@ -52,18 +53,20 @@ void UUPFCharacterEquipmentComponent::GetLifetimeReplicatedProps(TArray<FLifetim
 void UUPFCharacterEquipmentComponent::EquipItem(const UUPFEquipmentItemData* Data)
 {
 	// 각 플레이어에는 장비 스폰 및 이 캐릭터에 장착시키고, AppliedEquipmentEntry 를 맵에 추가
-	MulticastRPCEquipItem(Data);
+	EquipItemInternal(Data);
 
 	// 서버는 추가된 AppliedEquipmentEntry 를 사용해서 어빌리티를 지급한다.
 	ServerRPCGiveEquipmentAbility(Data->EquipmentType);
+
+	// 로컬 컨트롤러는 어빌리티의 인풋을 바인딩한다.
+	// todo: ASC로 이 코드 옮기기
+	if (AUPFCharacterPlayer* OwnerPawn = Cast<AUPFCharacterPlayer>(GetOwner()); OwnerPawn->IsLocallyControlled())
+	{
+		OwnerPawn->BindAbilitySetInput(Data->AbilitiesToGrant);
+	}
 }
 
-void UUPFCharacterEquipmentComponent::MulticastRPCEquipItem_Implementation(const UUPFEquipmentItemData* Data)
-{
-	InternalMulticastEquipItem(Data);
-}
-
-void UUPFCharacterEquipmentComponent::InternalMulticastEquipItem(const UUPFEquipmentItemData* Data)
+void UUPFCharacterEquipmentComponent::EquipItemInternal(const UUPFEquipmentItemData* Data)
 {
 	// 아이템 액터 생성
 	AUPFEquipmentInstance* SpawnedItem = GetWorld()->SpawnActorDeferred<AUPFEquipmentInstance>(Data->InstanceClass, FTransform::Identity);
@@ -115,16 +118,11 @@ void UUPFCharacterEquipmentComponent::UnEquipItem(FGameplayTag EquipmentType)
 	// 어빌리티부터 제거
 	ServerRPCTakeEquipmentAbility(EquipmentType);
 
-	// 그다음 각 플레이어에게 이 캐릭터의 장비 제거 신호
-	MulticastRPCUnEquipItem(EquipmentType);
+	// 그다음 이 캐릭터의 장비 제거
+	UnEquipItemInternal(EquipmentType);
 }
 
-void UUPFCharacterEquipmentComponent::MulticastRPCUnEquipItem_Implementation(FGameplayTag EquipmentType)
-{
-	InternalMulticastUnEquipItem(EquipmentType);
-}
-
-void UUPFCharacterEquipmentComponent::InternalMulticastUnEquipItem(FGameplayTag EquipmentType)
+void UUPFCharacterEquipmentComponent::UnEquipItemInternal(FGameplayTag EquipmentType)
 {
 	if (!Equipments.Contains(EquipmentType)) return;
 
@@ -140,7 +138,6 @@ void UUPFCharacterEquipmentComponent::InternalMulticastUnEquipItem(FGameplayTag 
 	// 손에 들고있던 무기가 제거된 경우 처리
 	if (EquipmentType == CurrentWeaponType)
 	{
-		// todo: 다른 장비로 교체해주기
 		CurrentWeaponType = FGameplayTag::EmptyTag;
 		bIsHolstered = true;
 	}

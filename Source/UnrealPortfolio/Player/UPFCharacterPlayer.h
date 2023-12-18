@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "InputActionValue.h"
+#include "Ability/UPFAbilitySet.h"
 #include "Character/UPFCharacterBase.h"
 #include "Interface/UPFItemContainerInterface.h"
 #include "UPFCharacterPlayer.generated.h"
@@ -22,8 +23,6 @@ class UNREALPORTFOLIO_API AUPFCharacterPlayer : public AUPFCharacterBase, public
 
 public:
 	AUPFCharacterPlayer(const FObjectInitializer& ObjectInitializer);
-
-	virtual void BeginDestroy() override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -45,19 +44,14 @@ protected:
 
 // Input Section
 public:
-	// 클라이언트 빙의 후 SetupPlayerInputComponent 함수에서 서버에 캐릭터의 기본 어빌리티를 요청하는 함수
-	UFUNCTION(Server, Reliable)
-	void ServerRPCGiveCharacterAbilitySet();
-	
-	// 서버에서 어빌리티 세트 부여 시 호출되는 함수, 인풋을 바인딩하고 핸들을 GrantKey 를 키로 맵에 저장한다.
-	UFUNCTION(Client, Reliable)
-	void ClientRPCBindAbilitySetInput(const UUPFAbilitySet* AbilitySet, int32 GrantKey);
+	// 어빌리티 셋의 인풋을 바인드 하고, 바인드 고유 ID를 반환
+	FGuid BindAbilitySetInput(const UUPFAbilitySet* AbilitySet);
 
-	// 서버에서 어빌리티 세트 제거 시 호출되는 함수, GrantKey 에 대한 인풋 바인딩을 제거한다.
-	UFUNCTION(Client, Reliable)
-	void ClientRPCRemoveAbilitySetBind(int32 GrantKey);
+	// 바인드 시 반환했던 고유 ID 에 해당하는 인풋을 제거한다.
+	void RemoveAbilitySetBind(FGuid GrantGuid);
 	
-	TMap<int32, TArray<int32>> AbilityInputBindingHandles;
+	UPROPERTY()
+	TMultiMap<FGuid, int32> AbilityInputBindingHandles;
 	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
@@ -65,9 +59,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> MoveAction;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> JumpAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> CrouchAction;

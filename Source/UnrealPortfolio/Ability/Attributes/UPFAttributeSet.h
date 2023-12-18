@@ -27,5 +27,5 @@ public:
 	UUPFAttributeSet();
 
 	// AttributeSetInitter 로부터 어트리뷰트들이 초기화 된 후 호출되는 함수
-	virtual void OnInit() {}
+	virtual void OnBeginPlay() {}
 };

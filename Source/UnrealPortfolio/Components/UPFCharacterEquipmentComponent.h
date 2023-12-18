@@ -44,14 +44,16 @@ private:
 	
 	UPROPERTY()
 	TObjectPtr<const UUPFEquipmentItemData> EquipmentItemData;
-
-	// 각 플레이어가 관리
-	UPROPERTY(NotReplicated)
+	
+	UPROPERTY()
 	TObjectPtr<AUPFEquipmentInstance> EquipmentInstance;
 
-	// 부여된 어빌리티 및 이펙트 데이터
-	UPROPERTY(NotReplicated)
+	// 부여된 어빌리티 및 이펙트 데이터, 서버만 데이터가 채워져 있다.
+	UPROPERTY()
 	FUPFGrantedAbilitySetData GrantedData;
+
+	// 로컬 컨트롤러용 변수, 이 장비의 어빌리티 셋 인풋 바인드 ID 를 저장.
+	int32 InputBindID;
 
 public:
 	// 캐릭터가 장비를 보유 중이어도, 수납된 상태인 경우 등 어빌리티가 지급되지 않은 상태일 수도 있음.  그걸 확인하는 용도의 함수
@@ -87,15 +89,11 @@ public:
 	void UnEquipItem(FGameplayTag EquipmentType);
 	
 protected:
-	// 모두에게 이 캐릭터에게 장비 장착 명령
-	UFUNCTION(NetMulticast, Reliable)
-	void MulticastRPCEquipItem(const UUPFEquipmentItemData* Data);
-	void InternalMulticastEquipItem(const UUPFEquipmentItemData* Data);
+	// 캐릭터에게 장비 장착
+	void EquipItemInternal(const UUPFEquipmentItemData* Data);
 
-	// 모두에게 이 캐릭터의 장비 해제 명령
-	UFUNCTION(NetMulticast, Reliable)
-	void MulticastRPCUnEquipItem(FGameplayTag EquipmentType);
-	void InternalMulticastUnEquipItem(FGameplayTag EquipmentType);
+	// 캐릭터의 장비 해제
+	void UnEquipItemInternal(FGameplayTag EquipmentType);
 
 	// 현재 보유중인 EquipmentType 장비의 어빌리티 셋을 캐릭터에 부여한다.
 	UFUNCTION(Server, Reliable, WithValidation)

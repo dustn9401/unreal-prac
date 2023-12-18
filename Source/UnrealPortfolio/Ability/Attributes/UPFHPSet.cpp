@@ -12,13 +12,11 @@ UUPFHPSet::UUPFHPSet()
 	bIsOnHPZeroInvoked = false;
 }
 
-void UUPFHPSet::OnInit()
+void UUPFHPSet::OnBeginPlay()
 {
-	Super::OnInit();
+	Super::OnBeginPlay();
 
 	bIsOnHPZeroInvoked = false;
-	
-	InitCurrentHP(GetMaxHP());	// CurrentHP 값은 테이블에 없기 때문에, 여기서 MaxHP값으로 초기화
 }
 
 void UUPFHPSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -74,51 +72,13 @@ void UUPFHPSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& 
 	}
 }
 
-void UUPFHPSet::PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const
-{
-	Super::PreAttributeBaseChange(Attribute, NewValue);
-	
-	ClampAttribute(Attribute, NewValue);
-}
-
 void UUPFHPSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
 {
 	Super::PreAttributeChange(Attribute, NewValue);
-	
+
 	ClampAttribute(Attribute, NewValue);
 }
 
-void UUPFHPSet::PostAttributeBaseChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) const
-{
-	Super::PostAttributeBaseChange(Attribute, OldValue, NewValue);
-
-	// if (const AActor* OwningActor = GetOwningActor())
-	// {
-	// 	UPF_LOG_ATTRIBUTE(LogTemp, Log, TEXT("Called: %s, %s, %f -> %f (%f)"), *OwningActor->GetName(), *Attribute.AttributeName, OldValue, NewValue, GetCurrentHP());
-	// }
-}
-
-void UUPFHPSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
-{
-	Super::PostAttributeChange(Attribute, OldValue, NewValue);
-
-	// if (const AActor* OwningActor = GetOwningActor())
-	// {
-	// 	UPF_LOG_ATTRIBUTE(LogTemp, Log, TEXT("Called: %s, %s, %f -> %f (%f)"), *OwningActor->GetName(), *Attribute.AttributeName, OldValue, NewValue, GetCurrentHP());
-	// }
-
-	if (Attribute == GetMaxHPAttribute())
-	{
-		// 최대 체력 감소 시 현재 체력 조절하는 부분
-		if (GetCurrentHP() > NewValue)
-		{
-			if (UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent())
-			{
-				ASC->ApplyModToAttribute(GetCurrentHPAttribute(), EGameplayModOp::Override, NewValue);
-			}
-		}
-	}
-}
 
 void UUPFHPSet::ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const
 {

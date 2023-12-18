@@ -33,6 +33,12 @@ void FUPFGrantedAbilitySetData::AddGameplayEffectHandle(const FActiveGameplayEff
 	}
 }
 
+void FUPFGrantedAbilitySetData::AddAttributeSet(UAttributeSet* AttributeSet)
+{
+	if (!ensure(AttributeSet)) return;
+	AttributePtrs.Add(AttributeSet);
+}
+
 void FUPFGrantedAbilitySetData::TakeFromCharacter(AUPFCharacterBase* Character)
 {
 	check(Character);
@@ -41,11 +47,6 @@ void FUPFGrantedAbilitySetData::TakeFromCharacter(AUPFCharacterBase* Character)
 	{
 		UE_LOG(LogTemp, Error, TEXT("!Character->HasAuthority()"));
 		return;
-	}
-	
-	if (AUPFCharacterPlayer* CharacterPlayer = Cast<AUPFCharacterPlayer>(Character))
-	{
-		CharacterPlayer->ClientRPCRemoveAbilitySetBind(Index);
 	}
 
 	UAbilitySystemComponent* AbilityComp = Character->GetAbilitySystemComponent();
@@ -65,8 +66,14 @@ void FUPFGrantedAbilitySetData::TakeFromCharacter(AUPFCharacterBase* Character)
 		}
 	}
 
+	for(UAttributeSet* AttributeSet : AttributePtrs)
+	{
+		AbilityComp->RemoveSpawnedAttribute(AttributeSet);
+	}
+
 	AbilityHandles.Reset();
 	EffectHandles.Reset();
+	AttributePtrs.Reset();
 }
 
 void UUPFAbilitySet::GiveToCharacter(AUPFCharacterBase* Character, UObject* SrcObj, FUPFGrantedAbilitySetData* OutGrantData) const
@@ -76,11 +83,6 @@ void UUPFAbilitySet::GiveToCharacter(AUPFCharacterBase* Character, UObject* SrcO
 	for(const FUPFAbilityTriggerData& Data : Abilities)
 	{
 		FGameplayAbilitySpec AbilitySpec(Data.Ability, 1, INDEX_NONE, SrcObj);
-		if (Data.InputTag.IsValid())
-		{
-			AbilitySpec.DynamicAbilityTags.AddTag(Data.InputTag);
-		}
-		
 		FGameplayAbilitySpecHandle AbilityHandle = AbilityComp->GiveAbility(AbilitySpec);
 		
 		if (OutGrantData)
@@ -101,8 +103,14 @@ void UUPFAbilitySet::GiveToCharacter(AUPFCharacterBase* Character, UObject* SrcO
 		}
 	}
 
-	if (AUPFCharacterPlayer* CharacterPlayer = Cast<AUPFCharacterPlayer>(Character))
+	for (const TSubclassOf<UAttributeSet> AttributeSetClass : Attributes)
 	{
-		CharacterPlayer->ClientRPCBindAbilitySetInput(this, OutGrantData ? OutGrantData->Index : INDEX_NONE);
+		UAttributeSet* NewSet = NewObject<UAttributeSet>(Character, AttributeSetClass);
+		AbilityComp->AddAttributeSetSubobject(NewSet);
+
+		if (OutGrantData)
+		{
+			OutGrantData->AddAttributeSet(NewSet);
+		}
 	}
 }

@@ -73,10 +73,6 @@ protected:
 		{
 		}
 	};
-	
-	// 발사체가 있는지 여부
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	uint8 bHasProjectile : 1;
 
 protected:
 	static int32 FindFirstPawnHitResult(const TArray<FHitResult>& HitResults);

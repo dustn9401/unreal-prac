@@ -69,6 +69,10 @@ AUPFCharacterBase::AUPFCharacterBase(const FObjectInitializer& ObjectInitializer
 		DeadMontage = DeadMontageRef.Object;
 	}
 
+	// Character Stat, 이 포인터 변수들은 클라이언트에서 null이 된다.
+	HPSet = CreateDefaultSubobject<UUPFHPSet>(TEXT("HP"));
+	StatSet = CreateDefaultSubobject<UUPFStatSet>(TEXT("Stat"));
+
 	// Ability
 	AbilitySystemComponent = CreateDefaultSubobject<UUPFAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
@@ -100,41 +104,59 @@ AUPFCharacterBase::AUPFCharacterBase(const FObjectInitializer& ObjectInitializer
 	bIsAiming = false;
 }
 
-void AUPFCharacterBase::PreInitializeComponents()
-{
-	Super::PreInitializeComponents();
-
-	// Character Stat
-	HPSet = NewObject<UUPFHPSet>(this, TEXT("HP"));
-	StatSet = NewObject<UUPFStatSet>(this, TEXT("Stat"));
-}
-
 void AUPFCharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	UPF_LOG(LogTemp, Log, TEXT("Called, %s"), *GetName());
+	// 여기서 IsLocallyControlled 가 항상 false임에 주의
+	UPF_LOG(LogTemp, Log, TEXT("Called, %s, IsLocallyControlled = %d"), *GetName(), IsLocallyControlled());
 
-	// 스텟 초기화, 서버만 수행
 	if (HasAuthority())
 	{
-		IGameplayAbilitiesModule::Get().GetAbilitySystemGlobals()
-			->GetAttributeSetInitter()
-			->InitAttributeSetDefaults(AbilitySystemComponent, GetStatGroup(), 1, true);
-		HPSet->OnInit();
+		SetData_Server(CharacterData);	
 	}
-	
-	HPSet->OnHPZero.AddUObject(this, &AUPFCharacterBase::OnHPZero);
+}
+
+void AUPFCharacterBase::BeginPlay()
+{
+	Super::BeginPlay();
+
+	UPF_LOG(LogTemp, Log, TEXT("Called, %s"), *GetName());
 
 	// 위젯 초기화
-	HPBarWidgetComp->InitWidget(); // 여기선 아직 Widget이 생성 안된 상태라 수동으로 초기화
+	HPBarWidgetComp->InitWidget();
 	UUPFHPBarWidget* HPBarWidget = CastChecked<UUPFHPBarWidget>(HPBarWidgetComp->GetWidget());
 	HPBarWidget->SetData(HPSet);
+	
+	HPSet->OnHPZero.AddUObject(this, &AUPFCharacterBase::OnHPZero);
+	HPSet->OnBeginPlay();
 }
 
 bool AUPFCharacterBase::CanCrouch() const
 {
 	return Super::CanCrouch();
+}
+
+void AUPFCharacterBase::SetData_Server(UUPFCharacterData* InData)
+{
+	if (!ensure(HasAuthority())) return;
+	
+	check(InData);
+	check(InData->CharacterAbilitySet);
+
+	// 아래의 함수에서 어빌리티 및 스텟을 초기화 한다.
+	InData->CharacterAbilitySet->GiveToCharacter(this, this);
+
+	IGameplayAbilitiesModule::Get().GetAbilitySystemGlobals()
+		->GetAttributeSetInitter()
+		->InitAttributeSetDefaults(AbilitySystemComponent, GetStatGroup(), 1, true);
+	
+	// CurrentHP 값은 테이블에 없기 때문에, 여기서 MaxHP값으로 초기화
+	HPSet->InitCurrentHP(HPSet->GetMaxHP());
+}
+
+void AUPFCharacterBase::SetData_Local(UUPFCharacterData* InData)
+{
 }
 
 void AUPFCharacterBase::OnMeleeAttackAnimationHit()
@@ -155,6 +177,8 @@ UAbilitySystemComponent* AUPFCharacterBase::GetAbilitySystemComponent() const
 
 void AUPFCharacterBase::OnHPZero(AActor* EffectInstigator, AActor* EffectCauser, const FGameplayEffectSpec* EffectSpec, float EffectMagnitude, float OldValue, float NewValue)
 {
+	UPF_LOG(LogTemp, Log, TEXT("Called: %s"), *GetName());
+	
 	GetCharacterMovement()->SetMovementMode(MOVE_None);
 	SetActorEnableCollision(false);	// 시체가 걸리적거리지 않도록
 	HPBarWidgetComp->SetHiddenInGame(true);	// 사망 연출 중 hp bar는 숨긴다.

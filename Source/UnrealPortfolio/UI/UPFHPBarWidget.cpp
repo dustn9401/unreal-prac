@@ -7,6 +7,7 @@
 
 void UUPFHPBarWidget::SetData(const UUPFHPSet* StatSet)
 {
+	UE_LOG(LogTemp, Log, TEXT("SetData, CurHP = %f, MaxHP = %f"), StatSet->GetCurrentHP(), StatSet->GetMaxHP());
 	K2_UpdateHPBarInstant(StatSet->GetCurrentHP(), StatSet->GetMaxHP());
 	StatSet->OnTakeDamage.AddUObject(this, &UUPFHPBarWidget::OnTakeDamage);
 	StatSet->OnHealing.AddUObject(this, &UUPFHPBarWidget::OnHealing);

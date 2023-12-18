@@ -20,7 +20,7 @@ class UNREALPORTFOLIO_API UUPFHPSet : public UUPFAttributeSet
 public:
 	UUPFHPSet();
 
-	virtual void OnInit() override;
+	virtual void OnBeginPlay() override;
 
 	ATTRIBUTE_ACCESSORS(UUPFHPSet, CurrentHP);
 	ATTRIBUTE_ACCESSORS(UUPFHPSet, MaxHP);
@@ -49,11 +49,8 @@ protected:
 	
 	virtual bool PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
-
-	virtual void PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const override;
+	
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
-	virtual void PostAttributeBaseChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) const override;
-	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
 
 	void ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const;
 	

@@ -47,30 +47,12 @@ AUPFCharacterPlayer::AUPFCharacterPlayer(const FObjectInitializer& ObjectInitial
 	{
 		MoveAction = InputActionMoveRef.Object;
 	}
-	
-	static ConstructorHelpers::FObjectFinder<UInputAction> InputActionJumpRef(TEXT("/Script/EnhancedInput.InputAction'/Game/UnrealPortfolio/Input/Actions/IA_Jump.IA_Jump'"));
-	if (InputActionJumpRef.Object)
-	{
-		JumpAction = InputActionJumpRef.Object;
-	}
 
 	static ConstructorHelpers::FObjectFinder<UInputAction> InputActionCrouchRef(TEXT("/Script/EnhancedInput.InputAction'/Game/UnrealPortfolio/Input/Actions/IA_Crouch.IA_Crouch'"));
 	if (InputActionCrouchRef.Object)
 	{
 		CrouchAction = InputActionCrouchRef.Object;
 	}
-}
-
-void AUPFCharacterPlayer::BeginDestroy()
-{
-	for(auto& Pair : AbilityInputBindingHandles)
-	{
-		Pair.Value.Empty();
-	}
-
-	AbilityInputBindingHandles.Empty();
-	
-	Super::BeginDestroy();
 }
 
 void AUPFCharacterPlayer::BeginPlay()
@@ -83,6 +65,9 @@ void AUPFCharacterPlayer::BeginPlay()
 		ApplyCharacterControlData(CharacterControlData);
 	}
 
+	// 캐릭터 기본 어빌리티의 인풋 바인딩, 다시 제거할 일 없으므로 리턴값은 폐기한다.
+	FGuid Unused = BindAbilitySetInput(CharacterData->CharacterAbilitySet);
+
 	if (!InputEnabled())
 	{
 		EnableInput(CastChecked<APlayerController>(GetController()));
@@ -91,9 +76,6 @@ void AUPFCharacterPlayer::BeginPlay()
 
 void AUPFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-	// 로컬 컨트롤러 일때만 호출되는 함수
-	
-	UPF_LOG(LogTemp, Log, TEXT("Name=%s"), *GetName());
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
@@ -103,9 +85,6 @@ void AUPFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AUPFCharacterPlayer::Move);
 	EnhancedInputComponent->BindAction<ACharacter, bool>(CrouchAction, ETriggerEvent::Triggered, this, &ACharacter::Crouch, false);
 	EnhancedInputComponent->BindAction<ACharacter, bool>(CrouchAction, ETriggerEvent::Completed, this, &ACharacter::UnCrouch, false);
-
-	// Ability Inputs, 서버에 어빌리티 부여 요청을 보낸다.
-	ServerRPCGiveCharacterAbilitySet();
 }
 
 void AUPFCharacterPlayer::ApplyCharacterControlData(const UUPFCharacterControlData* Data)
@@ -141,26 +120,16 @@ void AUPFCharacterPlayer::ApplyCharacterControlData(const UUPFCharacterControlDa
 	Subsystem->AddMappingContext(Data->InputMappingContext, 0);
 }
 
-void AUPFCharacterPlayer::ServerRPCGiveCharacterAbilitySet_Implementation()
+FGuid AUPFCharacterPlayer::BindAbilitySetInput(const UUPFAbilitySet* AbilitySet)
 {
-	if (!ensure(HasAuthority())) return;
-	
-	check(CharacterData);
-	check(CharacterData->AbilityInputMappingData);
-
-	// 아래의 함수에서 ClientRPCBindAbilitySetInput 호출되어 클라이언트에 인풋 바인딩
-	CharacterData->AbilityInputMappingData->GiveToCharacter(this, this);
-}
-
-void AUPFCharacterPlayer::ClientRPCBindAbilitySetInput_Implementation(const UUPFAbilitySet* AbilitySet, int32 GrantKey)
-{
-	if (!ensure(IsLocallyControlled())) return;
+	if (!ensure(IsLocallyControlled())) return FGuid();
 	check(AbilitySet);
 
 	UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(InputComponent);
-	if (!ensure(EIC)) return;
+	if (!ensure(EIC)) return FGuid();
 
 	TArray<int32> BindingHandles;
+	const FGuid GrantKey = FGuid::NewGuid();
 	for(const FUPFAbilityTriggerData& TriggerData : AbilitySet->Abilities)
 	{
 		if (!IsValid(TriggerData.InputAction)) continue;
@@ -172,7 +141,7 @@ void AUPFCharacterPlayer::ClientRPCBindAbilitySetInput_Implementation(const UUPF
 			AbilitySystemComponent,
 			&UUPFAbilitySystemComponent::AbilityInputTagPressed,
 			TriggerData.InputTag);
-		BindingHandles.Add(PressedBinding.GetHandle());
+		AbilityInputBindingHandles.Add(GrantKey, PressedBinding.GetHandle());
 
 		FEnhancedInputActionEventBinding& HeldBinding = EIC->BindAction<UUPFAbilitySystemComponent, FGameplayTag>(
 			TriggerData.InputAction,
@@ -180,7 +149,7 @@ void AUPFCharacterPlayer::ClientRPCBindAbilitySetInput_Implementation(const UUPF
 			AbilitySystemComponent,
 			&UUPFAbilitySystemComponent::AbilityInputTagPressing,
 			TriggerData.InputTag);
-		BindingHandles.Add(HeldBinding.GetHandle());
+		AbilityInputBindingHandles.Add(GrantKey, HeldBinding.GetHandle());
 		
 		FEnhancedInputActionEventBinding& ReleasedBinding = EIC->BindAction<UUPFAbilitySystemComponent, FGameplayTag>(
 			TriggerData.InputAction,
@@ -188,30 +157,27 @@ void AUPFCharacterPlayer::ClientRPCBindAbilitySetInput_Implementation(const UUPF
 			AbilitySystemComponent,
 			&UUPFAbilitySystemComponent::AbilityInputTagReleased,
 			TriggerData.InputTag);
-		BindingHandles.Add(ReleasedBinding.GetHandle());
+		AbilityInputBindingHandles.Add(GrantKey, ReleasedBinding.GetHandle());
 	}
 
-	if (BindingHandles.Num() > 0)
-	{
-		AbilityInputBindingHandles.Emplace(GrantKey, BindingHandles);
-	}
+	return GrantKey;
 }
 
-void AUPFCharacterPlayer::ClientRPCRemoveAbilitySetBind_Implementation(int32 GrantKey)
+void AUPFCharacterPlayer::RemoveAbilitySetBind(FGuid GrantGuid)
 {
 	if (!ensure(IsLocallyControlled())) return;
 
-	TArray<int32>* HandlesPtr = AbilityInputBindingHandles.Find(GrantKey);
-	if (HandlesPtr == nullptr) return;
+	TArray<int32> TargetHandles;
+	AbilityInputBindingHandles.MultiFind(GrantGuid, TargetHandles);
 
 	UEnhancedInputComponent* EIC = CastChecked<UEnhancedInputComponent>(InputComponent);
 
-	for(const int32 Handle : *HandlesPtr)
+	for(const int32 Handle : TargetHandles)
 	{
 		EIC->RemoveBindingByHandle(Handle);
 	}
 
-	AbilityInputBindingHandles.Remove(GrantKey);
+	AbilityInputBindingHandles.Remove(GrantGuid);
 }
 
 void AUPFCharacterPlayer::Look(const FInputActionValue& Value)
