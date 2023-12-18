@@ -39,17 +39,11 @@ void FUPFGrantedAbilitySetData::AddAttributeSet(UAttributeSet* AttributeSet)
 	AttributePtrs.Add(AttributeSet);
 }
 
-void FUPFGrantedAbilitySetData::TakeFromCharacter(AUPFCharacterBase* Character)
+void FUPFGrantedAbilitySetData::TakeFromCharacter(const IAbilitySystemInterface* ASCInterface)
 {
-	check(Character);
-	
-	if (!Character->HasAuthority())
-	{
-		UE_LOG(LogTemp, Error, TEXT("!Character->HasAuthority()"));
-		return;
-	}
+	check(ASCInterface);
 
-	UAbilitySystemComponent* AbilityComp = Character->GetAbilitySystemComponent();
+	UAbilitySystemComponent* AbilityComp = ASCInterface->GetAbilitySystemComponent();
 	for(const FGameplayAbilitySpecHandle& Handle : AbilityHandles)
 	{
 		if (Handle.IsValid())
@@ -76,14 +70,21 @@ void FUPFGrantedAbilitySetData::TakeFromCharacter(AUPFCharacterBase* Character)
 	AttributePtrs.Reset();
 }
 
-void UUPFAbilitySet::GiveToCharacter(AUPFCharacterBase* Character, UObject* SrcObj, FUPFGrantedAbilitySetData* OutGrantData) const
+void UUPFAbilitySet::GiveToCharacter(const IAbilitySystemInterface* ASCInterface, UObject* SrcObj, FUPFGrantedAbilitySetData* OutGrantData) const
 {
-	UAbilitySystemComponent* AbilityComp = Character->GetAbilitySystemComponent();
+	UAbilitySystemComponent* ASC = ASCInterface->GetAbilitySystemComponent();
 	
 	for(const FUPFAbilityTriggerData& Data : Abilities)
 	{
 		FGameplayAbilitySpec AbilitySpec(Data.Ability, 1, INDEX_NONE, SrcObj);
-		FGameplayAbilitySpecHandle AbilityHandle = AbilityComp->GiveAbility(AbilitySpec);
+
+		// 인풋과 어빌리티의 연결을 위해 데이터를 추가하는 부분
+		if (Data.InputTag.IsValid())
+		{
+			AbilitySpec.DynamicAbilityTags.AddTag(Data.InputTag);
+		}
+		
+		FGameplayAbilitySpecHandle AbilityHandle = ASC->GiveAbility(AbilitySpec);
 		
 		if (OutGrantData)
 		{
@@ -94,8 +95,8 @@ void UUPFAbilitySet::GiveToCharacter(AUPFCharacterBase* Character, UObject* SrcO
 	for(const TSubclassOf<UGameplayEffect> EffectClass : Effects)
 	{
 		const UGameplayEffect* EffectInst = EffectClass->GetDefaultObject<UGameplayEffect>();
-		FGameplayEffectContextHandle EffectContextHandle = AbilityComp->MakeEffectContext();
-		const FActiveGameplayEffectHandle EffectHandle = AbilityComp->ApplyGameplayEffectToSelf(EffectInst, 1.0f, EffectContextHandle);
+		FGameplayEffectContextHandle EffectContextHandle = ASC->MakeEffectContext();
+		const FActiveGameplayEffectHandle EffectHandle = ASC->ApplyGameplayEffectToSelf(EffectInst, 1.0f, EffectContextHandle);
 
 		if (OutGrantData)
 		{
@@ -105,8 +106,8 @@ void UUPFAbilitySet::GiveToCharacter(AUPFCharacterBase* Character, UObject* SrcO
 
 	for (const TSubclassOf<UAttributeSet> AttributeSetClass : Attributes)
 	{
-		UAttributeSet* NewSet = NewObject<UAttributeSet>(Character, AttributeSetClass);
-		AbilityComp->AddAttributeSetSubobject(NewSet);
+		UAttributeSet* NewSet = NewObject<UAttributeSet>(ASC, AttributeSetClass);
+		ASC->AddAttributeSetSubobject(NewSet);
 
 		if (OutGrantData)
 		{

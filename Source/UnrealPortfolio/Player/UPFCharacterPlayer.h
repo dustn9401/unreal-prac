@@ -42,17 +42,18 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=CharacterControl)
 	TObjectPtr<class UUPFCharacterControlData> CharacterControlData;
 
-// Input Section
+// Ability Input
 public:
 	// 어빌리티 셋의 인풋을 바인드 하고, 바인드 고유 ID를 반환
 	FGuid BindAbilitySetInput(const UUPFAbilitySet* AbilitySet);
 
 	// 바인드 시 반환했던 고유 ID 에 해당하는 인풋을 제거한다.
 	void RemoveAbilitySetBind(FGuid GrantGuid);
-	
-	UPROPERTY()
+
+protected:
 	TMultiMap<FGuid, int32> AbilityInputBindingHandles;
-	
+
+// Native Input
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> LookAction;

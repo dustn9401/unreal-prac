@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystemInterface.h"
 #include "GameplayTagContainer.h"
 #include "Ability/UPFAbilitySet.h"
 #include "Components/ActorComponent.h"
@@ -53,7 +54,7 @@ private:
 	FUPFGrantedAbilitySetData GrantedData;
 
 	// 로컬 컨트롤러용 변수, 이 장비의 어빌리티 셋 인풋 바인드 ID 를 저장.
-	int32 InputBindID;
+	FGuid InputBindID;
 
 public:
 	// 캐릭터가 장비를 보유 중이어도, 수납된 상태인 경우 등 어빌리티가 지급되지 않은 상태일 수도 있음.  그걸 확인하는 용도의 함수
@@ -80,6 +81,10 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+protected:
+	AController* GetOwnerController() const;
+	bool HasAuthority() const;
+
 // 장비의 장착 / 해제
 public:
 	// 장비 장착 시킬때 호출하는 함수.
@@ -96,12 +101,10 @@ protected:
 	void UnEquipItemInternal(FGameplayTag EquipmentType);
 
 	// 현재 보유중인 EquipmentType 장비의 어빌리티 셋을 캐릭터에 부여한다.
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerRPCGiveEquipmentAbility(FGameplayTag EquipmentType);
+	void GiveEquipmentAbility(const IAbilitySystemInterface* ASCInterface, FGameplayTag EquipmentType);
 
 	// 현재 보유중인 EquipmentType 장비의 어빌리티 셋을 캐릭터에서 제거한다.
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerRPCTakeEquipmentAbility(FGameplayTag EquipmentType);
+	void TakeEquipmentAbility(const IAbilitySystemInterface* ASCInterface, FGameplayTag EquipmentType);
 
 // Holster
 public:

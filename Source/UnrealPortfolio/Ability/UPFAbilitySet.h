@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystemInterface.h"
 #include "ActiveGameplayEffectHandle.h"
 #include "AttributeSet.h"
 #include "EnhancedInputComponent.h"
@@ -14,8 +15,6 @@
 
 
 class UAttributeSet;
-class AUPFCharacterBase;
-class UUPFAbilitySystemComponent;
 class UGameplayEffect;
 struct FActiveGameplayEffectHandle;
 struct FGameplayAbilitySpecHandle;
@@ -67,7 +66,7 @@ public:
 	void AddGameplayEffectHandle(const FActiveGameplayEffectHandle& Handle);
 	void AddAttributeSet(UAttributeSet* AttributeSet);
 
-	void TakeFromCharacter(AUPFCharacterBase* Character);
+	void TakeFromCharacter(const IAbilitySystemInterface* ASCInterface);
 
 	bool IsEmpty() const
 	{
@@ -107,6 +106,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TArray<TSubclassOf<UAttributeSet>> Attributes;
 
-	// 캐릭터에 Ability Set 을 부여한다. 추후 제거를 원할 경우, OutGrantData 를 저장해 놨다가 사용할것
-	void GiveToCharacter(AUPFCharacterBase* Character, UObject* SrcObj, FUPFGrantedAbilitySetData* OutGrantData = nullptr) const;
+	/*
+	 * ASC에 Ability Set 을 부여한다.
+	 * 추후 제거를 원할 경우, OutGrantData 를 저장해 놨다가 사용할것
+	 * 어빌리티의 인풋은 여기서 바인딩 하지 않음
+	 */
+	void GiveToCharacter(const IAbilitySystemInterface* ASCInterface, UObject* SrcObj, FUPFGrantedAbilitySetData* OutGrantData = nullptr) const;
 };

@@ -5,13 +5,12 @@
 
 #include "AbilitySystemComponent.h"
 #include "UnrealPortfolio.h"
-#include "UPFAbilitySystemComponent.h"
 #include "UPFGameplayTags.h"
 #include "Character/UPFCharacterBase.h"
 #include "Item/UPFEquipmentItemData.h"
 #include "Item/ItemInstance/Equipments/UPFEquipmentInstance.h"
-#include "Net/UnrealNetwork.h"
 #include "Player/UPFCharacterPlayer.h"
+#include "Utility/UPFActorUtility.h"
 
 // Sets default values for this component's properties
 UUPFCharacterEquipmentComponent::UUPFCharacterEquipmentComponent()
@@ -50,19 +49,42 @@ void UUPFCharacterEquipmentComponent::GetLifetimeReplicatedProps(TArray<FLifetim
 	// DOREPLIFETIME(UUPFCharacterEquipmentComponent, CurrentWeaponType);
 }
 
+AController* UUPFCharacterEquipmentComponent::GetOwnerController() const
+{
+	AActor* TestActor = GetOwner();
+	while (TestActor)
+	{
+		if (AController* C = Cast<AController>(TestActor))
+		{
+			return C;
+		}
+
+		if (const APawn* Pawn = Cast<APawn>(TestActor))
+		{
+			return Pawn->GetController();
+		}
+
+		TestActor = TestActor->GetOwner();
+	}
+
+	return nullptr;
+}
+
+bool UUPFCharacterEquipmentComponent::HasAuthority() const
+{
+	const AActor* OwnerActor = GetOwner();
+	return OwnerActor && OwnerActor->HasAuthority();
+}
+
 void UUPFCharacterEquipmentComponent::EquipItem(const UUPFEquipmentItemData* Data)
 {
 	// 각 플레이어에는 장비 스폰 및 이 캐릭터에 장착시키고, AppliedEquipmentEntry 를 맵에 추가
 	EquipItemInternal(Data);
 
 	// 서버는 추가된 AppliedEquipmentEntry 를 사용해서 어빌리티를 지급한다.
-	ServerRPCGiveEquipmentAbility(Data->EquipmentType);
-
-	// 로컬 컨트롤러는 어빌리티의 인풋을 바인딩한다.
-	// todo: ASC로 이 코드 옮기기
-	if (AUPFCharacterPlayer* OwnerPawn = Cast<AUPFCharacterPlayer>(GetOwner()); OwnerPawn->IsLocallyControlled())
+	if (const IAbilitySystemInterface* ASCInterface = Cast<IAbilitySystemInterface>(GetOwner()))
 	{
-		OwnerPawn->BindAbilitySetInput(Data->AbilitiesToGrant);
+		GiveEquipmentAbility(ASCInterface, Data->EquipmentType);
 	}
 }
 
@@ -116,7 +138,10 @@ void UUPFCharacterEquipmentComponent::EquipItemInternal(const UUPFEquipmentItemD
 void UUPFCharacterEquipmentComponent::UnEquipItem(FGameplayTag EquipmentType)
 {
 	// 어빌리티부터 제거
-	ServerRPCTakeEquipmentAbility(EquipmentType);
+	if (const IAbilitySystemInterface* ASCInterface = Cast<IAbilitySystemInterface>(GetOwner()))
+	{
+		TakeEquipmentAbility(ASCInterface, EquipmentType);
+	}
 
 	// 그다음 이 캐릭터의 장비 제거
 	UnEquipItemInternal(EquipmentType);
@@ -143,35 +168,46 @@ void UUPFCharacterEquipmentComponent::UnEquipItemInternal(FGameplayTag Equipment
 	}
 }
 
-void UUPFCharacterEquipmentComponent::ServerRPCGiveEquipmentAbility_Implementation(FGameplayTag EquipmentType)
+void UUPFCharacterEquipmentComponent::GiveEquipmentAbility(const IAbilitySystemInterface* ASCInterface, FGameplayTag EquipmentType)
 {
 	FUPFAppliedEquipmentEntry* EntryPtr = Equipments.Find(EquipmentType);
 	if (!ensure(EntryPtr)) return;
-	if (!ensure(!EntryPtr->IsAbilityGranted())) return; // 이미 어빌리티가 지급된 상태임
+	if (!ensure(EntryPtr->EquipmentItemData)) return;
 	if (!EntryPtr->EquipmentItemData->AbilitiesToGrant) return;
 	
-	AUPFCharacterBase* OwnerCharacter = CastChecked<AUPFCharacterBase>(GetOwner());
-	EntryPtr->EquipmentItemData->AbilitiesToGrant->GiveToCharacter(OwnerCharacter, EntryPtr->EquipmentInstance, &EntryPtr->GrantedData);
+	// 서버: 어빌리티 지급
+	if (HasAuthority())
+	{
+		check(!EntryPtr->IsAbilityGranted());	// 어빌리티가 이미 지급된 상태면 중복 호출임
+		EntryPtr->EquipmentItemData->AbilitiesToGrant->GiveToCharacter(ASCInterface, EntryPtr->EquipmentInstance, &EntryPtr->GrantedData);
+	}
+
+	// 로컬컨트롤러는 인풋 바인딩
+	if (AUPFCharacterPlayer* PlayerCharacter = UPFActorUtility::GetTypedOwnerRecursive<AUPFCharacterPlayer>(GetOwner());
+		PlayerCharacter->IsLocallyControlled())
+	{
+		EntryPtr->InputBindID = PlayerCharacter->BindAbilitySetInput(EntryPtr->EquipmentItemData->AbilitiesToGrant);
+	}
 }
 
-bool UUPFCharacterEquipmentComponent::ServerRPCGiveEquipmentAbility_Validate(FGameplayTag EquipmentType)
-{
-	return true;
-}
-
-void UUPFCharacterEquipmentComponent::ServerRPCTakeEquipmentAbility_Implementation(FGameplayTag EquipmentType)
+void UUPFCharacterEquipmentComponent::TakeEquipmentAbility(const IAbilitySystemInterface* ASCInterface, FGameplayTag EquipmentType)
 {
 	FUPFAppliedEquipmentEntry* EntryPtr = Equipments.Find(EquipmentType);
 	if (!ensure(EntryPtr)) return;
-	if (!EntryPtr->IsAbilityGranted()) return;
 
-	AUPFCharacterBase* OwnerCharacter = CastChecked<AUPFCharacterBase>(GetOwner());
-	EntryPtr->GrantedData.TakeFromCharacter(OwnerCharacter);
-}
+	// 서버: 어빌리티 제거
+	if (HasAuthority())
+	{
+		if (!EntryPtr->IsAbilityGranted()) return;
+		EntryPtr->GrantedData.TakeFromCharacter(ASCInterface);
+	}
 
-bool UUPFCharacterEquipmentComponent::ServerRPCTakeEquipmentAbility_Validate(FGameplayTag EquipmentType)
-{
-	return true;
+	// 로컬컨트롤러는 인풋 바인딩 제거
+	if (AUPFCharacterPlayer* PlayerCharacter = UPFActorUtility::GetTypedOwnerRecursive<AUPFCharacterPlayer>(GetOwner());
+		PlayerCharacter->IsLocallyControlled())
+	{
+		PlayerCharacter->RemoveAbilitySetBind(EntryPtr->InputBindID);
+	}
 }
 
 bool UUPFCharacterEquipmentComponent::CanToggleHolster()
@@ -182,10 +218,11 @@ bool UUPFCharacterEquipmentComponent::CanToggleHolster()
 		return false;
 	}
 
-	FUPFAppliedEquipmentEntry* EntryPtr = Equipments.Find(CurrentWeaponType);
+	const FUPFAppliedEquipmentEntry* EntryPtr = Equipments.Find(CurrentWeaponType);
 	if (!ensure(EntryPtr))
 	{
-		return false;	// 여기로 오면 안됨
+		// 여기로 오면 안됨
+		return false;
 	}
 	
 	return true;
@@ -215,9 +252,9 @@ void UUPFCharacterEquipmentComponent::ToggleHolsterWeapon()
 		EquipmentInstance->OnDetachedFromHand(OwnerCharacter);
 
 		// 수납 중 어빌리티를 제거한다.
-		if (GetOwner()->HasAuthority())
+		if (const IAbilitySystemInterface* ASCInterface = UPFActorUtility::GetTypedOwnerRecursive<IAbilitySystemInterface>(GetOwner()))
 		{
-			ServerRPCTakeEquipmentAbility(CurrentWeaponType);
+			TakeEquipmentAbility(ASCInterface, CurrentWeaponType);
 		}
 	}
 	else
@@ -225,9 +262,9 @@ void UUPFCharacterEquipmentComponent::ToggleHolsterWeapon()
 		EquipmentInstance->OnAttachedToHand(OwnerCharacter);
 
 		// 어빌리티를 다시 지급힌다.
-		if (GetOwner()->HasAuthority())
+		if (const IAbilitySystemInterface* ASCInterface = UPFActorUtility::GetTypedOwnerRecursive<IAbilitySystemInterface>(GetOwner()))
 		{
-			ServerRPCGiveEquipmentAbility(CurrentWeaponType);
+			GiveEquipmentAbility(ASCInterface, CurrentWeaponType);
 		}
 	}
 }
