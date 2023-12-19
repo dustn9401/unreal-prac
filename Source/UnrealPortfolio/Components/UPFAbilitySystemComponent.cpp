@@ -12,6 +12,8 @@ UUPFAbilitySystemComponent::UUPFAbilitySystemComponent()
 
 void UUPFAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag InputTag)
 {
+	// AbilityLocalInputPressed 함수 내용에서 태그로 어빌리티를 찾도록 수정한 함수
+ 
 	ABILITYLIST_SCOPE_LOCK();
 	for (FGameplayAbilitySpec& Spec : ActivatableAbilities.Items)
 	{
@@ -28,13 +30,11 @@ void UUPFAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag Input
 					}
 
 					AbilitySpecInputPressed(Spec);
-
-					// Invoke the InputPressed event. This is not replicated here. If someone is listening, they may replicate the InputPressed event to the server.
+					
 					InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, Spec.Handle, Spec.ActivationInfo.GetActivationPredictionKey());					
 				}
 				else
 				{
-					// Ability is not active, so try to activate it
 					TryActivateAbility(Spec.Handle);
 				}
 			}

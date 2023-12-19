@@ -5,6 +5,7 @@
 
 #include "UPFGameplayTags.h"
 #include "Character/UPFCharacterBase.h"
+#include "Constants/UPFSocketNames.h"
 
 void AUPFRangedWeaponInstance::SetData(const UUPFItemData* InData)
 {
@@ -13,20 +14,68 @@ void AUPFRangedWeaponInstance::SetData(const UUPFItemData* InData)
 	// TODO: cache FireDelay
 }
 
-void AUPFRangedWeaponInstance::OnAttachedToHand(ACharacter* EquippedCharacter)
+void AUPFRangedWeaponInstance::PostEquipped(USkeletalMeshComponent* AttachedMesh, const FName& AttachSocket)
 {
-	Super::OnAttachedToHand(EquippedCharacter);
-	
-	if (!ensure(EquippedCharacter)) return;
-	EquippedCharacter->GetMesh()->LinkAnimClassLayers(AnimLayer);
+	Super::PostEquipped(AttachedMesh, AttachSocket);
+
+	OwnerMesh = AttachedMesh;
+	AttachedSocketNameCache = AttachSocket;
+
+	if (AttachSocket == UPFSocketNames::hand_rSocket)
+	{
+		LinkAnimLayer();
+	}
 }
 
-void AUPFRangedWeaponInstance::OnDetachedFromHand(ACharacter* UnEquippedCharacter)
+void AUPFRangedWeaponInstance::PreUnEquipped()
 {
-	Super::OnDetachedFromHand(UnEquippedCharacter);
+	Super::PreUnEquipped();
+
+	if (IsAnimLayerLinked)
+	{
+		UnLinkAnimLayer();
+	}
+
+	AttachedSocketNameCache = FName(NAME_None);
+}
+
+void AUPFRangedWeaponInstance::OnSocketChanged(const FName& NewSocketName)
+{
+	Super::OnSocketChanged(NewSocketName);
+
+	UPF_LOG(LogTemp, Log, TEXT("Cache=%s, AR=%s"), *AttachedSocketNameCache.ToString(), *NewSocketName.ToString());
+	if (AttachedSocketNameCache == NewSocketName) return;
+
+	// hand -> none or back
+	if (AttachedSocketNameCache == UPFSocketNames::hand_rSocket)
+	{
+		UnLinkAnimLayer();
+	}
+	// none or back -> hand
+	else if (NewSocketName == UPFSocketNames::hand_rSocket)
+	{
+		LinkAnimLayer();
+	}
+
+	AttachedSocketNameCache = NewSocketName;
+}
+
+void AUPFRangedWeaponInstance::LinkAnimLayer()
+{
+	if (!ensure(OwnerMesh)) return;
+	if (!ensure(!IsAnimLayerLinked)) return;
+	IsAnimLayerLinked = true;
 	
-	if (!ensure(UnEquippedCharacter)) return;
-	UnEquippedCharacter->GetMesh()->UnlinkAnimClassLayers(AnimLayer);
+	OwnerMesh->LinkAnimClassLayers(AnimLayer);
+}
+
+void AUPFRangedWeaponInstance::UnLinkAnimLayer()
+{
+	if (!ensure(OwnerMesh)) return;
+	if (!ensure(IsAnimLayerLinked)) return;
+	IsAnimLayerLinked = false;
+
+	OwnerMesh->UnlinkAnimClassLayers(AnimLayer);
 }
 
 void AUPFRangedWeaponInstance::AddSpread()

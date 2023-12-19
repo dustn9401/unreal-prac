@@ -29,10 +29,6 @@ public:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UUPFAbilitySet> AbilitiesToGrant;
 
-	// 이 장비의 스텟 Set 그룹 이름
-	UPROPERTY(EditAnywhere)
-	FName AttributeSetGroupName;
-
 	// 이 장비의 타입
 	UPROPERTY(EditAnywhere)
 	FGameplayTag EquipmentType;

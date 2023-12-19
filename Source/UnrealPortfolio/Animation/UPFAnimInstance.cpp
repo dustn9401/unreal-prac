@@ -7,6 +7,7 @@
 #include "Components/UPFCharacterEquipmentComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Net/UnrealNetwork.h"
 
 UUPFAnimInstance::UUPFAnimInstance(): GroundSpeed(0), bIsMoving(0), MovingThreshold(3.0f), bIsFalling(0), bIsJumping(0), JumpingThreshold(100.0f), bIsCrouching(0), bIsHolstered(0),
                                       AimOffsetYaw(0),
@@ -46,7 +47,7 @@ void UUPFAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bIsHolstered = EquipmentComponent->GetIsHolstered();
 	}
 
-	if (Owner)
+	if (Owner && Owner->IsLocallyControlled())
 	{
 		// 캐릭터가 허리를 얼마나 꺾어야 하는지 계산
 		const FRotator& AimRot = Owner->GetBaseAimRotation();
@@ -56,8 +57,15 @@ void UUPFAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		const FRotator& ActorRot = Owner->GetActorRotation();
 		AimOffsetYaw = FRotator::NormalizeAxis(ActorRot.Yaw - AimRot.Yaw);
 		
-		// todo: FMath::FInterpTo() 사용하여 보간시키기
-		
 		bIsAiming = Owner->bIsAiming;
 	}
+}
+
+void UUPFAnimInstance::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UUPFAnimInstance, AimOffsetPitch);
+	DOREPLIFETIME(UUPFAnimInstance, AimOffsetYaw);
+	DOREPLIFETIME(UUPFAnimInstance, bIsAiming);
 }

@@ -57,15 +57,12 @@ AUPFCharacterPlayer::AUPFCharacterPlayer(const FObjectInitializer& ObjectInitial
 
 void AUPFCharacterPlayer::BeginPlay()
 {
-	UPF_LOG(LogTemp, Log, TEXT("Name=%s"), *GetName());
 	Super::BeginPlay();
 
 	if (IsLocallyControlled())
 	{
+		UPF_LOG(LogTemp, Log, TEXT("Set Character Input, Name: %s"), *GetName());
 		ApplyCharacterControlData(CharacterControlData);
-		
-		// 캐릭터 기본 어빌리티의 인풋 바인딩, 다시 제거할 일 없으므로 리턴값은 폐기한다.
-		FGuid Unused = BindAbilitySetInput(CharacterData->CharacterAbilitySet);
 		
 		if (!InputEnabled())
 		{
@@ -85,6 +82,9 @@ void AUPFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AUPFCharacterPlayer::Move);
 	EnhancedInputComponent->BindAction<ACharacter, bool>(CrouchAction, ETriggerEvent::Triggered, this, &ACharacter::Crouch, false);
 	EnhancedInputComponent->BindAction<ACharacter, bool>(CrouchAction, ETriggerEvent::Completed, this, &ACharacter::UnCrouch, false);
+
+	// 캐릭터 기본 어빌리티의 인풋 바인딩, 다시 제거할 일 없으므로 리턴값은 폐기한다.
+	FGuid Unused = BindAbilitySetInput(CharacterData->CharacterAbilitySet);
 }
 
 void AUPFCharacterPlayer::ApplyCharacterControlData(const UUPFCharacterControlData* Data)

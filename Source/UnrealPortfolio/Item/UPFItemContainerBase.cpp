@@ -61,6 +61,11 @@ void AUPFItemContainerBase::OnOverlapBegin(UPrimitiveComponent* OverlappedCompon
                                            const FHitResult& SweepHitResult)
 {
 	SetActorEnableCollision(false);
+
+	if (!HasAuthority())
+	{
+		return;
+	}
 	
 	if (ItemData == nullptr)
 	{

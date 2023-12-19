@@ -8,6 +8,7 @@
 #include "Attributes/UPFStatSet.h"
 #include "Character/UPFCharacterBase.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/UPFCharacterEquipmentComponent.h"
 #include "DataAssets/ComboAttackData.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/GameStateBase.h"
@@ -31,6 +32,12 @@ bool UUPFGameplayAbility_MeleeAttack::CanActivateAbility(const FGameplayAbilityS
 	const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
 {
 	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags)) return false;
+
+	AUPFCharacterBase* UPFCharacter = Cast<AUPFCharacterBase>(ActorInfo->OwnerActor);
+	if (!UPFCharacter) return false;
+
+	// 원거리 무기를 들고 있으면, 발동 불가
+	if (!UPFCharacter->EquipmentComponent->GetIsHolstered()) return false;
 
 	return true;
 }
