@@ -60,17 +60,17 @@ void AUPFCharacterPlayer::BeginPlay()
 	UPF_LOG(LogTemp, Log, TEXT("Name=%s"), *GetName());
 	Super::BeginPlay();
 
-	if (CharacterControlData)
+	if (IsLocallyControlled())
 	{
 		ApplyCharacterControlData(CharacterControlData);
-	}
-
-	// 캐릭터 기본 어빌리티의 인풋 바인딩, 다시 제거할 일 없으므로 리턴값은 폐기한다.
-	FGuid Unused = BindAbilitySetInput(CharacterData->CharacterAbilitySet);
-
-	if (!InputEnabled())
-	{
-		EnableInput(CastChecked<APlayerController>(GetController()));
+		
+		// 캐릭터 기본 어빌리티의 인풋 바인딩, 다시 제거할 일 없으므로 리턴값은 폐기한다.
+		FGuid Unused = BindAbilitySetInput(CharacterData->CharacterAbilitySet);
+		
+		if (!InputEnabled())
+		{
+			EnableInput(CastChecked<APlayerController>(GetController()));
+		}
 	}
 }
 
@@ -90,6 +90,7 @@ void AUPFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 void AUPFCharacterPlayer::ApplyCharacterControlData(const UUPFCharacterControlData* Data)
 {
 	if (!IsLocallyControlled()) return;
+	if (!ensure(Data)) return;
 	
 	// Pawn
 	bUseControllerRotationYaw = Data->bUseControllerRotationYaw;
@@ -127,8 +128,7 @@ FGuid AUPFCharacterPlayer::BindAbilitySetInput(const UUPFAbilitySet* AbilitySet)
 
 	UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(InputComponent);
 	if (!ensure(EIC)) return FGuid();
-
-	TArray<int32> BindingHandles;
+	
 	const FGuid GrantKey = FGuid::NewGuid();
 	for(const FUPFAbilityTriggerData& TriggerData : AbilitySet->Abilities)
 	{
