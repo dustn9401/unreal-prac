@@ -16,8 +16,10 @@
 #include "Ability/Attributes/UPFStatSet.h"
 #include "Components/TimelineComponent.h"
 #include "Components/UPFCharacterEquipmentComponent.h"
+#include "Constants/UPFSocketNames.h"
 #include "Item/UPFEquipmentItemData.h"
 #include "Item/ItemInstance/Equipments/UPFEquipmentInstance.h"
+#include "Net/UnrealNetwork.h"
 #include "Physics/UPFCollision.h"
 #include "Player/UPFPlayerState.h"
 #include "UI/UPFHPBarWidget.h"
@@ -102,6 +104,8 @@ AUPFCharacterBase::AUPFCharacterBase(const FObjectInitializer& ObjectInitializer
 	EquipmentComponent->SetIsReplicated(true);
 
 	bIsAiming = false;
+
+	bReplicateUsingRegisteredSubObjectList = true;
 }
 
 void AUPFCharacterBase::PostInitializeComponents()
@@ -199,10 +203,59 @@ void AUPFCharacterBase::OnAimingStart()
 {
 	bIsAiming = true;
 	K2_OnAimingStart();
+
+	// ModifyReplicationTestProps(true);
 }
 
 void AUPFCharacterBase::OnAimingEnd()
 {
 	bIsAiming = false;
 	K2_OnAimingEnd();
+
+	// ModifyReplicationTestProps(false);
+}
+
+void AUPFCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AUPFCharacterBase, ReplicatedSubObject);
+	DOREPLIFETIME(AUPFCharacterBase, TestStruct);
+}
+
+void AUPFCharacterBase::ModifyReplicationTestProps(bool IsStart)
+{
+	if (!HasAuthority()) return;
+	
+	if (IsStart)
+	{
+		// 액터는 기본 리플리케이션 안되고 ReplicatedSubObject 추가도 안됨 
+		// if (ReplicateTestSpawnActor)
+		// {
+		// 	ReplicatedSubObject = GetWorld()->SpawnActor<AActor>(ReplicateTestSpawnActor);
+		// 	ReplicatedSubObject->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, UPFSocketNames::hand_rSocket);
+		// 	AddReplicatedSubObject(ReplicatedSubObject);
+		// }
+
+		TestStruct.Integer = 123;
+		TestStruct.Integers.Add(1);
+		TestStruct.Integers.Add(2);
+		TestStruct.Integers.Add(3);
+	}
+	else
+	{
+		TestStruct.Integer = 0;
+		TestStruct.Integers.Empty();
+
+		// if (ReplicatedSubObject)
+		// {
+		// 	RemoveReplicatedSubObject(ReplicatedSubObject);
+		// 	ReplicatedSubObject->Destroy();
+		// }
+	}
+}
+
+void AUPFCharacterBase::OnRep_TestStruct()
+{
+	UPF_LOG(LogTemp, Log, TEXT("Int: %d, Array Num: %d"), TestStruct.Integer, TestStruct.Integers.Num());
 }

@@ -60,12 +60,7 @@ void AUPFItemContainerBase::SetData(UUPFItemData* InItemData)
 void AUPFItemContainerBase::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
                                            const FHitResult& SweepHitResult)
 {
-	SetActorEnableCollision(false);
-
-	if (!HasAuthority())
-	{
-		return;
-	}
+	// SetActorEnableCollision(false);
 	
 	if (ItemData == nullptr)
 	{

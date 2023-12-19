@@ -15,8 +15,6 @@
 class UUPFCharacterEquipmentComponent;
 class AUPFEquipmentInstance;
 class UUPFEquipmentItemData;
-struct FUPFAppliedEquipmentEntry;
-struct FUPFAppliedEquipmentList;
 
 /*
  * 캐릭터가 착용충인 하나의 장비 아이템에 대한 데이터
@@ -30,7 +28,6 @@ struct FUPFAppliedEquipmentEntry : public FFastArraySerializerItem
 
 private:
 	friend UUPFCharacterEquipmentComponent;
-	friend FUPFAppliedEquipmentList;
 	
 	UPROPERTY()
 	TObjectPtr<const UUPFEquipmentItemData> EquipmentItemData;
@@ -39,11 +36,8 @@ private:
 	TObjectPtr<AUPFEquipmentInstance> EquipmentInstance;
 
 	// 부여된 어빌리티 및 이펙트 데이터, 서버만 데이터가 채워져 있다.
-	UPROPERTY(NotReplicated)
+	UPROPERTY()
 	FUPFGrantedAbilitySetData GrantedData;
-
-	// 로컬 컨트롤러용 변수, 이 장비의 어빌리티 셋 인풋 바인드 ID 를 저장.
-	FGuid InputBindID;
 
 public:
 	// 캐릭터가 장비를 보유 중이어도, 수납된 상태인 경우 등 어빌리티가 지급되지 않은 상태일 수도 있음.  그걸 확인하는 용도의 함수
@@ -51,45 +45,6 @@ public:
 	{
 		return !GrantedData.IsEmpty();
 	}
-};
-
-USTRUCT()
-struct FUPFAppliedEquipmentList : public FFastArraySerializer
-{
-	GENERATED_BODY()
-
-	FUPFAppliedEquipmentList() {}
-
-	
-// FFastArraySerializer contract
-public:
-	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParams)
-	{
-		return FFastArraySerializer::FastArrayDeltaSerialize<FUPFAppliedEquipmentEntry, FUPFAppliedEquipmentList>(Items, DeltaParams, *this);	
-	}
-
-private:
-	friend UUPFCharacterEquipmentComponent;
-	
-	UPROPERTY()
-	TArray<FUPFAppliedEquipmentEntry> Items;
-
-	UPROPERTY(NotReplicated)
-	TObjectPtr<UUPFCharacterEquipmentComponent> OwnerComp;
-
-	void SetOwnerComp(UUPFCharacterEquipmentComponent* InOwnerComp)
-	{
-		OwnerComp = InOwnerComp;
-	}
-};
-
-template<>
-struct TStructOpsTypeTraits< FUPFAppliedEquipmentList > : public TStructOpsTypeTraitsBase2< FUPFAppliedEquipmentList >
-{
-	enum 
-	{
-		WithNetDeltaSerializer = true,
-   };
 };
 
 /*
@@ -107,8 +62,6 @@ public:
 
 	virtual void InitializeComponent() override;
 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
 protected:
 	AController* GetOwnerController() const;
 	bool HasAuthority() const;
@@ -123,16 +76,19 @@ public:
 	
 protected:
 	// 캐릭터에게 장비 스폰 및 장착
-	AUPFEquipmentInstance* EquipItemInternal(const UUPFEquipmentItemData* Data);
+	void EquipItemInternal(const UUPFEquipmentItemData* Data);
 
 	// 캐릭터의 장비 해제 및 파괴
 	void UnEquipItemInternal(FGameplayTag EquipmentType);
 
 	// 현재 보유중인 EquipmentType 장비의 어빌리티 셋을 캐릭터에 부여한다.
-	void GiveEquipmentAbility(const IAbilitySystemInterface* ASCInterface, FGameplayTag EquipmentType);
+	void GiveEquipmentAbility(const IAbilitySystemInterface* ASCInterface, const UUPFAbilitySet* AbilitySet, FGameplayTag EquipmentType);
 
 	// 현재 보유중인 EquipmentType 장비의 어빌리티 셋을 캐릭터에서 제거한다.
 	void TakeEquipmentAbility(const IAbilitySystemInterface* ASCInterface, FGameplayTag EquipmentType);
+
+	// 로컬 컨트롤로만 사용하는 변수, 장비로 인해 바인딩 된 인풋 ID 저장용
+	TMap<FGameplayTag, FGuid> InputBindIDs;
 
 // Holster
 public:
@@ -148,8 +104,8 @@ protected:
 	TObjectPtr<USkeletalMeshComponent> CharacterMeshComponent;
 	
 	// 현재 착용중인 장비 목록
-	UPROPERTY(Replicated)
-	FUPFAppliedEquipmentList AppliedEquipments;
+	UPROPERTY()
+	TArray<FUPFAppliedEquipmentEntry> AppliedEquipments;
 
 	// 현재 선택된 무기 타입 (근접무기/라이플/권총 등)
 	FGameplayTag CurrentWeaponType;

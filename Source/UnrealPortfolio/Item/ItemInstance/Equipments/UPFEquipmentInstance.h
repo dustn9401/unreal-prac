@@ -31,4 +31,7 @@ public:
 
 	// 장착된 소켓이 변할 경우 호출
 	virtual void OnSocketChanged(const FName& NewSocketName);
+
+	// 이 장비 인스턴스가 현재 누군가에게 착용되어 있는 상태인지 여부
+	uint8 bIsEquipped : 1;
 };

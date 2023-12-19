@@ -21,6 +21,23 @@ class UTimelineComponent;
 class UUPFCharacterEquipmentComponent;
 class UUPFEquipmentItemData;
 
+USTRUCT()
+struct FReplicateTestStruct
+{
+	GENERATED_BODY()
+
+public:
+	FReplicateTestStruct(): Integer(0)
+	{
+	}
+
+	UPROPERTY()
+	int32 Integer;
+
+	UPROPERTY()
+	TArray<int32> Integers;
+};
+
 UCLASS(Abstract)
 class UNREALPORTFOLIO_API AUPFCharacterBase : public ACharacter,
 public IMeleeAttackAnimationInterface,
@@ -133,4 +150,23 @@ public:
 	
 	UPROPERTY(Transient, BlueprintReadOnly)
 	uint8 bIsAiming : 1;
+
+// test
+public:
+	UPROPERTY(Replicated)
+	TObjectPtr<AActor> ReplicatedSubObject;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AActor> ReplicateTestSpawnActor;
+
+
+	UPROPERTY(ReplicatedUsing=OnRep_TestStruct)
+	FReplicateTestStruct TestStruct;
+	
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	void ModifyReplicationTestProps(bool IsStart);
+
+	UFUNCTION()
+	void OnRep_TestStruct();
 };

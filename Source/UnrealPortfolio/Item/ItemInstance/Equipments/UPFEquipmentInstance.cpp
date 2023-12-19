@@ -28,13 +28,14 @@ void AUPFEquipmentInstance::SetData(const UUPFItemData* InData)
 
 void AUPFEquipmentInstance::PostEquipped(USkeletalMeshComponent* AttachedMesh, const FName& AttachSocket)
 {
+	bIsEquipped = true;
 }
 
 void AUPFEquipmentInstance::PreUnEquipped()
 {
+	bIsEquipped = false;
 }
 
 void AUPFEquipmentInstance::OnSocketChanged(const FName& NewSocketName)
 {
 }
-

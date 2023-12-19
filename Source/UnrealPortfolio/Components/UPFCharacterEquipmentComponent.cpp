@@ -4,13 +4,10 @@
 #include "UPFCharacterEquipmentComponent.h"
 
 #include "AbilitySystemComponent.h"
-#include "UnrealPortfolio.h"
-#include "UPFGameplayTags.h"
 #include "Character/UPFCharacterBase.h"
 #include "Constants/UPFSocketNames.h"
 #include "Item/UPFEquipmentItemData.h"
 #include "Item/ItemInstance/Equipments/UPFEquipmentInstance.h"
-#include "Net/UnrealNetwork.h"
 #include "Player/UPFCharacterPlayer.h"
 #include "Utility/UPFActorUtility.h"
 
@@ -29,7 +26,7 @@ UUPFCharacterEquipmentComponent::UUPFCharacterEquipmentComponent()
 
 	bIsHolstered = true;
 
-	// 이게 true여야 AddReplicatedSubObject 로 추가한게 동작함
+	// AddReplicatedSubObject 함수 사용 시 아래 세팅 필요
 	bReplicateUsingRegisteredSubObjectList = true;
 }
 
@@ -38,15 +35,6 @@ void UUPFCharacterEquipmentComponent::InitializeComponent()
 	Super::InitializeComponent();
 
 	CharacterMeshComponent = GetOwner()->GetComponentByClass<USkeletalMeshComponent>();
-
-	AppliedEquipments.SetOwnerComp(this);
-}
-
-void UUPFCharacterEquipmentComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(UUPFCharacterEquipmentComponent, AppliedEquipments);
 }
 
 AController* UUPFCharacterEquipmentComponent::GetOwnerController() const
@@ -78,27 +66,36 @@ bool UUPFCharacterEquipmentComponent::HasAuthority() const
 
 void UUPFCharacterEquipmentComponent::EquipItem(const UUPFEquipmentItemData* Data)
 {
-	// 장비 스폰 및 이 캐릭터에 장착시키고, 리스트에 추가
-	AUPFEquipmentInstance* SpawnedItem = EquipItemInternal(Data);
-
-	// Replicated SubObject 추가
-	if (SpawnedItem != nullptr)
+	if (!ensure(Data)) return;
+	if (CurrentWeaponType.IsValid() && Data->EquipmentType == CurrentWeaponType)
 	{
-		AddReplicatedSubObject(SpawnedItem);
+		FUPFAppliedEquipmentEntry* EntryPtr = FindEquipment(CurrentWeaponType);
+		if (ensure(EntryPtr))
+		{
+			// 이미 똑같은 무기를 착용 중이면 리턴
+			if (EntryPtr->EquipmentItemData == Data)
+			{
+				UPF_LOG_COMPONENT(LogTemp, Log, TEXT("Already Equipped!"));
+				return;
+			}
+		}
 	}
+	
+	// 장비 스폰 및 이 캐릭터에 장착시키고, 리스트에 추가
+	EquipItemInternal(Data);
 
 	// 추가된 AppliedEquipmentEntry 를 사용해서 어빌리티를 지급한다.
 	if (const IAbilitySystemInterface* ASCInterface = UPFActorUtility::GetTypedOwnerRecursive<IAbilitySystemInterface>(GetOwner()))
 	{
-		GiveEquipmentAbility(ASCInterface, Data->EquipmentType);
+		GiveEquipmentAbility(ASCInterface, Data->AbilitiesToGrant, Data->EquipmentType);
 	}
 }
 
-AUPFEquipmentInstance* UUPFCharacterEquipmentComponent::EquipItemInternal(const UUPFEquipmentItemData* Data)
+void UUPFCharacterEquipmentComponent::EquipItemInternal(const UUPFEquipmentItemData* Data)
 {
 	// 아이템 액터 생성
 	AUPFEquipmentInstance* SpawnedItem = GetWorld()->SpawnActorDeferred<AUPFEquipmentInstance>(Data->InstanceClass, FTransform::Identity);
-	if (!ensure(SpawnedItem)) return nullptr;
+	if (!ensure(SpawnedItem)) return;
 
 	// Mesh 적용 등 세팅
 	SpawnedItem->SetData(Data);
@@ -121,18 +118,27 @@ AUPFEquipmentInstance* UUPFCharacterEquipmentComponent::EquipItemInternal(const 
 		bIsHolstered = false;
 		CurrentWeaponType = Data->EquipmentType;
 	}
+
+
 	
+	UE_LOG(LogTemp, Log, TEXT("Before Attach SpawnedItem Net Connection: %d"), SpawnedItem->GetNetConnection() != nullptr);
 	SpawnedItem->MeshComp->AttachToComponent(CharacterMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, AttachSocket);
+	
+	UE_LOG(LogTemp, Log, TEXT("After Attach SpawnedItem Net Connection: %d"), SpawnedItem->GetNetConnection() != nullptr);
+	const AActor* Cur = GetOwner();
+	while(Cur)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Cur Owner: %s"), *Cur->GetName());
+		Cur = Cur->GetOwner();
+	}
+	
 	SpawnedItem->PostEquipped(CharacterMeshComponent, AttachSocket);
 
 	// 장비 목록에 추가
 	FUPFAppliedEquipmentEntry NewEntry;
 	NewEntry.EquipmentItemData = Data;
 	NewEntry.EquipmentInstance = SpawnedItem;
-	AppliedEquipments.Items.Emplace(NewEntry);
-	AppliedEquipments.MarkItemDirty(NewEntry);
-
-	return SpawnedItem;
+	AppliedEquipments.Emplace(NewEntry);
 }
 
 void UUPFCharacterEquipmentComponent::UnEquipItem(FGameplayTag EquipmentType)
@@ -143,23 +149,13 @@ void UUPFCharacterEquipmentComponent::UnEquipItem(FGameplayTag EquipmentType)
 		TakeEquipmentAbility(ASCInterface, EquipmentType);
 	}
 
-	FUPFAppliedEquipmentEntry* RemovedEntry = FindEquipment(EquipmentType);
-	if (RemovedEntry)
-	{
-		// Replicated SubObject 제거
-		if (RemovedEntry->EquipmentInstance)
-		{
-			RemoveReplicatedSubObject(RemovedEntry->EquipmentInstance);
-		}
-	}
-
 	// 그다음 이 캐릭터의 장비 제거
 	UnEquipItemInternal(EquipmentType);
 }
 
 void UUPFCharacterEquipmentComponent::UnEquipItemInternal(FGameplayTag EquipmentType)
 {
-	for (auto EntryIt = AppliedEquipments.Items.CreateIterator(); EntryIt; ++EntryIt)
+	for (auto EntryIt = AppliedEquipments.CreateIterator(); EntryIt; ++EntryIt)
 	{
 		FUPFAppliedEquipmentEntry& Entry = *EntryIt;
 		if (Entry.EquipmentItemData->EquipmentType != EquipmentType) continue;
@@ -170,7 +166,6 @@ void UUPFCharacterEquipmentComponent::UnEquipItemInternal(FGameplayTag Equipment
 		}
 
 		EntryIt.RemoveCurrent();
-		AppliedEquipments.MarkArrayDirty();
 	}
 
 	// todo: 손에 들고있던 무기가 제거된 경우 처리
@@ -181,36 +176,34 @@ void UUPFCharacterEquipmentComponent::UnEquipItemInternal(FGameplayTag Equipment
 	// }
 }
 
-void UUPFCharacterEquipmentComponent::GiveEquipmentAbility(const IAbilitySystemInterface* ASCInterface, FGameplayTag EquipmentType)
+void UUPFCharacterEquipmentComponent::GiveEquipmentAbility(const IAbilitySystemInterface* ASCInterface, const UUPFAbilitySet* AbilitySet, FGameplayTag EquipmentType)
 {
-	FUPFAppliedEquipmentEntry* EntryPtr = FindEquipment(EquipmentType);
-	if (!ensure(EntryPtr)) return;
-	if (!ensure(EntryPtr->EquipmentItemData)) return;
-	if (!EntryPtr->EquipmentItemData->AbilitiesToGrant) return;
+	if (!ensure(AbilitySet)) return;
 
 	// 서버: 어빌리티 지급
 	if (HasAuthority())
 	{
-		check(!EntryPtr->IsAbilityGranted()); // 어빌리티가 이미 지급된 상태면 중복 호출임
-		EntryPtr->EquipmentItemData->AbilitiesToGrant->GiveToAbilityComp(ASCInterface, EntryPtr->EquipmentInstance, &EntryPtr->GrantedData);
+		FUPFAppliedEquipmentEntry* EntryPtr = FindEquipment(EquipmentType);
+		check(EntryPtr && !EntryPtr->IsAbilityGranted()); // 어빌리티가 이미 지급된 상태면 중복 호출임
+		AbilitySet->GiveToAbilityComp(ASCInterface, EntryPtr->EquipmentInstance, &EntryPtr->GrantedData);
 	}
 
 	// 로컬컨트롤러는 인풋 바인딩
 	if (AUPFCharacterPlayer* PlayerCharacter = UPFActorUtility::GetTypedOwnerRecursive<AUPFCharacterPlayer>(GetOwner());
 		PlayerCharacter->IsLocallyControlled())
 	{
-		EntryPtr->InputBindID = PlayerCharacter->BindAbilitySetInput(EntryPtr->EquipmentItemData->AbilitiesToGrant);
+		const FGuid InputBindID = PlayerCharacter->BindAbilitySetInput(AbilitySet);
+		InputBindIDs.Add(EquipmentType, InputBindID);
 	}
 }
 
 void UUPFCharacterEquipmentComponent::TakeEquipmentAbility(const IAbilitySystemInterface* ASCInterface, FGameplayTag EquipmentType)
 {
-	FUPFAppliedEquipmentEntry* EntryPtr = FindEquipment(EquipmentType);
-	if (!ensure(EntryPtr)) return;
-
 	// 서버: 어빌리티 제거
 	if (HasAuthority())
 	{
+		FUPFAppliedEquipmentEntry* EntryPtr = FindEquipment(EquipmentType);
+		if (!ensure(EntryPtr)) return;
 		if (!EntryPtr->IsAbilityGranted()) return;
 		EntryPtr->GrantedData.TakeFromCharacter(ASCInterface);
 	}
@@ -219,7 +212,9 @@ void UUPFCharacterEquipmentComponent::TakeEquipmentAbility(const IAbilitySystemI
 	if (AUPFCharacterPlayer* PlayerCharacter = UPFActorUtility::GetTypedOwnerRecursive<AUPFCharacterPlayer>(GetOwner());
 		PlayerCharacter->IsLocallyControlled())
 	{
-		PlayerCharacter->RemoveAbilitySetBind(EntryPtr->InputBindID);
+		const FGuid* InputID = InputBindIDs.Find(EquipmentType);
+		if (!ensure(InputID)) return;
+		PlayerCharacter->RemoveAbilitySetBind(*InputID);
 	}
 }
 
@@ -271,14 +266,14 @@ void UUPFCharacterEquipmentComponent::ToggleHolsterWeapon()
 		// 어빌리티를 다시 지급힌다.
 		if (const IAbilitySystemInterface* ASCInterface = UPFActorUtility::GetTypedOwnerRecursive<IAbilitySystemInterface>(GetOwner()))
 		{
-			GiveEquipmentAbility(ASCInterface, CurrentWeaponType);
+			GiveEquipmentAbility(ASCInterface, EntryPtr->EquipmentItemData->AbilitiesToGrant, CurrentWeaponType);
 		}
 	}
 }
 
 FUPFAppliedEquipmentEntry* UUPFCharacterEquipmentComponent::FindEquipment(FGameplayTag WeaponType)
 {
-	return AppliedEquipments.Items.FindByPredicate([&WeaponType](const FUPFAppliedEquipmentEntry& X)
+	return AppliedEquipments.FindByPredicate([&WeaponType](const FUPFAppliedEquipmentEntry& X)
 	{
 		return X.EquipmentItemData->EquipmentType == WeaponType;
 	});
