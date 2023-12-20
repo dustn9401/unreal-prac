@@ -117,7 +117,7 @@ void AUPFCharacterBase::PostInitializeComponents()
 
 	if (HasAuthority())
 	{
-		SetData_Server(CharacterData);	
+		SetData_ServerOnly(CharacterData);	
 	}
 }
 
@@ -141,7 +141,7 @@ bool AUPFCharacterBase::CanCrouch() const
 	return Super::CanCrouch();
 }
 
-void AUPFCharacterBase::SetData_Server(UUPFCharacterData* InData)
+void AUPFCharacterBase::SetData_ServerOnly(UUPFCharacterData* InData)
 {
 	if (!ensure(HasAuthority())) return;
 	
@@ -157,10 +157,6 @@ void AUPFCharacterBase::SetData_Server(UUPFCharacterData* InData)
 	
 	// CurrentHP 값은 테이블에 없기 때문에, 여기서 MaxHP값으로 초기화
 	HPSet->InitCurrentHP(HPSet->GetMaxHP());
-}
-
-void AUPFCharacterBase::SetData_Local(UUPFCharacterData* InData)
-{
 }
 
 void AUPFCharacterBase::OnMeleeAttackAnimationHit()

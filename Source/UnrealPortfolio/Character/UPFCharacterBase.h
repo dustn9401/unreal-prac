@@ -62,9 +62,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UUPFCharacterData> CharacterData;
 
-	void SetData_Server(UUPFCharacterData* InData);
-
-	void SetData_Local(UUPFCharacterData* InData);
+	void SetData_ServerOnly(UUPFCharacterData* InData);
 
 	
 // IAttackAnimationInterface Impl

@@ -42,8 +42,7 @@ void AUPFRangedWeaponInstance::PreUnEquipped()
 void AUPFRangedWeaponInstance::OnSocketChanged(const FName& NewSocketName)
 {
 	Super::OnSocketChanged(NewSocketName);
-
-	UPF_LOG(LogTemp, Log, TEXT("Cache=%s, AR=%s"), *AttachedSocketNameCache.ToString(), *NewSocketName.ToString());
+	
 	if (AttachedSocketNameCache == NewSocketName) return;
 
 	// hand -> none or back
