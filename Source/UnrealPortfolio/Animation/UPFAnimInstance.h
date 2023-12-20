@@ -21,8 +21,6 @@ protected:
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
 	TObjectPtr<class AUPFCharacterBase> Owner;	// 이 객체를 소유하고 있는 캐릭터
 
@@ -61,12 +59,12 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
 	uint8 bIsHolstered : 1;
 
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category=Character)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
 	float AimOffsetYaw;
 
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category=Character)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
 	float AimOffsetPitch;
 
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category=Character)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
 	uint8 bIsAiming : 1;
 };

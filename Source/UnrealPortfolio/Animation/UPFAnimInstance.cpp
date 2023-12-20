@@ -14,6 +14,7 @@ UUPFAnimInstance::UUPFAnimInstance(): GroundSpeed(0), bIsMoving(0), MovingThresh
                                       AimOffsetPitch(0),
                                       bIsAiming(0)
 {
+	
 }
 
 void UUPFAnimInstance::NativeInitializeAnimation()
@@ -47,11 +48,11 @@ void UUPFAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bIsHolstered = EquipmentComponent->GetIsHolstered();
 	}
 
-	if (Owner && Owner->IsLocallyControlled())
+	if (Owner)
 	{
 		// 캐릭터가 허리를 얼마나 꺾어야 하는지 계산
 		const FRotator& AimRot = Owner->GetBaseAimRotation();
-		AimOffsetPitch = AimRot.Pitch;
+		AimOffsetPitch = FRotator::NormalizeAxis(AimRot.Pitch);
 		
 		// 캐릭터가 허리를 얼마나 돌려야 하는지 계산
 		const FRotator& ActorRot = Owner->GetActorRotation();
@@ -59,13 +60,4 @@ void UUPFAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		
 		bIsAiming = Owner->bIsAiming;
 	}
-}
-
-void UUPFAnimInstance::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(UUPFAnimInstance, AimOffsetPitch);
-	DOREPLIFETIME(UUPFAnimInstance, AimOffsetYaw);
-	DOREPLIFETIME(UUPFAnimInstance, bIsAiming);
 }

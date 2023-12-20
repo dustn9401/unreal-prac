@@ -119,19 +119,9 @@ void UUPFCharacterEquipmentComponent::EquipItemInternal(const UUPFEquipmentItemD
 		CurrentWeaponType = Data->EquipmentType;
 	}
 
-
 	
-	UE_LOG(LogTemp, Log, TEXT("Before Attach SpawnedItem Net Connection: %d"), SpawnedItem->GetNetConnection() != nullptr);
 	SpawnedItem->MeshComp->AttachToComponent(CharacterMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, AttachSocket);
-	
-	UE_LOG(LogTemp, Log, TEXT("After Attach SpawnedItem Net Connection: %d"), SpawnedItem->GetNetConnection() != nullptr);
-	const AActor* Cur = GetOwner();
-	while(Cur)
-	{
-		UE_LOG(LogTemp, Log, TEXT("Cur Owner: %s"), *Cur->GetName());
-		Cur = Cur->GetOwner();
-	}
-	
+	SpawnedItem->SetOwner(CharacterMeshComponent->GetOwner());
 	SpawnedItem->PostEquipped(CharacterMeshComponent, AttachSocket);
 
 	// 장비 목록에 추가

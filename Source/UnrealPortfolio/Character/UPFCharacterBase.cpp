@@ -201,6 +201,7 @@ void AUPFCharacterBase::FinishDeath()
 
 void AUPFCharacterBase::OnAimingStart()
 {
+	UPF_LOG(LogTemp, Log, TEXT("Called"));
 	bIsAiming = true;
 	K2_OnAimingStart();
 
@@ -209,6 +210,7 @@ void AUPFCharacterBase::OnAimingStart()
 
 void AUPFCharacterBase::OnAimingEnd()
 {
+	UPF_LOG(LogTemp, Log, TEXT("Called"));
 	bIsAiming = false;
 	K2_OnAimingEnd();
 
@@ -218,7 +220,7 @@ void AUPFCharacterBase::OnAimingEnd()
 void AUPFCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
+	
 	DOREPLIFETIME(AUPFCharacterBase, ReplicatedSubObject);
 	DOREPLIFETIME(AUPFCharacterBase, TestStruct);
 }
@@ -229,13 +231,11 @@ void AUPFCharacterBase::ModifyReplicationTestProps(bool IsStart)
 	
 	if (IsStart)
 	{
-		// 액터는 기본 리플리케이션 안되고 ReplicatedSubObject 추가도 안됨 
-		// if (ReplicateTestSpawnActor)
-		// {
-		// 	ReplicatedSubObject = GetWorld()->SpawnActor<AActor>(ReplicateTestSpawnActor);
-		// 	ReplicatedSubObject->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, UPFSocketNames::hand_rSocket);
-		// 	AddReplicatedSubObject(ReplicatedSubObject);
-		// }
+		if (ReplicateTestSpawnActor)
+		{
+			ReplicatedSubObject = GetWorld()->SpawnActor<AActor>(ReplicateTestSpawnActor);
+			ReplicatedSubObject->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, UPFSocketNames::hand_rSocket);
+		}
 
 		TestStruct.Integer = 123;
 		TestStruct.Integers.Add(1);
@@ -247,11 +247,10 @@ void AUPFCharacterBase::ModifyReplicationTestProps(bool IsStart)
 		TestStruct.Integer = 0;
 		TestStruct.Integers.Empty();
 
-		// if (ReplicatedSubObject)
-		// {
-		// 	RemoveReplicatedSubObject(ReplicatedSubObject);
-		// 	ReplicatedSubObject->Destroy();
-		// }
+		if (ReplicatedSubObject)
+		{
+			ReplicatedSubObject->Destroy();
+		}
 	}
 }
 
