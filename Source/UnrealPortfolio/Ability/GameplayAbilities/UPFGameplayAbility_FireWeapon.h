@@ -38,8 +38,6 @@ class UNREALPORTFOLIO_API UUPFGameplayAbility_FireWeapon : public UUPFGameplayAb
 
 public:
 	UUPFGameplayAbility_FireWeapon();
-
-	
 	
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const override;
 	

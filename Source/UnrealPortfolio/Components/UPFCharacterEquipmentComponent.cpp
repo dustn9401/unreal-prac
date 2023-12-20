@@ -143,6 +143,16 @@ void UUPFCharacterEquipmentComponent::UnEquipItem(FGameplayTag EquipmentType)
 	UnEquipItemInternal(EquipmentType);
 }
 
+AUPFEquipmentInstance* UUPFCharacterEquipmentComponent::GetCurrentRangedWeaponInstance()
+{
+	if (!CurrentWeaponType.IsValid()) return nullptr;
+	
+	FUPFAppliedEquipmentEntry* Entry = FindEquipment(CurrentWeaponType);
+	if (!ensure(Entry)) return nullptr;
+
+	return Entry->EquipmentInstance;
+}
+
 void UUPFCharacterEquipmentComponent::UnEquipItemInternal(FGameplayTag EquipmentType)
 {
 	for (auto EntryIt = AppliedEquipments.CreateIterator(); EntryIt; ++EntryIt)

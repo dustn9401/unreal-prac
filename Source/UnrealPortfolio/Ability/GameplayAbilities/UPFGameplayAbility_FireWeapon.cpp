@@ -41,6 +41,8 @@ namespace UPFConsoleVariables
 UUPFGameplayAbility_FireWeapon::UUPFGameplayAbility_FireWeapon()
 {
 	MaxWalkSpeedOnFiringWeapon = 230.0f;
+
+	TimerCallback.BindUObject(this, &UUPFGameplayAbility_FireWeapon::OnFinishWait);
 }
 
 bool UUPFGameplayAbility_FireWeapon::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags,
@@ -90,11 +92,6 @@ void UUPFGameplayAbility_FireWeapon::ActivateAbility(const FGameplayAbilitySpecH
 	check(WeaponInstance);
 	
 	// 타이머 사용하여 발사 딜레이 후 EndAbility 호출
-	if (!TimerCallback.IsBound())
-	{
-		TimerCallback.BindUObject(this, &UUPFGameplayAbility_FireWeapon::OnFinishWait);
-	}
-	
 	GetWorld()->GetTimerManager().SetTimer(FireTimer, TimerCallback, WeaponInstance->GetFireDelay(), false);
 
 	// 이렇게도 됨

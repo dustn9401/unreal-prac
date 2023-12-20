@@ -12,6 +12,7 @@
 #include "UPFCharacterEquipmentComponent.generated.h"
 
 
+class AUPFRangedWeaponInstance;
 class UUPFCharacterEquipmentComponent;
 class AUPFEquipmentInstance;
 class UUPFEquipmentItemData;
@@ -73,6 +74,9 @@ public:
 	
 	// 특정 타입의 장비를 해제한다.
 	void UnEquipItem(FGameplayTag EquipmentType);
+
+	// can be null
+	AUPFEquipmentInstance* GetCurrentRangedWeaponInstance();
 	
 protected:
 	// 캐릭터에게 장비 스폰 및 장착

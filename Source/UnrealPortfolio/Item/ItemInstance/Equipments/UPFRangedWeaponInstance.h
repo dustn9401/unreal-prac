@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UPFWeaponInstance.h"
 #include "Item/ItemInstance/Equipments/UPFEquipmentInstance.h"
 #include "UPFRangedWeaponInstance.generated.h"
 
@@ -11,7 +12,7 @@ class AUPFCharacterBase;
  * 
  */
 UCLASS()
-class UNREALPORTFOLIO_API AUPFRangedWeaponInstance : public AUPFEquipmentInstance
+class UNREALPORTFOLIO_API AUPFRangedWeaponInstance : public AUPFWeaponInstance
 {
 	GENERATED_BODY()
 
