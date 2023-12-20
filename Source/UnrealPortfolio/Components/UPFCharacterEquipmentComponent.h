@@ -12,7 +12,7 @@
 #include "UPFCharacterEquipmentComponent.generated.h"
 
 
-class AUPFRangedWeaponInstance;
+class AUPFWeaponInstance;
 class UUPFCharacterEquipmentComponent;
 class AUPFEquipmentInstance;
 class UUPFEquipmentItemData;
@@ -76,7 +76,7 @@ public:
 	void UnEquipItem(FGameplayTag EquipmentType);
 
 	// can be null
-	AUPFEquipmentInstance* GetCurrentRangedWeaponInstance();
+	AUPFWeaponInstance* GetCurrentRangedWeaponInstance();
 	
 protected:
 	// 캐릭터에게 장비 스폰 및 장착

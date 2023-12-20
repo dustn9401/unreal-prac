@@ -29,7 +29,7 @@ public:
 	// 메시에서 Detach 되기 전 호출
 	virtual void PreUnEquipped();
 
-	// 장착된 소켓이 변할 경우 호출
+	// 소켓이 변경될 때 외부에서 호출하는 함수
 	virtual void OnSocketChanged(const FName& NewSocketName);
 
 	// 이 장비 인스턴스가 현재 누군가에게 착용되어 있는 상태인지 여부

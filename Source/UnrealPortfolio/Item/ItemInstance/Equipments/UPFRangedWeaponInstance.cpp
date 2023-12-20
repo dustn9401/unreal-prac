@@ -14,69 +14,6 @@ void AUPFRangedWeaponInstance::SetData(const UUPFItemData* InData)
 	// TODO: cache FireDelay
 }
 
-void AUPFRangedWeaponInstance::PostEquipped(USkeletalMeshComponent* AttachedMesh, const FName& AttachSocket)
-{
-	Super::PostEquipped(AttachedMesh, AttachSocket);
-
-	OwnerMesh = AttachedMesh;
-	AttachedSocketNameCache = AttachSocket;
-
-	if (AttachSocket == UPFSocketNames::hand_rSocket)
-	{
-		LinkAnimLayer();
-	}
-}
-
-void AUPFRangedWeaponInstance::PreUnEquipped()
-{
-	Super::PreUnEquipped();
-
-	if (IsAnimLayerLinked)
-	{
-		UnLinkAnimLayer();
-	}
-
-	AttachedSocketNameCache = FName(NAME_None);
-}
-
-void AUPFRangedWeaponInstance::OnSocketChanged(const FName& NewSocketName)
-{
-	Super::OnSocketChanged(NewSocketName);
-	
-	if (AttachedSocketNameCache == NewSocketName) return;
-
-	// hand -> none or back
-	if (AttachedSocketNameCache == UPFSocketNames::hand_rSocket)
-	{
-		UnLinkAnimLayer();
-	}
-	// none or back -> hand
-	else if (NewSocketName == UPFSocketNames::hand_rSocket)
-	{
-		LinkAnimLayer();
-	}
-
-	AttachedSocketNameCache = NewSocketName;
-}
-
-void AUPFRangedWeaponInstance::LinkAnimLayer()
-{
-	if (!ensure(OwnerMesh)) return;
-	if (!ensure(!IsAnimLayerLinked)) return;
-	IsAnimLayerLinked = true;
-	
-	OwnerMesh->LinkAnimClassLayers(AnimLayer);
-}
-
-void AUPFRangedWeaponInstance::UnLinkAnimLayer()
-{
-	if (!ensure(OwnerMesh)) return;
-	if (!ensure(IsAnimLayerLinked)) return;
-	IsAnimLayerLinked = false;
-
-	OwnerMesh->UnlinkAnimClassLayers(AnimLayer);
-}
-
 void AUPFRangedWeaponInstance::AddSpread()
 {
 	// Sample the heat up curve

@@ -8,6 +8,7 @@
 #include "Constants/UPFSocketNames.h"
 #include "Item/UPFEquipmentItemData.h"
 #include "Item/ItemInstance/Equipments/UPFEquipmentInstance.h"
+#include "Item/ItemInstance/Equipments/UPFWeaponInstance.h"
 #include "Player/UPFCharacterPlayer.h"
 #include "Utility/UPFActorUtility.h"
 
@@ -143,14 +144,14 @@ void UUPFCharacterEquipmentComponent::UnEquipItem(FGameplayTag EquipmentType)
 	UnEquipItemInternal(EquipmentType);
 }
 
-AUPFEquipmentInstance* UUPFCharacterEquipmentComponent::GetCurrentRangedWeaponInstance()
+AUPFWeaponInstance* UUPFCharacterEquipmentComponent::GetCurrentRangedWeaponInstance()
 {
 	if (!CurrentWeaponType.IsValid()) return nullptr;
 	
 	FUPFAppliedEquipmentEntry* Entry = FindEquipment(CurrentWeaponType);
 	if (!ensure(Entry)) return nullptr;
 
-	return Entry->EquipmentInstance;
+	return CastChecked<AUPFWeaponInstance>(Entry->EquipmentInstance);
 }
 
 void UUPFCharacterEquipmentComponent::UnEquipItemInternal(FGameplayTag EquipmentType)

@@ -17,19 +17,9 @@ class UNREALPORTFOLIO_API AUPFRangedWeaponInstance : public AUPFWeaponInstance
 	GENERATED_BODY()
 
 public:
-	UPROPERTY()
-	TObjectPtr<USkeletalMeshComponent> OwnerMesh;
-	
 	virtual void SetData(const UUPFItemData* InData) override;
-
-	virtual void PostEquipped(USkeletalMeshComponent* AttachedMesh, const FName& AttachSocket) override;
-
-	virtual void PreUnEquipped() override;
-
-	// 소켓이 변경될 때 외부에서 호출하는 함수
-	virtual void OnSocketChanged(const FName& NewSocketName) override;
 	
-
+public:
 	void AddSpread();
 
 	int32 GetBulletsPerCartridge() const
@@ -72,15 +62,6 @@ public:
 	FORCEINLINE float GetFireDelay() const {return FireDelay;}
 
 protected:
-	// OwnerMesh에 AnimLayer 를 등록 
-	void LinkAnimLayer();
-
-	// OwnerMesh에서 AnimLayer 를 해제
-	void UnLinkAnimLayer();
-
-	FName AttachedSocketNameCache;
-	bool IsAnimLayerLinked = false;
-	
 	float FireDelay = 0.1f;
 
 	// Spread exponent, affects how tightly shots will cluster around the center line
@@ -215,12 +196,6 @@ private:
 
 		return FMath::Clamp(NewHeat, MinHeat, MaxHeat);
 	}
-
-// Animation
-protected:
-	// ALI_RangedWeaponLayer 구현한 애니메이션 인스턴스, 장비 착용 시 추가되고, 해제 시 다시 제거된다.
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<UAnimInstance> AnimLayer;
 
 // OnFire
 public:
