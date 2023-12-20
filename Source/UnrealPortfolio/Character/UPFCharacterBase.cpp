@@ -148,9 +148,10 @@ void AUPFCharacterBase::SetData_ServerOnly(UUPFCharacterData* InData)
 	check(InData);
 	check(InData->CharacterAbilitySet);
 
-	// 아래의 함수에서 어빌리티 및 스텟을 초기화 한다.
+	// 아래의 함수에서 어빌리티 및 AttributeSet 을 지급한다.
 	InData->CharacterAbilitySet->GiveToAbilityComp(this, this);
 
+	// 지급된 AttributeSet 에 값 입력
 	IGameplayAbilitiesModule::Get().GetAbilitySystemGlobals()
 		->GetAttributeSetInitter()
 		->InitAttributeSetDefaults(AbilitySystemComponent, GetStatGroup(), 1, true);

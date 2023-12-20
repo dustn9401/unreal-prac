@@ -38,6 +38,8 @@ class UNREALPORTFOLIO_API UUPFGameplayAbility_FireWeapon : public UUPFGameplayAb
 
 public:
 	UUPFGameplayAbility_FireWeapon();
+
+	
 	
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const override;
 	
@@ -104,6 +106,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Character)
 	float MaxWalkSpeedOnFiringWeapon;
 	float MaxWalkSpeedCache = 0.0f;
+
+	FTimerHandle FireTimer;
+	FTimerDelegate TimerCallback;
 	
 private:
 	FDelegateHandle OnTargetDataReadyCallbackDelegateHandle;
