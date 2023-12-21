@@ -91,13 +91,9 @@ void UUPFGameplayAbility_FireWeapon::ActivateAbility(const FGameplayAbilitySpecH
 	AUPFRangedWeaponInstance* WeaponInstance = GetWeaponInstance();
 	check(WeaponInstance);
 	
-	// 타이머 사용하여 발사 딜레이 후 EndAbility 호출
-	GetWorld()->GetTimerManager().SetTimer(FireTimer, TimerCallback, WeaponInstance->GetFireDelay(), false);
-
-	// 이렇게도 됨
-	// UAbilityTask_WaitDelay* Task = UAbilityTask_WaitDelay::WaitDelay(this, WeaponInstance->GetFireDelay());
-	// Task->OnFinish.AddDynamic(this, &UUPFGameplayAbility_FireWeapon::OnFinishWait);
-	// Task->ReadyForActivation();
+	UAbilityTask_WaitDelay* Task = UAbilityTask_WaitDelay::WaitDelay(this, WeaponInstance->GetFireDelay());
+	Task->OnFinish.AddDynamic(this, &UUPFGameplayAbility_FireWeapon::OnFinishWait);
+	Task->ReadyForActivation();
 }
 
 void UUPFGameplayAbility_FireWeapon::OnFinishWait()
