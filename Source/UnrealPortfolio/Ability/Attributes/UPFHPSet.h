@@ -8,6 +8,7 @@
 #include "UPFHPSet.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnHPChangedDelegate, float /*CurrentHP*/, float /*MaxHP*/)
+DECLARE_MULTICAST_DELEGATE(FOnHPZeroDelegate)
 
 /**
  * 캐릭터가 가지고 있는 스텟 데이터
@@ -25,13 +26,10 @@ public:
 	ATTRIBUTE_ACCESSORS(UUPFHPSet, CurrentHP);
 	ATTRIBUTE_ACCESSORS(UUPFHPSet, MaxHP);
 
-	// for UIs
+	// Delegates
 	mutable FOnHPChangedDelegate OnMaxHPChanged;
-	mutable FUPFAttributeEvent OnHPZero;
-
-	// for Damage / Heal Effects
-	mutable FUPFAttributeEvent OnTakeDamage;
-	mutable FUPFAttributeEvent OnHealing;
+	mutable FOnHPChangedDelegate OnCurrentHPChanged;
+	mutable FOnHPZeroDelegate OnHPZero;
 
 private:
 	UPROPERTY(Transient, EditAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentHP, Category = "UPF|Stat", Meta = (AllowPrivateAccess = true))

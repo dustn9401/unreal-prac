@@ -41,34 +41,20 @@ void UUPFHPSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& 
 {
 	// 서버전용
 	Super::PostGameplayEffectExecute(Data);
-	
-	const FGameplayEffectContextHandle& EffectContext = Data.EffectSpec.GetEffectContext();
-	AActor* Instigator = EffectContext.GetOriginalInstigator();
-	AActor* Causer = EffectContext.GetEffectCauser();
-	
+
 	if (Data.EvaluatedData.Attribute == GetCurrentHPAttribute())
 	{
-		const bool DidTakeDamage = PrevHP > GetCurrentHP();		// Data.EvaluatedData.Magnitude < 0.0f
-		const bool DidHealing = PrevHP < GetCurrentHP();		// Data.EvaluatedData.Magnitude > 0.0f
-		
-		if (DidTakeDamage) 
-		{
-			OnTakeDamage.Broadcast(Instigator, Causer, &Data.EffectSpec, Data.EvaluatedData.Magnitude, PrevHP, GetCurrentHP());
-			if (!bIsOnHPZeroInvoked && GetCurrentHP() <= 0.0f)
-			{
-				bIsOnHPZeroInvoked = true;
-				OnHPZero.Broadcast(Instigator, Causer, &Data.EffectSpec, Data.EvaluatedData.Magnitude, PrevHP, GetCurrentHP());
-			}
-		}
-		
-		if (DidHealing)
-		{
-			OnHealing.Broadcast(Instigator, Causer, &Data.EffectSpec, Data.EvaluatedData.Magnitude, PrevHP, GetCurrentHP());
-		}
+		OnCurrentHPChanged.Broadcast(GetCurrentHP(), GetMaxHP());
 	}
 	else if (Data.EvaluatedData.Attribute == GetMaxHPAttribute())
 	{
 		OnMaxHPChanged.Broadcast(GetCurrentHP(), GetMaxHP());
+	}
+
+	if (!bIsOnHPZeroInvoked && GetCurrentHP() <= 0.0f)
+	{
+		bIsOnHPZeroInvoked = true;
+		OnHPZero.Broadcast();
 	}
 }
 
@@ -95,32 +81,19 @@ void UUPFHPSet::ClampAttribute(const FGameplayAttribute& Attribute, float& NewVa
 void UUPFHPSet::OnRep_CurrentHP(const FGameplayAttributeData& OldValue)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UUPFHPSet, CurrentHP, OldValue);
+	
+	OnCurrentHPChanged.Broadcast(GetCurrentHP(), GetMaxHP());
 
-	const float CurHP = GetCurrentHP();
-	const float EstimatedMagnitude = CurHP - OldValue.GetCurrentValue();
-	UPF_LOG_ATTRIBUTE(LogTemp, Log, TEXT("Called, %f -> %f"), OldValue.GetCurrentValue(), CurHP);
-
-	if (EstimatedMagnitude < 0.0f)
+	if (!bIsOnHPZeroInvoked && GetCurrentHP() <= 0.0f)
 	{
-		OnTakeDamage.Broadcast(nullptr, nullptr, nullptr, EstimatedMagnitude, OldValue.GetCurrentValue(), CurHP);
+		bIsOnHPZeroInvoked = true;
+		OnHPZero.Broadcast();
 	}
-	else if (EstimatedMagnitude > 0.0f)
-	{
-		OnHealing.Broadcast(nullptr, nullptr, nullptr, EstimatedMagnitude, OldValue.GetCurrentValue(), CurHP);
-	}
-
-	if (!bIsOnHPZeroInvoked && CurHP <= 0.0f)
-	{
-		OnHPZero.Broadcast(nullptr, nullptr, nullptr, EstimatedMagnitude, OldValue.GetCurrentValue(), CurHP);
-	}
-
-	bIsOnHPZeroInvoked = CurHP <= 0.0f;
 }
 
 void UUPFHPSet::OnRep_MaxHP(const FGameplayAttributeData& OldValue)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UUPFHPSet, MaxHP, OldValue);
-
-	UPF_LOG_ATTRIBUTE(LogTemp, Log, TEXT("Called, %f -> %f"), OldValue.GetCurrentValue(), GetMaxHP());
+	
 	OnMaxHPChanged.Broadcast(GetCurrentHP(), GetMaxHP());
 }

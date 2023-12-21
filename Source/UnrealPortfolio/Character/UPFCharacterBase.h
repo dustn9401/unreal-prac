@@ -111,7 +111,7 @@ protected:
 
 // Death
 private:
-	void OnHPZero(AActor* EffectInstigator, AActor* EffectCauser, const FGameplayEffectSpec* EffectSpec, float EffectMagnitude, float OldValue, float NewValue);
+	void OnHPZero();
 
 	
 protected:
