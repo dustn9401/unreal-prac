@@ -134,30 +134,25 @@ FGuid AUPFCharacterPlayer::BindAbilitySetInput(const UUPFAbilitySet* AbilitySet)
 	{
 		if (!IsValid(TriggerData.InputAction)) continue;
 		if (!TriggerData.InputTag.IsValid()) continue;
-		
-		FEnhancedInputActionEventBinding& PressedBinding = EIC->BindAction<UUPFAbilitySystemComponent, FGameplayTag>(
-			TriggerData.InputAction,
-			ETriggerEvent::Triggered,
-			AbilitySystemComponent,
-			&UUPFAbilitySystemComponent::AbilityInputTagPressed,
-			TriggerData.InputTag);
-		AbilityInputBindingHandles.Add(GrantKey, PressedBinding.GetHandle());
 
-		FEnhancedInputActionEventBinding& HeldBinding = EIC->BindAction<UUPFAbilitySystemComponent, FGameplayTag>(
-			TriggerData.InputAction,
-			ETriggerEvent::Ongoing,
-			AbilitySystemComponent,
-			&UUPFAbilitySystemComponent::AbilityInputTagPressing,
-			TriggerData.InputTag);
-		AbilityInputBindingHandles.Add(GrantKey, HeldBinding.GetHandle());
+		{
+			const FEnhancedInputActionEventBinding& Binding = EIC->BindAction<UUPFAbilitySystemComponent, FGameplayTag>(
+				TriggerData.InputAction, ETriggerEvent::Triggered, AbilitySystemComponent, &UUPFAbilitySystemComponent::AbilityInputTagTriggered, TriggerData.InputTag);
+			AbilityInputBindingHandles.Add(GrantKey, Binding.GetHandle());
+		}
 		
-		FEnhancedInputActionEventBinding& ReleasedBinding = EIC->BindAction<UUPFAbilitySystemComponent, FGameplayTag>(
-			TriggerData.InputAction,
-			ETriggerEvent::Completed,
-			AbilitySystemComponent,
-			&UUPFAbilitySystemComponent::AbilityInputTagReleased,
-			TriggerData.InputTag);
-		AbilityInputBindingHandles.Add(GrantKey, ReleasedBinding.GetHandle());
+		{
+			const FEnhancedInputActionEventBinding& Binding = EIC->BindAction<UUPFAbilitySystemComponent, FGameplayTag>(
+				TriggerData.InputAction, ETriggerEvent::Completed, AbilitySystemComponent, &UUPFAbilitySystemComponent::AbilityInputTagCompleted, TriggerData.InputTag);
+			AbilityInputBindingHandles.Add(GrantKey, Binding.GetHandle());
+		}
+		
+		{
+			// InputTriggerPulse 의 경우 TriggerLimit 을 무제한으로 하면 Completed 가 호출되지 않고 Canceled 만 호출되기 때문에, Canceled도 등록해준다. 
+			const FEnhancedInputActionEventBinding& Binding = EIC->BindAction<UUPFAbilitySystemComponent, FGameplayTag>(
+				TriggerData.InputAction, ETriggerEvent::Canceled, AbilitySystemComponent, &UUPFAbilitySystemComponent::AbilityInputTagCompleted, TriggerData.InputTag);
+			AbilityInputBindingHandles.Add(GrantKey, Binding.GetHandle());
+		}
 	}
 
 	return GrantKey;

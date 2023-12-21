@@ -19,7 +19,6 @@ public:
 	UUPFAbilitySystemComponent();
 
 public:
-	void AbilityInputTagPressed(FGameplayTag InputTag);
-	void AbilityInputTagPressing(FGameplayTag InputTag);
-	void AbilityInputTagReleased(FGameplayTag InputTag);
+	void AbilityInputTagTriggered(FGameplayTag InputTag);
+	void AbilityInputTagCompleted(FGameplayTag InputTag);
 };
