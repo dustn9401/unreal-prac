@@ -17,6 +17,8 @@ class UNREALPORTFOLIO_API AUPFRangedWeaponInstance : public AUPFWeaponInstance
 	GENERATED_BODY()
 
 public:
+	AUPFRangedWeaponInstance();
+	
 	virtual void SetData(const UUPFItemData* InData) override;
 	
 public:
@@ -200,6 +202,10 @@ private:
 // OnFire
 public:
 	void OnFire();
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<UCameraShakeBase> CameraShakeClass;
+	
 
 protected:
 	UFUNCTION(BlueprintImplementableEvent, DisplayName="OnFireCpp")

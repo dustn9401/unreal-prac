@@ -6,6 +6,17 @@
 #include "UPFGameplayTags.h"
 #include "Character/UPFCharacterBase.h"
 #include "Constants/UPFSocketNames.h"
+#include "Interface/CameraShakeHandler.h"
+#include "Utility/UPFActorUtility.h"
+
+AUPFRangedWeaponInstance::AUPFRangedWeaponInstance()
+{
+	static ConstructorHelpers::FClassFinder<UCameraShakeBase> CameraShakeRef(TEXT("/Game/UnrealPortfolio/Blueprints/CameraShakes/CS_Weapon_Fire.CS_Weapon_Fire_C"));
+	if (CameraShakeRef.Class)
+	{
+		CameraShakeClass = CameraShakeRef.Class;
+	}
+}
 
 void AUPFRangedWeaponInstance::SetData(const UUPFItemData* InData)
 {
@@ -49,6 +60,14 @@ void AUPFRangedWeaponInstance::ComputeHeatRange(float& MinHeat, float& MaxHeat)
 
 void AUPFRangedWeaponInstance::OnFire()
 {
+	if (CameraShakeClass)
+	{
+		if (ICameraShakeHandler* CameraShakeHandler = UPFActorUtility::GetTypedOwnerRecursive<ICameraShakeHandler>(this))
+		{
+			CameraShakeHandler->PlayCameraShake(CameraShakeClass);
+		}
+	}
+	
 	K2_OnFire();
 }
 
