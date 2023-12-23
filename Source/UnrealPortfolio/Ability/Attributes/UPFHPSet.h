@@ -22,30 +22,36 @@ public:
 	UUPFHPSet();
 
 	virtual void OnBeginPlay() override;
-
-	ATTRIBUTE_ACCESSORS(UUPFHPSet, CurrentHP);
+	
 	ATTRIBUTE_ACCESSORS(UUPFHPSet, MaxHP);
+	ATTRIBUTE_ACCESSORS(UUPFHPSet, Damage);
 
 	// Delegates
 	mutable FOnHPChangedDelegate OnMaxHPChanged;
 	mutable FOnHPChangedDelegate OnCurrentHPChanged;
 	mutable FOnHPZeroDelegate OnHPZero;
 
+public:
+	FORCEINLINE float GetCurrentHP() const { return CurrentHP; }
+	
+	FORCEINLINE void SetCurrentHP(const float NewCurrentHP)
+	{
+		CurrentHP = FMath::Clamp(NewCurrentHP, 0.0f, GetMaxHP());
+		OnRep_CurrentHP();
+	}
+	
 private:
-	UPROPERTY(Transient, EditAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentHP, Category = "UPF|Stat", Meta = (AllowPrivateAccess = true))
-	FGameplayAttributeData CurrentHP;	// 현재 체력
+	UPROPERTY(Transient, EditAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentHP, Meta = (AllowPrivateAccess = true))
+	float CurrentHP;	// 현재 체력
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_MaxHP, Category = "UPF|Stat", Meta = (AllowPrivateAccess = true))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_MaxHP, Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData MaxHP;	// 최대 체력
 
-	bool bIsOnHPZeroInvoked;
-	float PrevHP = 0.0f;
-	float PrevMaxHP = 0.0f;
+	mutable bool bIsOnHPZeroInvoked;
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
-	virtual bool PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 	
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
@@ -53,8 +59,13 @@ protected:
 	void ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const;
 	
 	UFUNCTION()
-	void OnRep_CurrentHP(const FGameplayAttributeData& OldValue);
+	void OnRep_CurrentHP() const;
 
 	UFUNCTION()
 	void OnRep_MaxHP(const FGameplayAttributeData& OldValue);
+
+private:
+	// HP 에 입어야 할 데미지 값
+	UPROPERTY(Transient, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
+	FGameplayAttributeData Damage;
 };

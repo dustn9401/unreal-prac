@@ -36,8 +36,6 @@ void UUPFDamageExecution::Execute_Implementation(const FGameplayEffectCustomExec
 {
 	Super::Execute_Implementation(ExecutionParams, OutExecutionOutput);
 
-	// UE_LOG(LogTemp, Log, TEXT("UUPFDamageExecution::Execute_Implementation"));
-
 	const FGameplayEffectSpec& Spec = ExecutionParams.GetOwningSpec();
 	const FGameplayTagContainer* SourceTags = Spec.CapturedSourceTags.GetAggregatedTags();
 	const FGameplayTagContainer* TargetTags = Spec.CapturedTargetTags.GetAggregatedTags();
@@ -60,6 +58,6 @@ void UUPFDamageExecution::Execute_Implementation(const FGameplayEffectCustomExec
 
 	if (const float FinalDamage = FMath::Max(0.0f, BaseDamage * MultiplierByDefense); FinalDamage > 0.0f)
 	{
-		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(UUPFHPSet::GetCurrentHPAttribute(), EGameplayModOp::Additive, -FinalDamage));
+		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(UUPFHPSet::GetDamageAttribute(), EGameplayModOp::Additive, FinalDamage));
 	}
 }

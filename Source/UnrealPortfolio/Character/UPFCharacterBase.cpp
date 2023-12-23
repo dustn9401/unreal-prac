@@ -157,7 +157,7 @@ void AUPFCharacterBase::SetData_ServerOnly(UUPFCharacterData* InData)
 		->InitAttributeSetDefaults(AbilitySystemComponent, GetStatGroup(), 1, true);
 	
 	// CurrentHP 값은 테이블에 없기 때문에, 여기서 MaxHP값으로 초기화
-	HPSet->InitCurrentHP(HPSet->GetMaxHP());
+	HPSet->SetCurrentHP(HPSet->GetMaxHP());
 }
 
 void AUPFCharacterBase::OnMeleeAttackAnimationHit()

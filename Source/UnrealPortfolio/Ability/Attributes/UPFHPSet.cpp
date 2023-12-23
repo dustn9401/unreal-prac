@@ -7,7 +7,7 @@
 #include "UnrealPortfolio.h"
 #include "Net/UnrealNetwork.h"
 
-UUPFHPSet::UUPFHPSet()
+UUPFHPSet::UUPFHPSet(): CurrentHP(0), MaxHP(1.0f)
 {
 	bIsOnHPZeroInvoked = false;
 }
@@ -23,18 +23,8 @@ void UUPFHPSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetim
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION_NOTIFY(UUPFHPSet, CurrentHP, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME(UUPFHPSet, CurrentHP);
 	DOREPLIFETIME_CONDITION_NOTIFY(UUPFHPSet, MaxHP, COND_None, REPNOTIFY_Always);
-}
-
-bool UUPFHPSet::PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data)
-{
-	// 서버전용
-	// UPF_LOG_ATTRIBUTE(LogTemp, Log, TEXT("Called"));
-	PrevHP = GetCurrentHP();
-	PrevMaxHP = GetMaxHP();
-	
-	return Super::PreGameplayEffectExecute(Data);
 }
 
 void UUPFHPSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
@@ -42,16 +32,23 @@ void UUPFHPSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& 
 	// 서버전용
 	Super::PostGameplayEffectExecute(Data);
 
-	if (Data.EvaluatedData.Attribute == GetCurrentHPAttribute())
+	const FGameplayAttribute& Attr = Data.EvaluatedData.Attribute;
+
+	if (Attr == GetDamageAttribute())
 	{
-		OnCurrentHPChanged.Broadcast(GetCurrentHP(), GetMaxHP());
+		SetCurrentHP(CurrentHP - GetDamage());
+		SetDamage(0.0f);
 	}
-	else if (Data.EvaluatedData.Attribute == GetMaxHPAttribute())
+	else if (Attr == GetMaxHPAttribute())
 	{
-		OnMaxHPChanged.Broadcast(GetCurrentHP(), GetMaxHP());
+		OnMaxHPChanged.Broadcast(CurrentHP, GetMaxHP());
+	}
+	else
+	{
+		UPF_LOG_ATTRIBUTE(LogTemp, Error, TEXT("허용되지 않은 Attribute: %s"), *Attr.GetName());
 	}
 
-	if (!bIsOnHPZeroInvoked && GetCurrentHP() <= 0.0f)
+	if (!bIsOnHPZeroInvoked && CurrentHP <= 0.0f)
 	{
 		bIsOnHPZeroInvoked = true;
 		OnHPZero.Broadcast();
@@ -68,23 +65,17 @@ void UUPFHPSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& N
 
 void UUPFHPSet::ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const
 {
-	if (Attribute == GetCurrentHPAttribute())
-	{
-		NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxHP());
-	}
-	else if (Attribute == GetMaxHPAttribute())
+	if (Attribute == GetMaxHPAttribute())
 	{
 		NewValue = FMath::Max(NewValue, 1.0f);
 	}
 }
 
-void UUPFHPSet::OnRep_CurrentHP(const FGameplayAttributeData& OldValue)
+void UUPFHPSet::OnRep_CurrentHP() const
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UUPFHPSet, CurrentHP, OldValue);
-	
-	OnCurrentHPChanged.Broadcast(GetCurrentHP(), GetMaxHP());
+	OnCurrentHPChanged.Broadcast(CurrentHP, GetMaxHP());
 
-	if (!bIsOnHPZeroInvoked && GetCurrentHP() <= 0.0f)
+	if (!bIsOnHPZeroInvoked && CurrentHP <= 0.0f)
 	{
 		bIsOnHPZeroInvoked = true;
 		OnHPZero.Broadcast();
@@ -95,5 +86,5 @@ void UUPFHPSet::OnRep_MaxHP(const FGameplayAttributeData& OldValue)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UUPFHPSet, MaxHP, OldValue);
 	
-	OnMaxHPChanged.Broadcast(GetCurrentHP(), GetMaxHP());
+	OnMaxHPChanged.Broadcast(CurrentHP, GetMaxHP());
 }
