@@ -4,6 +4,7 @@
 #include "Ability/GameplayAbilities/UPFGameplayAbility_FireWeapon.h"
 
 #include "AbilitySystemComponent.h"
+#include "AbilitySystemLog.h"
 #include "AIController.h"
 #include "AIController.h"
 #include "UnrealPortfolio.h"
@@ -66,18 +67,6 @@ bool UUPFGameplayAbility_FireWeapon::CanActivateAbility(const FGameplayAbilitySp
 void UUPFGameplayAbility_FireWeapon::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
 	const FGameplayEventData* TriggerEventData)
 {
-	if (IsLocallyControlled())
-	{
-		// 로컬에서 발사 계산 수행 후 TargetDataReadyCallback 을 직접 호출한다.
-		StartRangedWeaponTargeting(ActorInfo);
-	}
-	else
-	{
-		// 나머지는 TargetData 가 Set 될때의 이벤트를 등록한다.
-		ActorInfo->AbilitySystemComponent->AbilityTargetDataSetDelegate(Handle, ActivationInfo.GetActivationPredictionKey())
-			.AddUObject(this, &UUPFGameplayAbility_FireWeapon::OnTargetDataReadyCallback);
-	}
-
 	// 애니메이션 재생
 	ActorInfo->AbilitySystemComponent->PlayMontage(this, ActivationInfo, FireMontage, 1.0f);
 
@@ -94,10 +83,34 @@ void UUPFGameplayAbility_FireWeapon::ActivateAbility(const FGameplayAbilitySpecH
 	UAbilityTask_WaitDelay* Task = UAbilityTask_WaitDelay::WaitDelay(this, WeaponInstance->GetFireDelay());
 	Task->OnFinish.AddDynamic(this, &UUPFGameplayAbility_FireWeapon::OnFinishWait);
 	Task->ReadyForActivation();
+	
+	if (IsLocallyControlled())
+	{
+		// 로컬에서만 Trace 수행 후 서버에 Set TargetData 요청을 보낸다.
+		StartRangedWeaponTargeting(ActorInfo);
+	}
+	else
+	{
+		// 나머지는 TargetData 가 Set 될때의 이벤트를 등록한다.
+		OnTargetDataReadyCallbackDelegateHandle = ActorInfo->AbilitySystemComponent->AbilityTargetDataSetDelegate(Handle, ActivationInfo.GetActivationPredictionKey())
+			.AddUObject(this, &UUPFGameplayAbility_FireWeapon::OnTargetDataReadyCallback);
+	}
 }
 
 void UUPFGameplayAbility_FireWeapon::OnFinishWait()
 {
+	if (!IsEndAbilityValid(CurrentSpecHandle, CurrentActorInfo)) return;
+
+	constexpr bool bReplicateEndAbility = false;
+	constexpr bool bWasCancelled = false;
+
+	if (ScopeLockCount > 0)
+	{
+		UE_LOG(LogAbilitySystem, Verbose, TEXT("Attempting to end Ability %s but ScopeLockCount was greater than 0, adding end to the WaitingToExecute Array"), *GetName());
+		WaitingToExecute.Add(FPostLockDelegate::CreateUObject(this, &UUPFGameplayAbility_FireWeapon::OnFinishWait));
+		return;
+	}
+	
 	if (ensure(CurrentActorInfo))
 	{
 		// 이동속도 제한 복구
@@ -105,9 +118,21 @@ void UUPFGameplayAbility_FireWeapon::OnFinishWait()
 		{
 			CharacterMovementComponent->MaxWalkSpeed = MaxWalkSpeedCache;
 		}
+
+
+		// Target Set Delegate 바인딩 제거
+		if (OnTargetDataReadyCallbackDelegateHandle.IsValid())
+		{
+			UAbilitySystemComponent* ASC = CurrentActorInfo->AbilitySystemComponent.Get();
+			check(ASC);
+			
+			ASC->AbilityTargetDataSetDelegate(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey()).Remove(OnTargetDataReadyCallbackDelegateHandle);
+			ASC->ConsumeClientReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
+			OnTargetDataReadyCallbackDelegateHandle.Reset();
+		}
 	}
 	
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
 int32 UUPFGameplayAbility_FireWeapon::FindFirstPawnHitResult(const TArray<FHitResult>& HitResults)
@@ -138,23 +163,15 @@ void UUPFGameplayAbility_FireWeapon::StartRangedWeaponTargeting(const FGameplayA
 {
 	check(ActorInfo);
 	
-	UAbilitySystemComponent* MyAbilityComponent = ActorInfo->AbilitySystemComponent.Get();
-	check(MyAbilityComponent);
-
-
-	FScopedPredictionWindow ScopedPrediction(MyAbilityComponent, CurrentActivationInfo.GetActivationPredictionKey());
+	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+	check(ASC);
+	
+	FScopedPredictionWindow ScopedPrediction(ASC, CurrentActivationInfo.GetActivationPredictionKey());
 
 	TArray<FHitResult> FoundHits;
 	PerformLocalTargeting(/*out*/ FoundHits);
-
-	AController* Controller = GetControllerFromActorInfoRecursive();
-	check(Controller);
-	UUPFWeaponStateComponent* WeaponStateComponent = Controller->FindComponentByClass<UUPFWeaponStateComponent>();
 	
-	// Fill out the target data from the hit results
 	FGameplayAbilityTargetDataHandle TargetData;
-	TargetData.UniqueId = WeaponStateComponent ? WeaponStateComponent->GetUnconfirmedServerSideHitMarkerCount() : 0;
-
 	if (FoundHits.Num() > 0)
 	{
 		for (const FHitResult& FoundHit : FoundHits)
@@ -166,8 +183,16 @@ void UUPFGameplayAbility_FireWeapon::StartRangedWeaponTargeting(const FGameplayA
 		}
 	}
 
-	// Process the target data immediately
-	OnTargetDataReadyCallback(TargetData, FGameplayTag());
+	const FGameplayTag ApplicationTag = FGameplayTag::EmptyTag;
+	
+	// 로컬 컨트롤러는 Callback 을 즉시 호출
+	OnTargetDataReadyCallback(TargetData, ApplicationTag);
+	
+	// 로컬컨트롤러가 서버가 아닌 경우, 데미지의 실제 적용은 서버의 OnTargetDataReadyCallback() 에서 이루어짐
+	if (!ActorInfo->IsNetAuthority())
+	{
+		ASC->CallServerSetReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey(), TargetData, ApplicationTag, ASC->ScopedPredictionKey);
+	}
 }
 
 FHitResult UUPFGameplayAbility_FireWeapon::WeaponTrace(const FVector& StartTrace, const FVector& EndTrace, float SweepRadius, bool bIsSimulated, TArray<FHitResult>& OutHitResults) const
@@ -411,8 +436,6 @@ FVector UUPFGameplayAbility_FireWeapon::GetWeaponTargetingSourceLocation() const
 FTransform UUPFGameplayAbility_FireWeapon::GetTargetingTransform(APawn* SourcePawn, EUPFAbilityTargetingSource Source) const
 {
 	check(SourcePawn);
-	AController* SourcePawnController = SourcePawn->GetController(); 
-	UUPFWeaponStateComponent* WeaponStateComponent = (SourcePawnController != nullptr) ? SourcePawnController->FindComponentByClass<UUPFWeaponStateComponent>() : nullptr;
 
 	// The caller should determine the transform without calling this if the mode is custom!
 	check(Source != EUPFAbilityTargetingSource::Custom);
@@ -493,83 +516,38 @@ FTransform UUPFGameplayAbility_FireWeapon::GetTargetingTransform(APawn* SourcePa
 
 void UUPFGameplayAbility_FireWeapon::OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData, FGameplayTag ApplicationTag)
 {
-	UPF_LOG_ABILITY(LogTemp, Log, TEXT("InData Num: %d"), InData.Num());
-	UAbilitySystemComponent* MyAbilityComponent = CurrentActorInfo->AbilitySystemComponent.Get();
-	check(MyAbilityComponent);
+	UAbilitySystemComponent* ASC = CurrentActorInfo->AbilitySystemComponent.Get();
+	check(ASC);
+	
+	FScopedPredictionWindow	ScopedPrediction(ASC);
 
-	if (const FGameplayAbilitySpec* AbilitySpec = MyAbilityComponent->FindAbilitySpecFromHandle(CurrentSpecHandle))
+	// Take ownership of the target data to make sure no callbacks into game code invalidate it out from under us
+	// todo: 둘의 차이?
+	// FGameplayAbilityTargetDataHandle LocalTargetDataHandle(MoveTemp(const_cast<FGameplayAbilityTargetDataHandle&>(InData)));
+	FGameplayAbilityTargetDataHandle LocalTargetDataHandle = const_cast<FGameplayAbilityTargetDataHandle&&>(InData);
+	
+	if (CommitAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo))
 	{
-		FScopedPredictionWindow	ScopedPrediction(MyAbilityComponent);
+		// 탄 퍼짐 적용
+		AUPFRangedWeaponInstance* WeaponInst = GetWeaponInstance();
+		check(WeaponInst);
+		WeaponInst->AddSpread();
 
-		// Take ownership of the target data to make sure no callbacks into game code invalidate it out from under us
-		FGameplayAbilityTargetDataHandle LocalTargetDataHandle(MoveTemp(const_cast<FGameplayAbilityTargetDataHandle&>(InData)));
+		// 무기에서 발생하는 sfx 및 particle 적용
+		WeaponInst->OnFire();
 
-		const bool bShouldNotifyServer = CurrentActorInfo->IsLocallyControlled() && !CurrentActorInfo->IsNetAuthority();
-		if (bShouldNotifyServer)
+		// 데미지 적용
+		if (HasAuthority(&CurrentActivationInfo))
 		{
-			MyAbilityComponent->CallServerSetReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey(), LocalTargetDataHandle, ApplicationTag, MyAbilityComponent->ScopedPredictionKey);
+			// ReSharper disable once CppExpressionWithoutSideEffects
+			ApplyGameplayEffectToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, LocalTargetDataHandle, DamageEffectClass, 1.0f);
 		}
-
-		const bool bIsTargetDataValid = true;
-
-		bool bProjectileWeapon = false;
-
-#if WITH_SERVER_CODE
-		if (!bProjectileWeapon)
-		{
-			if (AController* Controller = GetControllerFromActorInfoRecursive())
-			{
-				if (Controller->HasAuthority())
-				{
-					// Confirm hit markers
-					if (UUPFWeaponStateComponent* WeaponStateComponent = Controller->FindComponentByClass<UUPFWeaponStateComponent>())
-					{
-						TArray<uint8> HitReplaces;
-						for (uint8 i = 0; (i < LocalTargetDataHandle.Num()) && (i < 255); ++i)
-						{
-							if (FGameplayAbilityTargetData_SingleTargetHit* SingleTargetHit = static_cast<FGameplayAbilityTargetData_SingleTargetHit*>(LocalTargetDataHandle.Get(i)))
-							{
-								
-								if (SingleTargetHit->bHitReplaced)
-								{
-									HitReplaces.Add(i);
-								}
-							}
-						}
-
-						WeaponStateComponent->ClientConfirmTargetData(LocalTargetDataHandle.UniqueId, bIsTargetDataValid, HitReplaces);
-					}
-
-				}
-			}
-		}
-#endif //WITH_SERVER_CODE
-
-
-		// See if we still have ammo
-		if (bIsTargetDataValid && CommitAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo))
-		{
-			// 탄 퍼짐 적용
-			AUPFRangedWeaponInstance* WeaponInst = GetWeaponInstance();
-			check(WeaponInst);
-			WeaponInst->AddSpread();
-
-			// 무기에서 발생하는 sfx 및 particle 적용
-			WeaponInst->OnFire();
-
-			// 데미지 적용
-			if (HasAuthority(&CurrentActivationInfo))
-			{
-				// ReSharper disable once CppExpressionWithoutSideEffects
-				ApplyGameplayEffectToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, LocalTargetDataHandle, DamageEffectClass, 1.0f);
-			}
-		}
-		else
-		{
-			K2_EndAbility();
-		}
+		
+		ASC->ConsumeClientReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
 	}
-
-	// We've processed the data
-	MyAbilityComponent->ConsumeClientReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
+	else
+	{
+		UPF_LOG_ABILITY(LogTemp, Error, TEXT("CommitAbility() return false!!"));
+		OnFinishWait();
+	}
 }

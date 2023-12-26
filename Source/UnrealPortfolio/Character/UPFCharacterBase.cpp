@@ -104,16 +104,11 @@ AUPFCharacterBase::AUPFCharacterBase(const FObjectInitializer& ObjectInitializer
 	EquipmentComponent->SetIsReplicated(true);
 
 	bIsAiming = false;
-
-	bReplicateUsingRegisteredSubObjectList = true;
 }
 
 void AUPFCharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-
-	// 여기서 IsLocallyControlled 가 항상 false임에 주의
-	UPF_LOG(LogTemp, Log, TEXT("Called, %s, IsLocallyControlled = %d"), *GetName(), IsLocallyControlled());
 
 	if (HasAuthority())
 	{

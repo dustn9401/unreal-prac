@@ -9,6 +9,7 @@
 #include "Character/UPFCharacterBase.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/UPFCharacterEquipmentComponent.h"
+#include "Components/UPFWeaponStateComponent.h"
 #include "DataAssets/ComboAttackData.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/GameStateBase.h"
@@ -51,26 +52,42 @@ void UUPFGameplayAbility_MeleeAttack::ActivateAbility(const FGameplayAbilitySpec
 	// 콤보관련 변수 초기화
 	CurrentCombo = 1;
 	ComboTimer.Invalidate();
-
-	// 몽타주 재생 중에는 이동을 막는다.
-	if (UCharacterMovementComponent* CMC = Cast<UCharacterMovementComponent>(ActorInfo->MovementComponent))
-	{
-		CMC->SetMovementMode(MOVE_None);
-	}
 	
 	CommitAbility(Handle, ActorInfo, ActivationInfo);
 	
 	// 몽타주 실행
 	const TWeakObjectPtr<UAbilitySystemComponent> ASC = ActorInfo->AbilitySystemComponent;
 	ASC->PlayMontage(this, ActivationInfo, ComboAttackData->Montage, 1.0f);
-	
-	// 몽타주 종료 콜백
-	FOnMontageEnded EndDelegate;
-	EndDelegate.BindUObject(this, &UUPFGameplayAbility_MeleeAttack::OnMontageEnd);
-	ActorInfo->GetAnimInstance()->Montage_SetEndDelegate(EndDelegate, ComboAttackData->Montage);
 
-	// 첫 콤보 체크 타이머는 수동으로 호출
-	SetNextComboTimerIfPossible();
+	// 어빌리티가 종료되는 시점은 로컬 컨트롤러에 의해 달라지기 때문에, EndAbility 는 로컬에서만 호출한다.
+	if (IsLocallyControlled())
+	{
+		// 몽타주 재생 중에는 이동을 막는다.
+		if (UCharacterMovementComponent* CMC = Cast<UCharacterMovementComponent>(ActorInfo->MovementComponent))
+		{
+			CMC->SetMovementMode(MOVE_None);
+		}
+		
+		// 몽타주 종료 콜백
+		FOnMontageEnded EndDelegate;
+		EndDelegate.BindUObject(this, &UUPFGameplayAbility_MeleeAttack::OnMontageEnd);
+		ActorInfo->GetAnimInstance()->Montage_SetEndDelegate(EndDelegate, ComboAttackData->Montage);
+
+		// 첫 콤보 체크 타이머는 수동으로 호출
+		SetNextComboTimerIfPossible();
+	}
+
+	// Target Data Set Delegate
+	ASC->AbilityTargetDataSetDelegate(Handle, ActivationInfo.GetActivationPredictionKey())
+		.AddUObject(this, &UUPFGameplayAbility_MeleeAttack::OnTargetDataReadyCallback);
+}
+
+void UUPFGameplayAbility_MeleeAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+	bool bReplicateEndAbility, bool bWasCancelled)
+{
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+
+	CurrentCombo = 0;
 }
 
 void UUPFGameplayAbility_MeleeAttack::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
@@ -85,15 +102,16 @@ void UUPFGameplayAbility_MeleeAttack::InputPressed(const FGameplayAbilitySpecHan
 
 void UUPFGameplayAbility_MeleeAttack::ProcessNextCombo()
 {
+	if (!ensure(CurrentActorInfo && CurrentActorInfo->AbilitySystemComponent.IsValid())) return;
 	
 	CurrentCombo = FMath::Clamp(CurrentCombo + 1, 1, ComboAttackData->MaxComboCount);
 	const FName NextSectionName = *FString::Printf(TEXT("Combo%d"), CurrentCombo - 1);
 
-	UAnimInstance* AnimInst = CurrentActorInfo->GetAnimInstance();
-	check(AnimInst);
+	// 로컬 컨트롤러에서만 호출되는 함수이기 때문에, 현재 몽타주가 실행중임이 보장되어야 함
+	if (!ensure(GetCurrentMontage() == ComboAttackData->Montage)) return;
 	
 	// 현재 콤보의 남은 애니메이션을 생략하고 다음콤보로 바로 이동
-	AnimInst->Montage_JumpToSection(NextSectionName, ComboAttackData->Montage);
+	CurrentActorInfo->AbilitySystemComponent->CurrentMontageJumpToSection(NextSectionName);
 		
 	SetNextComboTimerIfPossible();
 }
@@ -104,8 +122,6 @@ void UUPFGameplayAbility_MeleeAttack::OnMontageEnd(UAnimMontage* TargetMontage, 
 	{
 		CMC->SetMovementMode(MOVE_Walking);
 	}
-
-	CurrentCombo = 0;
 	
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
@@ -136,11 +152,14 @@ void UUPFGameplayAbility_MeleeAttack::SetNextComboTimerIfPossible()
 
 void UUPFGameplayAbility_MeleeAttack::OnAnimNotify()
 {
-	// 로컬 컨트롤러에 의해 호출되는 함수
+	// 로컬 컨트롤러 에서만 호출되는 함수
 	// 이 함수에서 콜리전 Hit 계산을 수행한 뒤, 서버 RPC를 호출한다.
 	
-	AUPFCharacterBase* Instigator = Cast<AUPFCharacterBase>(CurrentActorInfo->OwnerActor);
-	check(Instigator);
+	if (!ensure(CurrentActorInfo->IsLocallyControlled())) return;
+	check(CurrentActorInfo && CurrentActorInfo->OwnerActor.IsValid() && CurrentActorInfo->AbilitySystemComponent.IsValid());
+
+	UAbilitySystemComponent* ASC = CurrentActorInfo->AbilitySystemComponent.Get();
+	AUPFCharacterBase* Instigator = CastChecked<AUPFCharacterBase>(CurrentActorInfo->OwnerActor);
 	
 	TArray<FHitResult> OutHitResults;
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, Instigator);
@@ -158,77 +177,39 @@ void UUPFGameplayAbility_MeleeAttack::OnAnimNotify()
 	// 근접공격은 여러명 타격 가능
 	bool HitDetected = GetWorld()-> SweepMultiByChannel(OutHitResults, Start, End, FQuat::Identity, CCHANNEL_UPFACTION, FCollisionShape::MakeSphere(AttackRadius), Params);
 	float HitCheckTime = GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
+
+	AController* Controller = GetControllerFromActorInfoRecursive();
+	check(Controller);
+	UUPFWeaponStateComponent* WeaponStateComponent = Controller->FindComponentByClass<UUPFWeaponStateComponent>();
+
+	FGameplayAbilityTargetDataHandle TargetData;
+	TargetData.UniqueId = WeaponStateComponent ? WeaponStateComponent->GetUnconfirmedServerSideHitMarkerCount() : 0;
+	
+	if (OutHitResults.Num() > 0)
+	{
+		for (const FHitResult& FoundHit : OutHitResults)
+		{
+			FGameplayAbilityTargetData_SingleTargetHit* NewTargetData = new FGameplayAbilityTargetData_SingleTargetHit();
+			NewTargetData->HitResult = FoundHit;
+
+			TargetData.Add(NewTargetData);
+		}
+	}
 		
 	// 클라이언트인 경우, 서버에 검증을 받기 위해 Server RPC 함수 호출
-	if (!Instigator->HasAuthority())
+	FScopedPredictionWindow ScopedPrediction(ASC);
+	if (!CurrentActorInfo->IsNetAuthority())
 	{
-		if (HitDetected)
-		{
-			ServerRPCNotifyHit(OutHitResults, HitCheckTime);
-		}
-		else
-		{
-			ServerRPCNotifyMiss(Start, End, Forward, HitCheckTime);
-		}
+		ASC->CallServerSetReplicatedTargetData(CurrentSpecHandle,
+			CurrentActivationInfo.GetActivationPredictionKey(),
+			TargetData,
+			FGameplayTag::EmptyTag,
+			ASC->ScopedPredictionKey/*CurrentActivationInfo.GetActivationPredictionKey()*/);
 	}
-	// 서버의 경우, 바로 Confirm 함수 호출
 	else
 	{
-		if (HitDetected)
-		{
-			for(const auto& HitResult : OutHitResults)
-			{
-				HitConfirm(HitResult);
-			}
-		}
-		else
-		{
-				
-		}
+		ASC->ServerSetReplicatedTargetData()
 	}
-}
-
-void UUPFGameplayAbility_MeleeAttack::ServerRPCNotifyHit_Implementation(const TArray<FHitResult>& OutHitResults, float HitCheckTime)
-{
-	constexpr float AcceptCheckDistance = 300.0f;	// 허용 가능한 최대 근접 공격 거리
-
-	for(const auto& HitResult : OutHitResults)
-	{
-		AActor* HitActor = HitResult.GetActor();
-		if (!::IsValid(HitActor)) continue;
-
-		const FVector HitLocation = HitResult.Location;
-		const FBox HitBox = HitActor->GetComponentsBoundingBox();
-		const FVector ActorBoxCenter = HitBox.GetCenter();
-		if (FVector::DistSquared(HitLocation, ActorBoxCenter) <= AcceptCheckDistance * AcceptCheckDistance)
-		{
-			HitConfirm(HitResult);
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("HitTest Rejected!"));
-		}
-
-#if ENABLE_DRAW_DEBUG
-		DrawDebugPoint(GetWorld(), ActorBoxCenter, 50.0f, FColor::Cyan, false, 5.0f);
-		DrawDebugPoint(GetWorld(), HitLocation, 50.0f, FColor::Magenta, false, 5.0f);
-#endif
-		
-	}
-}
-
-bool UUPFGameplayAbility_MeleeAttack::ServerRPCNotifyHit_Validate(const TArray<FHitResult>& OutHitResults, float HitCheckTime)
-{
-	return true;
-}
-
-void UUPFGameplayAbility_MeleeAttack::ServerRPCNotifyMiss_Implementation(FVector_NetQuantize TraceStart, FVector_NetQuantize TraceEnd, FVector_NetQuantizeNormal TraceDir, float HitCheckTime)
-{
-}
-
-bool UUPFGameplayAbility_MeleeAttack::ServerRPCNotifyMiss_Validate(FVector_NetQuantize TraceStart, FVector_NetQuantize TraceEnd, FVector_NetQuantizeNormal TraceDir, float HitCheckTime)
-{
-	return true;
 }
 
 void UUPFGameplayAbility_MeleeAttack::HitConfirm(const FHitResult& HitResult)
@@ -259,4 +240,8 @@ void UUPFGameplayAbility_MeleeAttack::HitConfirm(const FHitResult& HitResult)
 		// FDamageEvent DamageEvent;
 		// HitActor->TakeDamage(AttackDamage, DamageEvent, GetController(), this);
 	}
+}
+
+void UUPFGameplayAbility_MeleeAttack::OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData, FGameplayTag ApplicationTag)
+{
 }

@@ -22,6 +22,8 @@ public:
 	
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+
 	// 어빌리티 발동 중 인풋 들어왔을때 호출되는 함수, 콤보 판정 처리
 	virtual void InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 
@@ -44,16 +46,11 @@ public:
 	void OnAnimNotify();
 
 protected:
-	// Hit 계산은 클라에서 이루어 지고, 서버에 HitResults를 보내 검증하기위한 함수
-	// 이 함수에서 검증 완료 된 HitResult를 대상으로 HitConfirm 함수를 호출해 줘야 실제로 데미지를 입히기 위한 GameplayEffect 로직이 진행됨
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerRPCNotifyHit(const TArray<FHitResult>& OutHitResults, float HitCheckTime);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerRPCNotifyMiss(FVector_NetQuantize TraceStart, FVector_NetQuantize TraceEnd, FVector_NetQuantizeNormal TraceDir, float HitCheckTime);
-
 	// 서버에서 ServerRPCNotifyHit 함수를 통해 검증 완료 된 HitResult를 대상으로 Effect 적용
 	void HitConfirm(const FHitResult& HitResult);
+
+	void OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData, FGameplayTag ApplicationTag);
+	
 
 	float AttackTime = 1.4667f;
 	float LastAttackStartTime = 0.0f;	// 마지막으로 공격한 시간 기록용

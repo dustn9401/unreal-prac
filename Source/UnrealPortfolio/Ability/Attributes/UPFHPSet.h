@@ -36,6 +36,7 @@ public:
 	
 	FORCEINLINE void SetCurrentHP(const float NewCurrentHP)
 	{
+		if (FMath::IsNearlyEqual(CurrentHP, NewCurrentHP)) return;
 		CurrentHP = FMath::Clamp(NewCurrentHP, 0.0f, GetMaxHP());
 		OnRep_CurrentHP();
 	}
@@ -46,6 +47,11 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_MaxHP, Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData MaxHP;	// 최대 체력
+	
+private:
+	// HP 에 입어야 할 데미지 값
+	UPROPERTY(Transient, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
+	FGameplayAttributeData Damage;
 
 	mutable bool bIsOnHPZeroInvoked;
 
@@ -63,9 +69,4 @@ protected:
 
 	UFUNCTION()
 	void OnRep_MaxHP(const FGameplayAttributeData& OldValue);
-
-private:
-	// HP 에 입어야 할 데미지 값
-	UPROPERTY(Transient, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
-	FGameplayAttributeData Damage;
 };

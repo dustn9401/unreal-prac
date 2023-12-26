@@ -33,7 +33,6 @@ void UUPFHPSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& 
 	Super::PostGameplayEffectExecute(Data);
 
 	const FGameplayAttribute& Attr = Data.EvaluatedData.Attribute;
-
 	if (Attr == GetDamageAttribute())
 	{
 		SetCurrentHP(CurrentHP - GetDamage());
