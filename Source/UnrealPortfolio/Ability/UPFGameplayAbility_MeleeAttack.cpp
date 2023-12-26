@@ -185,7 +185,7 @@ void UUPFGameplayAbility_MeleeAttack::OnAnimNotify()
 	FGameplayAbilityTargetDataHandle TargetData;
 	TargetData.UniqueId = WeaponStateComponent ? WeaponStateComponent->GetUnconfirmedServerSideHitMarkerCount() : 0;
 	
-	if (OutHitResults.Num() > 0)
+	if (HitDetected)
 	{
 		for (const FHitResult& FoundHit : OutHitResults)
 		{
@@ -208,7 +208,7 @@ void UUPFGameplayAbility_MeleeAttack::OnAnimNotify()
 	}
 	else
 	{
-		ASC->ServerSetReplicatedTargetData()
+		OnTargetDataReadyCallback(TargetData, FGameplayTag());
 	}
 }
 
