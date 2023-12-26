@@ -46,11 +46,9 @@ public:
 	void OnAnimNotify();
 
 protected:
-	// 서버에서 ServerRPCNotifyHit 함수를 통해 검증 완료 된 HitResult를 대상으로 Effect 적용
-	void HitConfirm(const FHitResult& HitResult);
-
 	void OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData, FGameplayTag ApplicationTag);
-	
+
+	FDelegateHandle TargetDataReadyDelegateHandle;
 
 	float AttackTime = 1.4667f;
 	float LastAttackStartTime = 0.0f;	// 마지막으로 공격한 시간 기록용
