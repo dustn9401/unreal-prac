@@ -178,7 +178,6 @@ void UUPFGameplayAbility_FireWeapon::StartRangedWeaponTargeting(const FGameplayA
 		{
 			FGameplayAbilityTargetData_SingleTargetHit* NewTargetData = new FGameplayAbilityTargetData_SingleTargetHit();
 			NewTargetData->HitResult = FoundHit;
-
 			TargetData.Add(NewTargetData);
 		}
 	}
@@ -540,7 +539,8 @@ void UUPFGameplayAbility_FireWeapon::OnTargetDataReadyCallback(const FGameplayAb
 		if (HasAuthority(&CurrentActivationInfo))
 		{
 			// ReSharper disable once CppExpressionWithoutSideEffects
-			ApplyGameplayEffectToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, LocalTargetDataHandle, DamageEffectClass, 1.0f);
+			ApplyGameplayEffectToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo,
+				LocalTargetDataHandle, DamageEffectClass, 1.0f);
 		}
 		
 		ASC->ConsumeClientReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
