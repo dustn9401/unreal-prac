@@ -7,6 +7,7 @@
 #include "Character/UPFCharacterBase.h"
 #include "Constants/UPFSocketNames.h"
 #include "Interface/CameraShakeHandler.h"
+#include "Net/UnrealNetwork.h"
 #include "Utility/UPFActorUtility.h"
 
 AUPFRangedWeaponInstance::AUPFRangedWeaponInstance()
@@ -70,4 +71,3 @@ void AUPFRangedWeaponInstance::OnFire()
 	
 	K2_OnFire();
 }
-

@@ -8,8 +8,38 @@
 #include "UPFRangedWeaponInstance.generated.h"
 
 class AUPFCharacterBase;
+
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnAmmoChangedDelegate, int32 /*MagazineAmmo*/, int32 /*ExtraAmmo*/)
+
+USTRUCT(BlueprintType)
+struct FUPFRangedWeaponAmmo
+{
+	GENERATED_BODY()
+
+public:
+	FUPFRangedWeaponAmmo(): MagazineAmmo(30), ExtraAmmo(300), MagazineSize(30), MaxExtraAmmo(300)
+	{
+	}
+
+	// 현재 탄창에 남은 탄약 수
+	UPROPERTY()
+	int32 MagazineAmmo;
+
+	// 여분 탄약 수
+	UPROPERTY()
+	int32 ExtraAmmo;
+	
+	// 탄창크기
+	UPROPERTY()
+	int32 MagazineSize;
+
+	// 소지 가능한 최대 여분 탄약 수
+	UPROPERTY()
+	int32 MaxExtraAmmo;
+};
+
 /**
- * 
+ * 월드애 존재하는 원거리 무기 인스턴스
  */
 UCLASS()
 class UNREALPORTFOLIO_API AUPFRangedWeaponInstance : public AUPFWeaponInstance
@@ -205,9 +235,27 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TSubclassOf<UCameraShakeBase> CameraShakeClass;
-	
 
 protected:
 	UFUNCTION(BlueprintImplementableEvent, DisplayName="OnFireCpp")
 	void K2_OnFire();
+
+// Ammo
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FUPFRangedWeaponAmmo Ammo;
+
+public:
+	FORCEINLINE int32 GetMagazineAmmo() const
+	{
+		return Ammo.MagazineAmmo;
+	}
+	
+	void ConsumeAmmo(const int32 HowMany)
+	{
+		Ammo.MagazineAmmo = FMath::Clamp(Ammo.MagazineAmmo - HowMany, 0, Ammo.MagazineSize);
+		OnAmmoChanged.Broadcast(Ammo.MagazineAmmo, Ammo.ExtraAmmo);
+	}
+
+	FOnAmmoChangedDelegate OnAmmoChanged;
 };

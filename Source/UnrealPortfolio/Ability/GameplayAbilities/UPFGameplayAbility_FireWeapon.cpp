@@ -54,12 +54,13 @@ bool UUPFGameplayAbility_FireWeapon::CanActivateAbility(const FGameplayAbilitySp
 		return false;
 	}
 
-	if (!GetWeaponInstance())
+	AUPFRangedWeaponInstance* WeaponInstance = GetWeaponInstance();
+	if (WeaponInstance == nullptr)
 	{
 		return false;
 	}
-	
-	return true;
+
+	return WeaponInstance->GetMagazineAmmo() > 0;
 }
 
 void UUPFGameplayAbility_FireWeapon::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
@@ -93,6 +94,24 @@ void UUPFGameplayAbility_FireWeapon::ActivateAbility(const FGameplayAbilitySpecH
 		OnTargetDataReadyCallbackDelegateHandle = ActorInfo->AbilitySystemComponent->AbilityTargetDataSetDelegate(Handle, ActivationInfo.GetActivationPredictionKey())
 			.AddUObject(this, &UUPFGameplayAbility_FireWeapon::OnTargetDataReadyCallback);
 	}
+}
+
+bool UUPFGameplayAbility_FireWeapon::CommitAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+	FGameplayTagContainer* OptionalRelevantTags)
+{
+	if (!Super::CommitAbility(Handle, ActorInfo, ActivationInfo, OptionalRelevantTags))
+	{
+		return false;
+	}
+
+	AUPFRangedWeaponInstance* WeaponInstance = GetWeaponInstance();
+	if (WeaponInstance == nullptr) return false;
+	if (WeaponInstance->GetMagazineAmmo() <= 0) return false;
+	
+	WeaponInstance->ConsumeAmmo(1);
+	UPF_LOG_ABILITY(LogTemp, Log, TEXT("GetMagazineAmmo() = %d"), WeaponInstance->GetMagazineAmmo());
+	
+	return true;
 }
 
 void UUPFGameplayAbility_FireWeapon::OnFinishWait()
