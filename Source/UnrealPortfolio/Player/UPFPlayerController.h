@@ -21,6 +21,15 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category=Game, DisplayName="OnGameOverCpp")
 	void K2_OnGameOver();
 
+	UFUNCTION(BlueprintImplementableEvent, Category=Game, DisplayName="OnGameClearCpp")
+	void K2_OnGameClear();
+
+	UFUNCTION(BlueprintCallable)
+	void Respawn();
+
+	UFUNCTION(BlueprintCallable)
+	void QuitLevel();
+
 // ICameraShakeHandler Impl
 public:
 	virtual void PlayCameraShake(const TSubclassOf<UCameraShakeBase> CameraShakeClass) override;

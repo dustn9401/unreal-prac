@@ -8,6 +8,16 @@ AUPFPlayerController::AUPFPlayerController()
 
 }
 
+void AUPFPlayerController::Respawn()
+{
+	ServerRestartPlayer();
+}
+
+void AUPFPlayerController::QuitLevel()
+{
+	// todo
+}
+
 void AUPFPlayerController::PlayCameraShake(const TSubclassOf<UCameraShakeBase> CameraShakeClass)
 {
 	if (!ensure(PlayerCameraManager)) return;
