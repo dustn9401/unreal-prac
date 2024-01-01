@@ -62,18 +62,6 @@ bool UUPFGameplayAbility_FireWeapon::CanActivateAbility(const FGameplayAbilitySp
 	return true;
 }
 
-bool UUPFGameplayAbility_FireWeapon::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
-{
-	if (!Super::CheckCost(Handle, ActorInfo, OptionalRelevantTags)) return false;
-
-	AUPFRangedWeaponInstance* WeaponInstance = GetWeaponInstance();
-	if (WeaponInstance == nullptr) return false;
-
-	
-
-	return true;
-}
-
 void UUPFGameplayAbility_FireWeapon::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
                                                      const FGameplayEventData* TriggerEventData)
 {

@@ -106,8 +106,8 @@ void UUPFAbilitySet::GiveToAbilityComp(const IAbilitySystemInterface* ASCInterfa
 
 	for (const TSubclassOf<UAttributeSet> AttributeSetClass : Attributes)
 	{
-		UAttributeSet* NewSet = NewObject<UAttributeSet>(ASC, AttributeSetClass);
-		ASC->AddAttributeSetSubobject(NewSet);
+		UAttributeSet* NewSet = NewObject<UAttributeSet>(ASC->GetOwnerActor(), AttributeSetClass);	// Outer 를 ASC 로 주면 나중에 에러남
+		ASC->AddSpawnedAttribute(NewSet);
 
 		if (OutGrantData)
 		{

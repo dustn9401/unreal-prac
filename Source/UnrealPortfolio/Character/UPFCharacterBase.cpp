@@ -71,10 +71,6 @@ AUPFCharacterBase::AUPFCharacterBase(const FObjectInitializer& ObjectInitializer
 		DeadMontage = DeadMontageRef.Object;
 	}
 
-	// Character Stat, 이 포인터 변수들은 클라이언트에서 null이 된다.
-	HPSet = CreateDefaultSubobject<UUPFHPSet>(TEXT("HP"));
-	StatSet = CreateDefaultSubobject<UUPFStatSet>(TEXT("Stat"));
-
 	// Ability
 	AbilitySystemComponent = CreateDefaultSubobject<UUPFAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
@@ -125,10 +121,14 @@ void AUPFCharacterBase::BeginPlay()
 	// 위젯 초기화
 	HPBarWidgetComp->InitWidget();
 	UUPFHPBarWidget* HPBarWidget = CastChecked<UUPFHPBarWidget>(HPBarWidgetComp->GetWidget());
-	HPBarWidget->SetData(HPSet);
-	
-	HPSet->OnHPZero.AddUObject(this, &AUPFCharacterBase::OnHPZero);
-	HPSet->OnBeginPlay();
+
+	UUPFHPSet* HPSet = GetHPSet();
+	if (ensure(HPSet))
+	{
+		HPBarWidget->SetData(HPSet);
+		HPSet->OnHPZero.AddUObject(this, &AUPFCharacterBase::OnHPZero);
+		HPSet->OnBeginPlay();
+	}
 }
 
 bool AUPFCharacterBase::CanCrouch() const
@@ -152,7 +152,11 @@ void AUPFCharacterBase::SetData_ServerOnly(UUPFCharacterData* InData)
 		->InitAttributeSetDefaults(AbilitySystemComponent, GetStatGroup(), 1, true);
 	
 	// CurrentHP 값은 테이블에 없기 때문에, 여기서 MaxHP값으로 초기화
-	HPSet->SetCurrentHP(HPSet->GetMaxHP());
+	UUPFHPSet* HPSet = GetHPSet();
+	if (ensure(HPSet))
+	{
+		HPSet->SetCurrentHP(HPSet->GetMaxHP());
+	}
 }
 
 void AUPFCharacterBase::OnMeleeAttackAnimationHit()
@@ -169,6 +173,19 @@ void AUPFCharacterBase::OnMeleeAttackAnimationHit()
 UAbilitySystemComponent* AUPFCharacterBase::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
+}
+
+UUPFHPSet* AUPFCharacterBase::GetHPSet() const
+{
+	for(UAttributeSet* AttrSet :  AbilitySystemComponent->GetSpawnedAttributes())
+	{
+		if (AttrSet->GetClass() == UUPFHPSet::StaticClass())
+		{
+			return Cast<UUPFHPSet>(AttrSet);
+		}
+	}
+
+	return nullptr;
 }
 
 void AUPFCharacterBase::OnHPZero()
