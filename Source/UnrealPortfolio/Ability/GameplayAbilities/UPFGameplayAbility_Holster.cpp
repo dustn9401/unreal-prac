@@ -37,9 +37,9 @@ void UUPFGameplayAbility_Holster::ActivateAbility(const FGameplayAbilitySpecHand
 	ASC->PlayMontage(this, ActivationInfo, HolsterMontage, 1.0f);
 
 	// AnimNotify 에서 GameplayEvent 를 Owner Actor 에게 전송하면 EventReceived 가 브로드캐스트 됨
-	UAbilityTask_WaitGameplayEvent* Task = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, UPFGameplayTags::Ability_Active_Holster);
+	UAbilityTask_WaitGameplayEvent* Task = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
+		this, UPFGameplayTags::Ability_Active_Holster);
 	Task->EventReceived.AddDynamic(this, &UUPFGameplayAbility_Holster::OnEventReceived);
-	
 	Task->ReadyForActivation();
 }
 

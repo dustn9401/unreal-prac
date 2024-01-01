@@ -21,4 +21,7 @@ public:
 public:
 	void AbilityInputTagTriggered(FGameplayTag InputTag);
 	void AbilityInputTagCompleted(FGameplayTag InputTag);
+
+protected:
+	virtual void NotifyAbilityFailed(const FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason) override;
 };

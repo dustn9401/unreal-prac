@@ -137,7 +137,10 @@ FGuid AUPFCharacterPlayer::BindAbilitySetInput(const UUPFAbilitySet* AbilitySet)
 
 		{
 			const FEnhancedInputActionEventBinding& Binding = EIC->BindAction<UUPFAbilitySystemComponent, FGameplayTag>(
-				TriggerData.InputAction, ETriggerEvent::Triggered, AbilitySystemComponent, &UUPFAbilitySystemComponent::AbilityInputTagTriggered, TriggerData.InputTag);
+				TriggerData.InputAction, ETriggerEvent::Triggered,
+				AbilitySystemComponent,
+				&UUPFAbilitySystemComponent::AbilityInputTagTriggered,
+				TriggerData.InputTag);
 			AbilityInputBindingHandles.Add(GrantKey, Binding.GetHandle());
 		}
 		

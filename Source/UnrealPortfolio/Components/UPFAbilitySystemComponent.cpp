@@ -50,3 +50,8 @@ void UUPFAbilitySystemComponent::AbilityInputTagCompleted(const FGameplayTag Inp
 		}
 	}
 }
+
+void UUPFAbilitySystemComponent::NotifyAbilityFailed(const FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason)
+{
+	Super::NotifyAbilityFailed(Handle, Ability, FailureReason);
+}

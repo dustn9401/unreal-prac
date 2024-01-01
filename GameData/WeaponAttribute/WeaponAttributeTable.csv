@@ -1,0 +1,7 @@
+Level,1,2,3
+Default.Ammo.MagazineSize,30,40,50
+Default.Ammo.MaxExtraAmmo,300,400,500
+Pistol.Ammo.MagazineSize,30,40,50
+Pistol.Ammo.MaxExtraAmmo,300,400,500
+Rifle.Ammo.MagazineSize,30,40,50
+Rifle.Ammo.MaxExtraAmmo,300,400,500
