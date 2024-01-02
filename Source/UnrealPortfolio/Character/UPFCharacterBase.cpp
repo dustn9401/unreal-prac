@@ -4,6 +4,7 @@
 #include "UPFCharacterBase.h"
 
 #include "AbilitySystemGlobals.h"
+#include "EngineUtils.h"
 #include "GameplayAbilitiesModule.h"
 #include "UnrealPortfolio.h"
 #include "UPFGameplayTags.h"
@@ -208,8 +209,11 @@ void AUPFCharacterBase::FinishDeath()
 
 void AUPFCharacterBase::OnAimingStart()
 {
-	UPF_LOG(LogTemp, Log, TEXT("Called"));
-	bIsAiming = true;
+	if (HasAuthority())
+	{
+		bIsAiming = true;
+	}
+	
 	K2_OnAimingStart();
 
 	// ModifyReplicationTestProps(true);
@@ -217,8 +221,11 @@ void AUPFCharacterBase::OnAimingStart()
 
 void AUPFCharacterBase::OnAimingEnd()
 {
-	UPF_LOG(LogTemp, Log, TEXT("Called"));
-	bIsAiming = false;
+	if (HasAuthority())
+	{
+		bIsAiming = false;
+	}
+	
 	K2_OnAimingEnd();
 
 	// ModifyReplicationTestProps(false);
@@ -227,6 +234,8 @@ void AUPFCharacterBase::OnAimingEnd()
 void AUPFCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AUPFCharacterBase, bIsAiming);
 	
 	DOREPLIFETIME(AUPFCharacterBase, ReplicatedSubObject);
 	DOREPLIFETIME(AUPFCharacterBase, TestStruct);

@@ -131,7 +131,7 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, DisplayName="OnAimingEndCpp")
 	void K2_OnAimingEnd();
 	
-	UPROPERTY(Transient, BlueprintReadOnly)
+	UPROPERTY(Transient, Replicated, BlueprintReadOnly)
 	uint8 bIsAiming : 1;
 
 // test
