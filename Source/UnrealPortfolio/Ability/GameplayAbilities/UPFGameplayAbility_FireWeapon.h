@@ -96,6 +96,9 @@ protected:
 	FTransform GetTargetingTransform(APawn* SourcePawn, EUPFAbilityTargetingSource Source) const;
 	
 	void OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData, FGameplayTag ApplicationTag);
+
+	UFUNCTION(BlueprintImplementableEvent, DisplayName="OnTargetDataReadyCpp")
+	void K2_OnTargetDataReady(const FGameplayAbilityTargetDataHandle& InData);
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UAnimMontage> FireMontage;

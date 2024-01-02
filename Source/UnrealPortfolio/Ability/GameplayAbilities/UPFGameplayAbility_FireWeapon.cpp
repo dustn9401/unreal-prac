@@ -363,7 +363,6 @@ void UUPFGameplayAbility_FireWeapon::TraceBulletsInCartridge(const FRangedWeapon
 		const FVector BulletDir = VRandConeNormalDistribution(InputData.AimDir, HalfSpreadAngleInRadians, WeaponData->GetSpreadExponent());
 
 		const FVector EndTrace = InputData.StartTrace + (BulletDir * WeaponData->GetMaxDamageRange());
-		FVector HitLocation = EndTrace;
 
 		TArray<FHitResult> AllImpacts;
 
@@ -376,7 +375,7 @@ void UUPFGameplayAbility_FireWeapon::TraceBulletsInCartridge(const FRangedWeapon
 #if ENABLE_DRAW_DEBUG
 			if (UPFConsoleVariables::DrawBulletHitDuration > 0.0f)
 			{
-				DrawDebugPoint(GetWorld(), Impact.ImpactPoint, UPFConsoleVariables::DrawBulletHitRadius, FColor::Red, false, UPFConsoleVariables::DrawBulletHitRadius);
+				DrawDebugSphere(GetWorld(), Impact.ImpactPoint, UPFConsoleVariables::DrawBulletHitRadius, 3, FColor::Red, false, UPFConsoleVariables::DrawBulletHitDuration);
 			}
 #endif
 
@@ -384,18 +383,29 @@ void UUPFGameplayAbility_FireWeapon::TraceBulletsInCartridge(const FRangedWeapon
 			{
 				OutHits.Append(AllImpacts);
 			}
-
-			HitLocation = Impact.ImpactPoint;
 		}
 
-		// Make sure there's always an entry in OutHits so the direction can be used for tracers, etc...
+		// 아무것도 맞지 않았으면 총알자국 표시를 위해 TraceChannel 을 Visibility 로 트레이스 하여 결과를 추가해준다.
 		if (OutHits.Num() == 0)
 		{
+			FCollisionQueryParams TraceParams(SCENE_QUERY_STAT(WeaponTrace), /*bTraceComplex=*/ true, /*IgnoreActor=*/ GetAvatarActorFromActorInfo());
+			GetWorld()->LineTraceSingleByChannel(Impact, InputData.StartTrace, EndTrace, ECC_Visibility, TraceParams);
+
+			// Visibility 채널에 대한 트레이스도 결과가 없다면, 허공에 쐈다는 뜻
+			// 이 경우에도 총구 이펙트 등에 방향 정보가 필요하므로, 빈 데이터를 넣어준다.
 			if (!Impact.bBlockingHit)
 			{
-				// Locate the fake 'impact' at the end of the trace
 				Impact.Location = EndTrace;
 				Impact.ImpactPoint = EndTrace;
+			}
+			else
+			{
+#if ENABLE_DRAW_DEBUG
+				if (UPFConsoleVariables::DrawBulletHitDuration > 0.0f)
+				{
+					DrawDebugSphere(GetWorld(), Impact.ImpactPoint, UPFConsoleVariables::DrawBulletHitRadius, 3, FColor::Blue, false, UPFConsoleVariables::DrawBulletHitDuration);
+				}
+#endif
 			}
 
 			OutHits.Add(Impact);
@@ -539,6 +549,8 @@ void UUPFGameplayAbility_FireWeapon::OnTargetDataReadyCallback(const FGameplayAb
 	
 	if (CommitAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo))
 	{
+		UPF_LOG_ABILITY(LogTemp, Log, TEXT("InData Num: %d"), InData.Num());
+		
 		// 탄 퍼짐 적용
 		AUPFRangedWeaponInstance* WeaponInst = GetWeaponInstance();
 		check(WeaponInst);
@@ -546,16 +558,17 @@ void UUPFGameplayAbility_FireWeapon::OnTargetDataReadyCallback(const FGameplayAb
 
 		// 무기에서 발생하는 sfx 및 particle 적용
 		WeaponInst->OnFire();
+
+		K2_OnTargetDataReady(InData);
 		
 		/*
 		 * 데미지 GameplayEffect 적용
-		 * GameplayCueNotify 를 모두가 실행하기 위해, Authority 여부 분기하지 않고 호출한다.
+		 * GameplayCueNotify 를 클라이언트 에서도 실행하기 위해, Authority 여부 분기하지 않고 호출한다.
 		 * 실제 Attribute 값 수정은 함수 내부적으로 서버에서만 진행함
 		 */
 		// ReSharper disable once CppExpressionWithoutSideEffects
 		ApplyGameplayEffectToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo,
 			InData, DamageEffectClass, 1.0f);
-		
 		
 		ASC->ConsumeClientReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
 	}
