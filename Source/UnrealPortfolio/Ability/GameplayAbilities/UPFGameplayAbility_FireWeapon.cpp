@@ -546,14 +546,16 @@ void UUPFGameplayAbility_FireWeapon::OnTargetDataReadyCallback(const FGameplayAb
 
 		// 무기에서 발생하는 sfx 및 particle 적용
 		WeaponInst->OnFire();
-
-		// 데미지 적용
-		if (CurrentActorInfo->IsNetAuthority())
-		{
-			// ReSharper disable once CppExpressionWithoutSideEffects
-			ApplyGameplayEffectToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo,
-				InData, DamageEffectClass, 1.0f);
-		}
+		
+		/*
+		 * 데미지 적용
+		 * 여기서 Authority 분기하면, GameplayCue 가 서버에서만 실행됨.
+		 * 어차피 실제 Attribute 값 수정은 함수내부에서 서버에서만 진행하므로, 조건 없이 호출한다.
+		 */
+		// ReSharper disable once CppExpressionWithoutSideEffects
+		ApplyGameplayEffectToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo,
+			InData, DamageEffectClass, 1.0f);
+		
 		
 		ASC->ConsumeClientReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
 	}
