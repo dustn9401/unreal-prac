@@ -146,14 +146,20 @@ FGuid AUPFCharacterPlayer::BindAbilitySetInput(const UUPFAbilitySet* AbilitySet)
 		
 		{
 			const FEnhancedInputActionEventBinding& Binding = EIC->BindAction<UUPFAbilitySystemComponent, FGameplayTag>(
-				TriggerData.InputAction, ETriggerEvent::Completed, AbilitySystemComponent, &UUPFAbilitySystemComponent::AbilityInputTagCompleted, TriggerData.InputTag);
+				TriggerData.InputAction, ETriggerEvent::Completed,
+				AbilitySystemComponent,
+				&UUPFAbilitySystemComponent::AbilityInputTagCompleted,
+				TriggerData.InputTag);
 			AbilityInputBindingHandles.Add(GrantKey, Binding.GetHandle());
 		}
 		
 		{
 			// InputTriggerPulse 의 경우 TriggerLimit 을 무제한으로 하면 Completed 가 호출되지 않고 Canceled 만 호출되기 때문에, Canceled도 등록해준다. 
 			const FEnhancedInputActionEventBinding& Binding = EIC->BindAction<UUPFAbilitySystemComponent, FGameplayTag>(
-				TriggerData.InputAction, ETriggerEvent::Canceled, AbilitySystemComponent, &UUPFAbilitySystemComponent::AbilityInputTagCompleted, TriggerData.InputTag);
+				TriggerData.InputAction, ETriggerEvent::Canceled,
+				AbilitySystemComponent,
+				&UUPFAbilitySystemComponent::AbilityInputTagCompleted,
+				TriggerData.InputTag);
 			AbilityInputBindingHandles.Add(GrantKey, Binding.GetHandle());
 		}
 	}

@@ -109,7 +109,7 @@ bool UUPFGameplayAbility_FireWeapon::CommitAbility(const FGameplayAbilitySpecHan
 	if (WeaponInstance->GetMagazineAmmo() <= 0) return false;
 	
 	WeaponInstance->ConsumeAmmo(1);
-	UPF_LOG_ABILITY(LogTemp, Log, TEXT("GetMagazineAmmo() = %d"), WeaponInstance->GetMagazineAmmo());
+	// UPF_LOG_ABILITY(LogTemp, Log, TEXT("GetMagazineAmmo() = %d"), WeaponInstance->GetMagazineAmmo());
 	
 	return true;
 }
@@ -536,11 +536,6 @@ void UUPFGameplayAbility_FireWeapon::OnTargetDataReadyCallback(const FGameplayAb
 	check(ASC);
 	
 	FScopedPredictionWindow	ScopedPrediction(ASC);
-
-	// Take ownership of the target data to make sure no callbacks into game code invalidate it out from under us
-	// todo: 둘의 차이?
-	// FGameplayAbilityTargetDataHandle LocalTargetDataHandle(MoveTemp(const_cast<FGameplayAbilityTargetDataHandle&>(InData)));
-	FGameplayAbilityTargetDataHandle LocalTargetDataHandle = const_cast<FGameplayAbilityTargetDataHandle&&>(InData);
 	
 	if (CommitAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo))
 	{
@@ -553,11 +548,11 @@ void UUPFGameplayAbility_FireWeapon::OnTargetDataReadyCallback(const FGameplayAb
 		WeaponInst->OnFire();
 
 		// 데미지 적용
-		if (HasAuthority(&CurrentActivationInfo))
+		if (CurrentActorInfo->IsNetAuthority())
 		{
 			// ReSharper disable once CppExpressionWithoutSideEffects
 			ApplyGameplayEffectToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo,
-				LocalTargetDataHandle, DamageEffectClass, 1.0f);
+				InData, DamageEffectClass, 1.0f);
 		}
 		
 		ASC->ConsumeClientReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
