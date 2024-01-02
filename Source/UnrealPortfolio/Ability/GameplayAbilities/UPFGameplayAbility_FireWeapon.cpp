@@ -548,9 +548,9 @@ void UUPFGameplayAbility_FireWeapon::OnTargetDataReadyCallback(const FGameplayAb
 		WeaponInst->OnFire();
 		
 		/*
-		 * 데미지 적용
-		 * 여기서 Authority 분기하면, GameplayCue 가 서버에서만 실행됨.
-		 * 어차피 실제 Attribute 값 수정은 함수내부에서 서버에서만 진행하므로, 조건 없이 호출한다.
+		 * 데미지 GameplayEffect 적용
+		 * GameplayCueNotify 를 모두가 실행하기 위해, Authority 여부 분기하지 않고 호출한다.
+		 * 실제 Attribute 값 수정은 함수 내부적으로 서버에서만 진행함
 		 */
 		// ReSharper disable once CppExpressionWithoutSideEffects
 		ApplyGameplayEffectToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo,

@@ -235,12 +235,9 @@ void UUPFGameplayAbility_MeleeAttack::OnTargetDataReadyCallback(const FGameplayA
 	check(ASC);
 
 	FScopedPredictionWindow ScopedPrediction(ASC);
-
-	if (HasAuthority(&CurrentActivationInfo))
-	{
-		// ReSharper disable once CppExpressionWithoutSideEffects
-		ApplyGameplayEffectToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, InData, EffectClass, 1.0f);
-	}
+	
+	// ReSharper disable once CppExpressionWithoutSideEffects
+	ApplyGameplayEffectToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, InData, EffectClass, 1.0f);
 
 	ASC->ConsumeClientReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
 }
