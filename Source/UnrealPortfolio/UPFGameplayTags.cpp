@@ -11,6 +11,7 @@ namespace UPFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_ActivateFail_ActivationGroup, "Ability.ActivateFail.ActivationGroup", "Ability failed to activate because of its activation group.");
 
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Active_Holster, "Ability.Active.Holster");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Active_RangedWeapon_ADS, "Ability.Active.RangedWeapon.ADS");
 
 	// Items
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Item_Equipment_Weapon_Melee, "Item.Equipment.Weapon.Melee", "근접 공격용 무기")
