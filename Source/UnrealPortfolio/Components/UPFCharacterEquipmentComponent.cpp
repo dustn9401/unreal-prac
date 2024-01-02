@@ -206,7 +206,7 @@ void UUPFCharacterEquipmentComponent::TakeEquipmentAbility(const IAbilitySystemI
 		FUPFAppliedEquipmentEntry* EntryPtr = FindEquipment(EquipmentType);
 		if (!ensure(EntryPtr)) return;
 		if (!EntryPtr->IsAbilityGranted()) return;
-		EntryPtr->GrantedData.TakeFromCharacter(ASCInterface);
+		EntryPtr->GrantedData.TakeFromAbilityComp(ASCInterface);
 	}
 
 	// 로컬컨트롤러는 인풋 바인딩 제거

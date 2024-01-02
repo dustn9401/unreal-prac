@@ -39,7 +39,7 @@ void FUPFGrantedAbilitySetData::AddAttributeSet(UAttributeSet* AttributeSet)
 	AttributePtrs.Add(AttributeSet);
 }
 
-void FUPFGrantedAbilitySetData::TakeFromCharacter(const IAbilitySystemInterface* ASCInterface)
+void FUPFGrantedAbilitySetData::TakeFromAbilityComp(const IAbilitySystemInterface* ASCInterface)
 {
 	check(ASCInterface);
 

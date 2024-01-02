@@ -66,7 +66,7 @@ public:
 	void AddGameplayEffectHandle(const FActiveGameplayEffectHandle& Handle);
 	void AddAttributeSet(UAttributeSet* AttributeSet);
 
-	void TakeFromCharacter(const IAbilitySystemInterface* ASCInterface);
+	void TakeFromAbilityComp(const IAbilitySystemInterface* ASCInterface);
 
 	bool IsEmpty() const
 	{
