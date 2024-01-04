@@ -67,4 +67,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
 	uint8 bIsAiming : 1;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character)
+	uint8 bIsFiring : 1;
 };

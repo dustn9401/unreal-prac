@@ -9,9 +9,7 @@
 #include "AIController.h"
 #include "UnrealPortfolio.h"
 #include "Abilities/Tasks/AbilityTask_WaitDelay.h"
-#include "Components/UPFWeaponStateComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
-#include "GameFramework/PawnMovementComponent.h"
+#include "Character/UPFCharacterBase.h"
 #include "Item/ItemInstance/Equipments/UPFRangedWeaponInstance.h"
 #include "Physics/UPFCollision.h"
 
@@ -69,13 +67,6 @@ void UUPFGameplayAbility_FireWeapon::ActivateAbility(const FGameplayAbilitySpecH
 	// 애니메이션 재생
 	ActorInfo->AbilitySystemComponent->PlayMontage(this, ActivationInfo, FireMontage, 1.0f);
 
-	// 이동속도 제한
-	if (UCharacterMovementComponent* CharacterMovementComponent = Cast<UCharacterMovementComponent>(ActorInfo->MovementComponent))
-	{
-		MaxWalkSpeedCache = CharacterMovementComponent->MaxWalkSpeed;
-		CharacterMovementComponent->MaxWalkSpeed = MaxWalkSpeedOnFiringWeapon;
-	}
-
 	AUPFRangedWeaponInstance* WeaponInstance = GetWeaponInstance();
 	check(WeaponInstance);
 	
@@ -96,8 +87,28 @@ void UUPFGameplayAbility_FireWeapon::ActivateAbility(const FGameplayAbilitySpecH
 	}
 }
 
+void UUPFGameplayAbility_FireWeapon::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+	bool bReplicateEndAbility, bool bWasCancelled)
+{
+	if (ensure(CurrentActorInfo))
+	{
+		// Target Set Delegate 바인딩 제거
+		if (OnTargetDataReadyCallbackDelegateHandle.IsValid())
+		{
+			UAbilitySystemComponent* ASC = CurrentActorInfo->AbilitySystemComponent.Get();
+			check(ASC);
+			
+			ASC->AbilityTargetDataSetDelegate(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey()).Remove(OnTargetDataReadyCallbackDelegateHandle);
+			ASC->ConsumeClientReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
+			OnTargetDataReadyCallbackDelegateHandle.Reset();
+		}
+	}
+	
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
 bool UUPFGameplayAbility_FireWeapon::CommitAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
-	FGameplayTagContainer* OptionalRelevantTags)
+                                                   FGameplayTagContainer* OptionalRelevantTags)
 {
 	if (!Super::CommitAbility(Handle, ActorInfo, ActivationInfo, OptionalRelevantTags))
 	{
@@ -116,39 +127,9 @@ bool UUPFGameplayAbility_FireWeapon::CommitAbility(const FGameplayAbilitySpecHan
 
 void UUPFGameplayAbility_FireWeapon::OnFinishWait()
 {
-	if (!IsEndAbilityValid(CurrentSpecHandle, CurrentActorInfo)) return;
-
 	constexpr bool bReplicateEndAbility = false;
 	constexpr bool bWasCancelled = false;
 
-	if (ScopeLockCount > 0)
-	{
-		UE_LOG(LogAbilitySystem, Verbose, TEXT("Attempting to end Ability %s but ScopeLockCount was greater than 0, adding end to the WaitingToExecute Array"), *GetName());
-		WaitingToExecute.Add(FPostLockDelegate::CreateUObject(this, &UUPFGameplayAbility_FireWeapon::OnFinishWait));
-		return;
-	}
-	
-	if (ensure(CurrentActorInfo))
-	{
-		// 이동속도 제한 복구
-		if (UCharacterMovementComponent* CharacterMovementComponent = Cast<UCharacterMovementComponent>(CurrentActorInfo->MovementComponent))
-		{
-			CharacterMovementComponent->MaxWalkSpeed = MaxWalkSpeedCache;
-		}
-
-
-		// Target Set Delegate 바인딩 제거
-		if (OnTargetDataReadyCallbackDelegateHandle.IsValid())
-		{
-			UAbilitySystemComponent* ASC = CurrentActorInfo->AbilitySystemComponent.Get();
-			check(ASC);
-			
-			ASC->AbilityTargetDataSetDelegate(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey()).Remove(OnTargetDataReadyCallbackDelegateHandle);
-			ASC->ConsumeClientReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
-			OnTargetDataReadyCallbackDelegateHandle.Reset();
-		}
-	}
-	
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 

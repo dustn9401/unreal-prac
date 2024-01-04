@@ -45,8 +45,8 @@ public:
 	
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-
-
+	
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 	UFUNCTION()
 	void OnFinishWait();
@@ -109,7 +109,6 @@ protected:
 	// 캐릭터가 무기 발사 중일때의 최대 속도
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Character)
 	float MaxWalkSpeedOnFiringWeapon;
-	float MaxWalkSpeedCache = 0.0f;
 
 	FTimerHandle FireTimer;
 	FTimerDelegate TimerCallback;

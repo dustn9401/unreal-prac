@@ -33,21 +33,6 @@ void UUPFAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
-	if (MovementComponent)
-	{
-		Velocity = MovementComponent->Velocity;
-		GroundSpeed = Velocity.Size2D();
-		bIsMoving = GroundSpeed > MovingThreshold;
-		bIsFalling = MovementComponent->IsFalling();
-		bIsJumping = bIsFalling & (Velocity.Z > JumpingThreshold);
-		bIsCrouching = MovementComponent->IsCrouching();
-	}
-
-	if (EquipmentComponent)
-	{
-		bIsHolstered = EquipmentComponent->GetIsHolstered();
-	}
-
 	if (Owner)
 	{
 		// 캐릭터가 허리를 얼마나 꺾어야 하는지 계산
@@ -59,5 +44,23 @@ void UUPFAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		AimOffsetYaw = FRotator::NormalizeAxis(ActorRot.Yaw - AimRot.Yaw);
 		
 		bIsAiming = Owner->bIsAiming;
+		bIsFiring = Owner->bIsFiring;
+	}
+
+	if (MovementComponent)
+	{
+		Velocity = MovementComponent->Velocity;
+		GroundSpeed = Velocity.Size2D();
+		bIsMoving = GroundSpeed > MovingThreshold;
+		bIsFalling = MovementComponent->IsFalling();
+		bIsJumping = bIsFalling & (Velocity.Z > JumpingThreshold);
+		bIsCrouching = MovementComponent->IsCrouching();
+
+		MovementComponent->MaxWalkSpeed = bIsAiming || bIsFiring ? 230.0f : 500.0f;
+	}
+
+	if (EquipmentComponent)
+	{
+		bIsHolstered = EquipmentComponent->GetIsHolstered();
 	}
 }

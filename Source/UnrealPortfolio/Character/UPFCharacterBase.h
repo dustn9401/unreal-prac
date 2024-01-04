@@ -134,6 +134,9 @@ public:
 	UPROPERTY(Transient, Replicated, BlueprintReadOnly)
 	uint8 bIsAiming : 1;
 
+	UPROPERTY(Transient, BlueprintReadOnly)
+	uint8 bIsFiring : 1;
+
 // test
 public:
 	UPROPERTY(Replicated)
