@@ -389,6 +389,7 @@ void UUPFGameplayAbility_FireWeapon::TraceBulletsInCartridge(const FRangedWeapon
 		if (OutHits.Num() == 0)
 		{
 			FCollisionQueryParams TraceParams(SCENE_QUERY_STAT(WeaponTrace), /*bTraceComplex=*/ true, /*IgnoreActor=*/ GetAvatarActorFromActorInfo());
+			TraceParams.bReturnPhysicalMaterial = true;
 			GetWorld()->LineTraceSingleByChannel(Impact, InputData.StartTrace, EndTrace, ECC_Visibility, TraceParams);
 
 			// Visibility 채널에 대한 트레이스도 결과가 없다면, 허공에 쐈다는 뜻
@@ -558,6 +559,12 @@ void UUPFGameplayAbility_FireWeapon::OnTargetDataReadyCallback(const FGameplayAb
 
 		// 무기에서 발생하는 sfx 및 particle 적용
 		WeaponInst->OnFire();
+
+		auto PM = InData.Get(0)->GetHitResult()->PhysMaterial;
+		if (PM.IsValid())
+		{
+			UPF_LOG_ABILITY(LogTemp, Log, TEXT("PM=%d"), PM->SurfaceType.GetValue());
+		}
 
 		K2_OnTargetDataReady(InData);
 		

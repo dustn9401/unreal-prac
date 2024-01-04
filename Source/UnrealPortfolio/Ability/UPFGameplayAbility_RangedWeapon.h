@@ -20,5 +20,6 @@ public:
 	UUPFGameplayAbility_RangedWeapon();
 
 protected:
+	UFUNCTION(BlueprintCallable)
 	AUPFRangedWeaponInstance* GetWeaponInstance() const;
 };
