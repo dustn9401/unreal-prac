@@ -371,6 +371,7 @@ void UUPFGameplayAbility_FireWeapon::TraceBulletsInCartridge(const FRangedWeapon
 		{
 			FCollisionQueryParams TraceParams(SCENE_QUERY_STAT(WeaponTrace), /*bTraceComplex=*/ true, /*IgnoreActor=*/ GetAvatarActorFromActorInfo());
 			TraceParams.bReturnPhysicalMaterial = true;
+			TraceParams.bReturnFaceIndex = true;
 			GetWorld()->LineTraceSingleByChannel(Impact, InputData.StartTrace, EndTrace, ECC_Visibility, TraceParams);
 
 			// Visibility 채널에 대한 트레이스도 결과가 없다면, 허공에 쐈다는 뜻
