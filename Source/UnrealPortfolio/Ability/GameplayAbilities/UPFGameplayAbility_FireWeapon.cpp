@@ -108,7 +108,7 @@ bool UUPFGameplayAbility_FireWeapon::CommitAbility(const FGameplayAbilitySpecHan
 	if (WeaponInstance == nullptr) return false;
 	if (WeaponInstance->GetMagazineAmmo() <= 0) return false;
 	
-	WeaponInstance->ConsumeAmmo(1);
+	// WeaponInstance->ConsumeAmmo(1);
 	// UPF_LOG_ABILITY(LogTemp, Log, TEXT("GetMagazineAmmo() = %d"), WeaponInstance->GetMagazineAmmo());
 	
 	return true;
@@ -429,16 +429,7 @@ void UUPFGameplayAbility_FireWeapon::PerformLocalTargeting(TArray<FHitResult>& O
 		const FTransform TargetTransform = GetTargetingTransform(AvatarPawn, EUPFAbilityTargetingSource::CameraTowardsFocus);
 		InputData.AimDir = TargetTransform.GetUnitAxis(EAxis::X);
 		InputData.StartTrace = TargetTransform.GetTranslation();
-
 		InputData.EndAim = InputData.StartTrace + InputData.AimDir * WeaponInstance->GetMaxDamageRange();
-
-#if ENABLE_DRAW_DEBUG
-		if (UPFConsoleVariables::DrawBulletTracesDuration > 0.0f)
-		{
-			static float DebugThickness = 2.0f;
-			DrawDebugLine(GetWorld(), InputData.StartTrace, InputData.StartTrace + (InputData.AimDir * 100.0f), FColor::Yellow, false, UPFConsoleVariables::DrawBulletTracesDuration, 0, DebugThickness);
-		}
-#endif
 
 		TraceBulletsInCartridge(InputData, /*out*/ OutHits);
 	}
@@ -558,13 +549,7 @@ void UUPFGameplayAbility_FireWeapon::OnTargetDataReadyCallback(const FGameplayAb
 		WeaponInst->AddSpread();
 
 		// 무기에서 발생하는 sfx 및 particle 적용
-		WeaponInst->OnFire();
-
-		auto PM = InData.Get(0)->GetHitResult()->PhysMaterial;
-		if (PM.IsValid())
-		{
-			UPF_LOG_ABILITY(LogTemp, Log, TEXT("PM=%d"), PM->SurfaceType.GetValue());
-		}
+		WeaponInst->OnFire(InData);
 
 		K2_OnTargetDataReady(InData);
 		

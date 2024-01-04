@@ -231,14 +231,14 @@ private:
 
 // OnFire
 public:
-	void OnFire();
+	void OnFire(const FGameplayAbilityTargetDataHandle& InData);
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TSubclassOf<UCameraShakeBase> CameraShakeClass;
 
 protected:
 	UFUNCTION(BlueprintImplementableEvent, DisplayName="OnFireCpp")
-	void K2_OnFire();
+	void K2_OnFire(const FGameplayAbilityTargetDataHandle& InData);
 
 // Ammo
 protected:

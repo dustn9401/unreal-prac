@@ -59,7 +59,7 @@ void AUPFRangedWeaponInstance::ComputeHeatRange(float& MinHeat, float& MaxHeat)
 	MaxHeat = FMath::Max(FMath::Max(Max1, Max2), Max3);
 }
 
-void AUPFRangedWeaponInstance::OnFire()
+void AUPFRangedWeaponInstance::OnFire(const FGameplayAbilityTargetDataHandle& InData)
 {
 	if (CameraShakeClass)
 	{
@@ -69,5 +69,5 @@ void AUPFRangedWeaponInstance::OnFire()
 		}
 	}
 	
-	K2_OnFire();
+	K2_OnFire(InData);
 }
