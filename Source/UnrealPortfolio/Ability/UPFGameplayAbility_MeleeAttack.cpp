@@ -195,11 +195,15 @@ void UUPFGameplayAbility_MeleeAttack::OnAnimNotify()
 	const FVector End = Start + Forward * AttackRange;
 
 	// 근접공격은 여러명 타격 가능
-	bool HitDetected = GetWorld()-> SweepMultiByChannel(OutHitResults, Start, End, FQuat::Identity, CCHANNEL_UPFACTION, FCollisionShape::MakeSphere(AttackRadius), Params);
+	bool HitDetected = GetWorld()-> SweepMultiByChannel(OutHitResults, Start, End,
+		FQuat::Identity,
+		CCHANNEL_UPFACTION,
+		FCollisionShape::MakeSphere(AttackRadius),
+		Params);
+	
 	float HitCheckTime = GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
 	
 	FGameplayAbilityTargetDataHandle TargetData;
-	
 	if (HitDetected)
 	{
 		for (const FHitResult& FoundHit : OutHitResults)
@@ -210,27 +214,24 @@ void UUPFGameplayAbility_MeleeAttack::OnAnimNotify()
 			TargetData.Add(NewTargetData);
 		}
 	}
-		
-	// 클라이언트인 경우, 서버에 검증을 받기 위해 Server RPC 함수 호출
-	FScopedPredictionWindow ScopedPrediction(ASC);
+	
+	FScopedPredictionWindow ScopedPrediction(ASC, CurrentActivationInfo.GetActivationPredictionKey());
+	
+	OnTargetDataReadyCallback(TargetData, FGameplayTag::EmptyTag);
+
+	// 클라이언트인 경우, 서버에 TargetData 를 전달하는 함수를 호출해줘야 함
 	if (!CurrentActorInfo->IsNetAuthority())
 	{
 		ASC->CallServerSetReplicatedTargetData(CurrentSpecHandle,
 			CurrentActivationInfo.GetActivationPredictionKey(),
 			TargetData,
 			FGameplayTag::EmptyTag,
-			ASC->ScopedPredictionKey/*CurrentActivationInfo.GetActivationPredictionKey()*/);
-	}
-	else
-	{
-		OnTargetDataReadyCallback(TargetData, FGameplayTag());
+			ASC->ScopedPredictionKey);
 	}
 }
 
 void UUPFGameplayAbility_MeleeAttack::OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData, FGameplayTag ApplicationTag)
 {
-	UPF_LOG_ABILITY(LogTemp, Log, TEXT("InData Num: %d"), InData.Num());
-
 	UAbilitySystemComponent* ASC = CurrentActorInfo->AbilitySystemComponent.Get();
 	check(ASC);
 
