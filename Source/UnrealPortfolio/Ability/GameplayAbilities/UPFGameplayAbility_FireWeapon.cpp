@@ -198,7 +198,6 @@ FHitResult UUPFGameplayAbility_FireWeapon::WeaponTrace(const FVector& StartTrace
 	
 	FCollisionQueryParams TraceParams(SCENE_QUERY_STAT(WeaponTrace), /*bTraceComplex=*/ true, /*IgnoreActor=*/ GetAvatarActorFromActorInfo());
 	TraceParams.bReturnPhysicalMaterial = true;
-	//TraceParams.bDebugQuery = true;
 
 	if (SweepRadius > 0.0f)
 	{

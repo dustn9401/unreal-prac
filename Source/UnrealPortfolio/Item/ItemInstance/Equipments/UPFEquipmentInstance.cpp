@@ -3,11 +3,14 @@
 
 #include "Item/ItemInstance/Equipments/UPFEquipmentInstance.h"
 
+#include "UnrealPortfolio.h"
 #include "Item/UPFEquipmentItemData.h"
 
 AUPFEquipmentInstance::AUPFEquipmentInstance()
 {
 	RootComponent = MeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMeshComponent"));
+
+	bReplicates = true;
 }
 
 void AUPFEquipmentInstance::SetData(const UUPFItemData* InData)
@@ -39,3 +42,4 @@ void AUPFEquipmentInstance::PreUnEquipped()
 void AUPFEquipmentInstance::OnSocketChanged(const FName& NewSocketName)
 {
 }
+

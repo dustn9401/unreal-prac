@@ -4,11 +4,13 @@
 #include "UPFCharacterEquipmentComponent.h"
 
 #include "AbilitySystemComponent.h"
+#include "EngineUtils.h"
 #include "Character/UPFCharacterBase.h"
 #include "Constants/UPFSocketNames.h"
 #include "Item/UPFEquipmentItemData.h"
 #include "Item/ItemInstance/Equipments/UPFEquipmentInstance.h"
 #include "Item/ItemInstance/Equipments/UPFWeaponInstance.h"
+#include "Net/UnrealNetwork.h"
 #include "Player/UPFCharacterPlayer.h"
 #include "Utility/UPFActorUtility.h"
 
@@ -26,9 +28,6 @@ UUPFCharacterEquipmentComponent::UUPFCharacterEquipmentComponent()
 	SetIsReplicatedByDefault(true);
 
 	bIsHolstered = true;
-
-	// AddReplicatedSubObject 함수 사용 시 아래 세팅 필요
-	bReplicateUsingRegisteredSubObjectList = true;
 }
 
 void UUPFCharacterEquipmentComponent::InitializeComponent()
@@ -36,6 +35,25 @@ void UUPFCharacterEquipmentComponent::InitializeComponent()
 	Super::InitializeComponent();
 
 	CharacterMeshComponent = GetOwner()->GetComponentByClass<USkeletalMeshComponent>();
+}
+
+void UUPFCharacterEquipmentComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UUPFCharacterEquipmentComponent, CurrentWeaponType);
+	DOREPLIFETIME_CONDITION(UUPFCharacterEquipmentComponent, AppliedEquipmentArray, COND_InitialOnly);
+	DOREPLIFETIME_CONDITION(UUPFCharacterEquipmentComponent, bIsHolstered, COND_InitialOnly);
+}
+
+void UUPFCharacterEquipmentComponent::PostNetReceive()
+{
+	Super::PostNetReceive();
+
+	if (FUPFAppliedEquipmentEntry* Entry = FindEquipment(CurrentWeaponType))
+	{
+		Entry->EquipmentInstance = SpawnAndAttachEquipment(Entry->EquipmentItemData, bIsHolstered ? UPFSocketNames::spine_03Socket : UPFSocketNames::hand_rSocket);
+	}
 }
 
 AController* UUPFCharacterEquipmentComponent::GetOwnerController() const
@@ -84,6 +102,7 @@ void UUPFCharacterEquipmentComponent::EquipItem(const UUPFEquipmentItemData* Dat
 	
 	// 장비 스폰 및 이 캐릭터에 장착시키고, 리스트에 추가
 	EquipItemInternal(Data);
+	
 
 	// 추가된 AppliedEquipmentEntry 를 사용해서 어빌리티를 지급한다.
 	if (const IAbilitySystemInterface* ASCInterface = UPFActorUtility::GetTypedOwnerRecursive<IAbilitySystemInterface>(GetOwner()))
@@ -94,17 +113,6 @@ void UUPFCharacterEquipmentComponent::EquipItem(const UUPFEquipmentItemData* Dat
 
 void UUPFCharacterEquipmentComponent::EquipItemInternal(const UUPFEquipmentItemData* Data)
 {
-	// 아이템 액터 생성
-	AUPFEquipmentInstance* SpawnedItem = GetWorld()->SpawnActorDeferred<AUPFEquipmentInstance>(Data->InstanceClass, FTransform::Identity);
-	if (!ensure(SpawnedItem)) return;
-
-	// Mesh 적용 등 세팅
-	SpawnedItem->SetData(Data);
-
-	SpawnedItem->FinishSpawning(FTransform::Identity);
-
-
-	// 소켓에 부착
 	const bool IsUnarmed = !CurrentWeaponType.IsValid(); // 아무 장비도 착용하지 않았다면, 현재 선택된 장비 타입으로 지정하고 손에 쥐어준다.
 	const bool IsCurrentWeaponType = CurrentWeaponType == Data->EquipmentType;
 	const bool AttachToHand = (IsCurrentWeaponType && !bIsHolstered) || IsUnarmed;
@@ -119,17 +127,33 @@ void UUPFCharacterEquipmentComponent::EquipItemInternal(const UUPFEquipmentItemD
 		bIsHolstered = false;
 		CurrentWeaponType = Data->EquipmentType;
 	}
-
 	
-	SpawnedItem->MeshComp->AttachToComponent(CharacterMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, AttachSocket);
-	SpawnedItem->SetOwner(CharacterMeshComponent->GetOwner());
-	SpawnedItem->PostEquipped(CharacterMeshComponent, AttachSocket);
+	// 아이템 액터 생성
+	AUPFEquipmentInstance* SpawnedItem = SpawnAndAttachEquipment(Data, AttachSocket);
 
 	// 장비 목록에 추가
 	FUPFAppliedEquipmentEntry NewEntry;
 	NewEntry.EquipmentItemData = Data;
 	NewEntry.EquipmentInstance = SpawnedItem;
-	AppliedEquipments.Emplace(NewEntry);
+	
+	AppliedEquipmentArray.Items.Emplace(NewEntry);
+	AppliedEquipmentArray.MarkItemDirty(NewEntry);
+}
+
+AUPFEquipmentInstance* UUPFCharacterEquipmentComponent::SpawnAndAttachEquipment(const UUPFEquipmentItemData* Data, FName AttachSocketName)
+{
+	AUPFEquipmentInstance* SpawnedItem = GetWorld()->SpawnActorDeferred<AUPFEquipmentInstance>(Data->InstanceClass, FTransform::Identity, GetOwner());
+
+	// Mesh 적용 등 세팅
+	SpawnedItem->SetData(Data);
+
+	SpawnedItem->FinishSpawning(FTransform::Identity);
+
+	SpawnedItem->MeshComp->AttachToComponent(CharacterMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, AttachSocketName);
+	
+	SpawnedItem->PostEquipped(CharacterMeshComponent, AttachSocketName);
+
+	return SpawnedItem;
 }
 
 void UUPFCharacterEquipmentComponent::UnEquipItem(FGameplayTag EquipmentType)
@@ -156,7 +180,7 @@ AUPFWeaponInstance* UUPFCharacterEquipmentComponent::GetCurrentRangedWeaponInsta
 
 void UUPFCharacterEquipmentComponent::UnEquipItemInternal(FGameplayTag EquipmentType)
 {
-	for (auto EntryIt = AppliedEquipments.CreateIterator(); EntryIt; ++EntryIt)
+	for (auto EntryIt = AppliedEquipmentArray.Items.CreateIterator(); EntryIt; ++EntryIt)
 	{
 		FUPFAppliedEquipmentEntry& Entry = *EntryIt;
 		if (Entry.EquipmentItemData->EquipmentType != EquipmentType) continue;
@@ -167,6 +191,7 @@ void UUPFCharacterEquipmentComponent::UnEquipItemInternal(FGameplayTag Equipment
 		}
 
 		EntryIt.RemoveCurrent();
+		AppliedEquipmentArray.MarkArrayDirty();
 	}
 
 	// todo: 손에 들고있던 무기가 제거된 경우 처리
@@ -239,21 +264,22 @@ bool UUPFCharacterEquipmentComponent::CanToggleHolster()
 
 void UUPFCharacterEquipmentComponent::ToggleHolsterWeapon()
 {
+	APawn* OwnerPawn = UPFActorUtility::GetTypedOwnerRecursive<APawn>(GetOwner());
+	if (!ensure(OwnerPawn)) return;
+	
+	// 어빌리티로 인해 서버와 로컬 컨트롤러에서만 호출되는 함수
+	const bool IsRoleOK = OwnerPawn->HasAuthority() || OwnerPawn->IsLocallyControlled();
+	if (!ensure(IsRoleOK)) return;
+	
 	// 아무 장비도 착용하지 않음
 	if (!CurrentWeaponType.IsValid()) return;
 
 	FUPFAppliedEquipmentEntry* EntryPtr = FindEquipment(CurrentWeaponType);
-	if (!EntryPtr) return;
-
-	// 부착할 캐릭터의 소켓를 구한다.
-	const FName TargetSocket = bIsHolstered ? UPFSocketNames::hand_rSocket : UPFSocketNames::spine_03Socket;
-	AUPFEquipmentInstance* EquipmentInstance = EntryPtr->EquipmentInstance;
-
-	// Socket 이동
-	EquipmentInstance->MeshComp->AttachToComponent(CharacterMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, TargetSocket);
-	EquipmentInstance->OnSocketChanged(TargetSocket);
-
-	bIsHolstered = !bIsHolstered;
+	if (!ensure(EntryPtr)) return;
+	
+	// 서버, 로컬 컨트롤러는 즉시 수납상태를 변경하고 어빌리티 관련 처리 수행
+	ToggleHolsterWeaponInternal();
+		
 	if (bIsHolstered)
 	{
 		// 수납 중 어빌리티를 제거한다.
@@ -270,11 +296,52 @@ void UUPFCharacterEquipmentComponent::ToggleHolsterWeapon()
 			GiveEquipmentAbility(ASCInterface, EntryPtr->EquipmentItemData->AbilitiesToGrant, CurrentWeaponType);
 		}
 	}
+
+	if (OwnerPawn->HasAuthority())
+	{
+		// 서버, 로컬 컨트롤러를 제외한 플레이어들에게 수납 상태 변경 Client RPC 호출
+		for(const AUPFCharacterPlayer* CharacterPlayer : TActorRange<AUPFCharacterPlayer>(GetWorld()))
+		{
+			if (!CharacterPlayer) continue;
+			if (CharacterPlayer == OwnerPawn) continue;	// 이 캐릭터의 주인에게는 보내지 않음
+			if (CharacterPlayer->IsLocallyControlled()) continue;	// 서버 자신에게는 보내지 않음
+			
+			if (UUPFCharacterEquipmentComponent* OtherPlayerEquipmentComp = CharacterPlayer->GetComponentByClass<UUPFCharacterEquipmentComponent>())
+			{
+				OtherPlayerEquipmentComp->ClientRPCToggleHolsterWeapon(this);
+			}
+		}
+	}
 }
+
+void UUPFCharacterEquipmentComponent::ToggleHolsterWeaponInternal()
+{
+	FUPFAppliedEquipmentEntry* EntryPtr = FindEquipment(CurrentWeaponType);
+	if (!ensure(EntryPtr)) return;
+	
+	// 부착할 캐릭터의 소켓를 구한다.
+	const FName TargetSocket = bIsHolstered ? UPFSocketNames::hand_rSocket : UPFSocketNames::spine_03Socket;
+	AUPFEquipmentInstance* EquipmentInstance = EntryPtr->EquipmentInstance;
+
+	// Socket 이동
+	ensure(EquipmentInstance->MeshComp->AttachToComponent(CharacterMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, TargetSocket));
+	EquipmentInstance->OnSocketChanged(TargetSocket);
+
+	bIsHolstered = !bIsHolstered;
+}
+
+void UUPFCharacterEquipmentComponent::ClientRPCToggleHolsterWeapon_Implementation(UUPFCharacterEquipmentComponent* TargetEquipmentComp)
+{
+	if (TargetEquipmentComp)
+	{
+		TargetEquipmentComp->ToggleHolsterWeaponInternal();
+	}
+}
+
 
 FUPFAppliedEquipmentEntry* UUPFCharacterEquipmentComponent::FindEquipment(FGameplayTag WeaponType)
 {
-	return AppliedEquipments.FindByPredicate([&WeaponType](const FUPFAppliedEquipmentEntry& X)
+	return AppliedEquipmentArray.Items.FindByPredicate([&WeaponType](const FUPFAppliedEquipmentEntry& X)
 	{
 		return X.EquipmentItemData->EquipmentType == WeaponType;
 	});

@@ -5,10 +5,13 @@
 
 #include "UnrealPortfolio.h"
 #include "Components/BoxComponent.h"
+#include "Engine/AssetManager.h"
 #include "Interface/UPFItemContainerInterface.h"
 #include "ItemInstance/Equipments/UPFEquipmentInstance.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Physics/UPFCollision.h"
+
+TArray<FPrimaryAssetId> AUPFItemContainerBase::AssetIds;
 
 // Sets default values
 AUPFItemContainerBase::AUPFItemContainerBase()
@@ -33,10 +36,27 @@ void AUPFItemContainerBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ItemData값이 미리 지정된 경우, 즉시 세팅한다. 
-	if (ItemData)
+	if (ItemDataPath)
 	{
-		SetData(ItemData);
+		// ItemData값이 미리 지정된 경우, 즉시 세팅한다.
+		SetData(ItemDataPath.LoadSynchronous());
+	}
+	else
+	{
+		const UAssetManager& AM = UAssetManager::Get();
+
+		if (AssetIds.Num()==0)
+		{
+			const FPrimaryAssetType AssetType(TEXT("UPFItemData"));
+			if (!ensure(AM.GetPrimaryAssetIdList(AssetType, AssetIds))) return;
+		}
+
+		const int32 RIdx = FMath::RandRange(0, AssetIds.Num() - 1);
+		if (!ensure(AssetIds.IsValidIndex(RIdx))) return;
+	
+		const FSoftObjectPtr AssetPtr(AM.GetPrimaryAssetPath(AssetIds[RIdx]));
+		UObject* LoadedAsset = AssetPtr.LoadSynchronous();
+		SetData(CastChecked<UUPFItemData>(LoadedAsset));
 	}
 }
 
@@ -71,7 +91,6 @@ void AUPFItemContainerBase::OnOverlapBegin(UPrimitiveComponent* OverlappedCompon
 	if (IUPFItemContainerInterface* ItemReceiver = Cast<IUPFItemContainerInterface>(OtherActor))
 	{
 		ItemReceiver->TakeItem(ItemData);
-		// PlayEffectAndDestroySelf();
 	}
 }
 

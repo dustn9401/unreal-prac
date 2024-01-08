@@ -114,7 +114,7 @@ protected:
 
 // Equipment
 public:
-	UPROPERTY()
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<UUPFCharacterEquipmentComponent> EquipmentComponent;
 
 // Aiming

@@ -28,6 +28,9 @@ protected:
 
 protected:
 	UPROPERTY(EditAnywhere)
+	TSoftObjectPtr<UUPFItemData> ItemDataPath;
+	
+	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UUPFItemData> ItemData;
 
 	UPROPERTY(VisibleAnywhere)
@@ -47,6 +50,8 @@ public:
 	}
 
 protected:
+	static TArray<FPrimaryAssetId> AssetIds;
+	
 	UPROPERTY(VisibleAnywhere, Category=Box)
 	TObjectPtr<UStaticMeshComponent> Mesh;
 

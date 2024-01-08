@@ -12,10 +12,13 @@
 #include "UPFCharacterEquipmentComponent.generated.h"
 
 
+class UUPFEquipmentInstanceWrapper;
 class AUPFWeaponInstance;
 class UUPFCharacterEquipmentComponent;
 class AUPFEquipmentInstance;
 class UUPFEquipmentItemData;
+struct FUPFAppliedEquipmentEntry;
+struct FUPFAppliedEquipmentArray;
 
 /*
  * 캐릭터가 착용충인 하나의 장비 아이템에 대한 데이터
@@ -29,15 +32,16 @@ struct FUPFAppliedEquipmentEntry : public FFastArraySerializerItem
 
 private:
 	friend UUPFCharacterEquipmentComponent;
+	friend FUPFAppliedEquipmentArray;
 	
 	UPROPERTY()
 	TObjectPtr<const UUPFEquipmentItemData> EquipmentItemData;
 	
-	UPROPERTY()
+	UPROPERTY(NotReplicated)
 	TObjectPtr<AUPFEquipmentInstance> EquipmentInstance;
 
 	// 부여된 어빌리티 및 이펙트 데이터, 서버만 데이터가 채워져 있다.
-	UPROPERTY()
+	UPROPERTY(NotReplicated)
 	FUPFGrantedAbilitySetData GrantedData;
 
 public:
@@ -46,6 +50,34 @@ public:
 	{
 		return !GrantedData.IsEmpty();
 	}
+};
+
+USTRUCT()
+struct FUPFAppliedEquipmentArray : public FFastArraySerializer
+{
+	GENERATED_BODY()
+
+private:
+	friend UUPFCharacterEquipmentComponent;
+	friend FUPFAppliedEquipmentEntry;
+	
+	UPROPERTY()
+	TArray<FUPFAppliedEquipmentEntry> Items;
+
+public:
+	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParms)
+	{
+		return FFastArraySerializer::FastArrayDeltaSerialize<FUPFAppliedEquipmentEntry, FUPFAppliedEquipmentArray>(Items, DeltaParms, *this);
+	}
+};
+
+template<>
+struct TStructOpsTypeTraits< FUPFAppliedEquipmentArray > : public TStructOpsTypeTraitsBase2< FUPFAppliedEquipmentArray >
+{
+	enum 
+	{
+		WithNetDeltaSerializer = true,
+   };
 };
 
 /*
@@ -62,6 +94,10 @@ public:
 	UUPFCharacterEquipmentComponent();
 
 	virtual void InitializeComponent() override;
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	virtual void PostNetReceive() override;
 
 protected:
 	AController* GetOwnerController() const;
@@ -81,6 +117,8 @@ public:
 protected:
 	// 캐릭터에게 장비 스폰 및 장착
 	void EquipItemInternal(const UUPFEquipmentItemData* Data);
+
+	AUPFEquipmentInstance* SpawnAndAttachEquipment(const UUPFEquipmentItemData* Data, FName AttachSocketName);
 
 	// 캐릭터의 장비 해제 및 파괴
 	void UnEquipItemInternal(FGameplayTag EquipmentType);
@@ -108,14 +146,21 @@ protected:
 	TObjectPtr<USkeletalMeshComponent> CharacterMeshComponent;
 	
 	// 현재 착용중인 장비 목록
-	UPROPERTY()
-	TArray<FUPFAppliedEquipmentEntry> AppliedEquipments;
+	UPROPERTY(Replicated)
+	FUPFAppliedEquipmentArray AppliedEquipmentArray;
 
 	// 현재 선택된 무기 타입 (근접무기/라이플/권총 등)
+	UPROPERTY(Replicated)
 	FGameplayTag CurrentWeaponType;
 
 	// 무기를 수납중인지 여부
+	UPROPERTY(Replicated)
 	uint8 bIsHolstered : 1;
+
+	void ToggleHolsterWeaponInternal();
+
+	UFUNCTION(Client, Reliable)
+	void ClientRPCToggleHolsterWeapon(UUPFCharacterEquipmentComponent* TargetEquipmentComp);
 	
 	FUPFAppliedEquipmentEntry* FindEquipment(FGameplayTag WeaponType);
 
