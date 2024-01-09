@@ -9,8 +9,6 @@
 AUPFEquipmentInstance::AUPFEquipmentInstance()
 {
 	RootComponent = MeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMeshComponent"));
-
-	bReplicates = true;
 }
 
 void AUPFEquipmentInstance::SetData(const UUPFItemData* InData)

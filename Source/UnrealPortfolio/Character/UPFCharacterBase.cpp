@@ -216,7 +216,11 @@ void AUPFCharacterBase::OnAimingStart()
 	
 	K2_OnAimingStart();
 
-	// ModifyReplicationTestProps(true);
+	ModifyReplicationTestProps(true);
+	if (HasAuthority())
+	{
+		MulticastRPCTestFunc(this, CharacterData, UPFGameplayTags::Ability_Active_Holster);
+	}
 }
 
 void AUPFCharacterBase::OnAimingEnd()
@@ -228,7 +232,7 @@ void AUPFCharacterBase::OnAimingEnd()
 	
 	K2_OnAimingEnd();
 
-	// ModifyReplicationTestProps(false);
+	ModifyReplicationTestProps(false);
 }
 
 void AUPFCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -268,6 +272,11 @@ void AUPFCharacterBase::ModifyReplicationTestProps(bool IsStart)
 			ReplicatedSubObject->Destroy();
 		}
 	}
+}
+
+void AUPFCharacterBase::MulticastRPCTestFunc_Implementation(ACharacter* Character, UDataAsset* DataAsset,
+	FGameplayTag GameplayTag)
+{
 }
 
 void AUPFCharacterBase::OnRep_TestStruct()

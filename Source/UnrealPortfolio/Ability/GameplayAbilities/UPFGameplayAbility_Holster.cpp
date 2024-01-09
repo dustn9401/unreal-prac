@@ -52,6 +52,7 @@ void UUPFGameplayAbility_Holster::InputPressed(const FGameplayAbilitySpecHandle 
 void UUPFGameplayAbility_Holster::OnEventReceived(FGameplayEventData Payload)
 {
 	if (CurrentActorInfo == nullptr) return;
+	UPF_LOG_ABILITY(LogTemp, Log, TEXT("Called!"));
 	
 	AUPFCharacterBase* UPFCharacter = CastChecked<AUPFCharacterBase>(CurrentActorInfo->OwnerActor);
 	UPFCharacter->EquipmentComponent->ToggleHolsterWeapon();

@@ -153,6 +153,9 @@ public:
 
 	void ModifyReplicationTestProps(bool IsStart);
 
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastRPCTestFunc(ACharacter* Character, UDataAsset* DataAsset, FGameplayTag GameplayTag);
+
 	UFUNCTION()
 	void OnRep_TestStruct();
 };

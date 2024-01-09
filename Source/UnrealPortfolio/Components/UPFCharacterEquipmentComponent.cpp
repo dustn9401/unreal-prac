@@ -14,16 +14,34 @@
 #include "Player/UPFCharacterPlayer.h"
 #include "Utility/UPFActorUtility.h"
 
+void FUPFAppliedEquipmentArray::PreReplicatedRemove(const TArrayView<int32>& RemovedIndices, int32 FinalSize)
+{
+	for(const int32 Index : RemovedIndices)
+	{
+		FUPFAppliedEquipmentEntry& Entry = Items[Index];
+		if (Entry.EquipmentInstance)
+		{
+			Entry.EquipmentInstance->DestroySelf();
+		}
+	}
+}
+
+void FUPFAppliedEquipmentArray::PostReplicatedAdd(const TArrayView<int32>& AddedIndices, int32 FinalSize)
+{
+	for(const int32 Index : AddedIndices)
+	{
+		FUPFAppliedEquipmentEntry& Entry = Items[Index];
+		if (Entry.EquipmentItemData)
+		{
+			EquipmentComponent->EquipItemInternal(Entry.EquipmentItemData);
+		}
+	}
+}
+
 // Sets default values for this component's properties
 UUPFCharacterEquipmentComponent::UUPFCharacterEquipmentComponent()
 {
 	bWantsInitializeComponent = true;
-
-	static ConstructorHelpers::FObjectFinder<UAnimMontage> HolsterMontageRef(TEXT("/Script/Engine.AnimMontage'/Game/UnrealPortfolio/Animation/AM_Holster.AM_Holster'"));
-	if (HolsterMontageRef.Object)
-	{
-		HolsterMontage = HolsterMontageRef.Object;
-	}
 
 	SetIsReplicatedByDefault(true);
 
@@ -35,25 +53,17 @@ void UUPFCharacterEquipmentComponent::InitializeComponent()
 	Super::InitializeComponent();
 
 	CharacterMeshComponent = GetOwner()->GetComponentByClass<USkeletalMeshComponent>();
+
+	AppliedEquipmentArray.EquipmentComponent = this;
 }
 
 void UUPFCharacterEquipmentComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UUPFCharacterEquipmentComponent, CurrentWeaponType);
-	DOREPLIFETIME_CONDITION(UUPFCharacterEquipmentComponent, AppliedEquipmentArray, COND_InitialOnly);
+	DOREPLIFETIME(UUPFCharacterEquipmentComponent, AppliedEquipmentArray);
+	DOREPLIFETIME_CONDITION(UUPFCharacterEquipmentComponent, CurrentWeaponType, COND_InitialOnly);
 	DOREPLIFETIME_CONDITION(UUPFCharacterEquipmentComponent, bIsHolstered, COND_InitialOnly);
-}
-
-void UUPFCharacterEquipmentComponent::PostNetReceive()
-{
-	Super::PostNetReceive();
-
-	if (FUPFAppliedEquipmentEntry* Entry = FindEquipment(CurrentWeaponType))
-	{
-		Entry->EquipmentInstance = SpawnAndAttachEquipment(Entry->EquipmentItemData, bIsHolstered ? UPFSocketNames::spine_03Socket : UPFSocketNames::hand_rSocket);
-	}
 }
 
 AController* UUPFCharacterEquipmentComponent::GetOwnerController() const
@@ -101,9 +111,11 @@ void UUPFCharacterEquipmentComponent::EquipItem(const UUPFEquipmentItemData* Dat
 	}
 	
 	// 장비 스폰 및 이 캐릭터에 장착시키고, 리스트에 추가
-	EquipItemInternal(Data);
+	if (HasAuthority())
+	{
+		EquipItemInternal(Data);
+	}
 	
-
 	// 추가된 AppliedEquipmentEntry 를 사용해서 어빌리티를 지급한다.
 	if (const IAbilitySystemInterface* ASCInterface = UPFActorUtility::GetTypedOwnerRecursive<IAbilitySystemInterface>(GetOwner()))
 	{
@@ -132,16 +144,27 @@ void UUPFCharacterEquipmentComponent::EquipItemInternal(const UUPFEquipmentItemD
 	AUPFEquipmentInstance* SpawnedItem = SpawnAndAttachEquipment(Data, AttachSocket);
 
 	// 장비 목록에 추가
-	FUPFAppliedEquipmentEntry NewEntry;
-	NewEntry.EquipmentItemData = Data;
-	NewEntry.EquipmentInstance = SpawnedItem;
-	
-	AppliedEquipmentArray.Items.Emplace(NewEntry);
-	AppliedEquipmentArray.MarkItemDirty(NewEntry);
+	if (HasAuthority())
+	{
+		FUPFAppliedEquipmentEntry NewEntry;
+		NewEntry.EquipmentItemData = Data;
+		NewEntry.EquipmentInstance = SpawnedItem;
+		
+		AppliedEquipmentArray.Items.Emplace(NewEntry);
+		AppliedEquipmentArray.MarkItemDirty(NewEntry);
+	}
+	else
+	{
+		FUPFAppliedEquipmentEntry* Entry = FindEquipment(Data->EquipmentType);
+		if (!ensure(Entry)) return;
+
+		Entry->EquipmentInstance = SpawnedItem;
+	}
 }
 
-AUPFEquipmentInstance* UUPFCharacterEquipmentComponent::SpawnAndAttachEquipment(const UUPFEquipmentItemData* Data, FName AttachSocketName)
+AUPFEquipmentInstance* UUPFCharacterEquipmentComponent::SpawnAndAttachEquipment(const UUPFEquipmentItemData* Data, FName AttachSocketName) const
 {
+	UPF_LOG_COMPONENT(LogTemp, Log, TEXT("Owner Name = %s"), *GetOwner()->GetName());
 	AUPFEquipmentInstance* SpawnedItem = GetWorld()->SpawnActorDeferred<AUPFEquipmentInstance>(Data->InstanceClass, FTransform::Identity, GetOwner());
 
 	// Mesh 적용 등 세팅
@@ -165,7 +188,10 @@ void UUPFCharacterEquipmentComponent::UnEquipItem(FGameplayTag EquipmentType)
 	}
 
 	// 그다음 이 캐릭터의 장비 제거
-	UnEquipItemInternal(EquipmentType);
+	if (HasAuthority())
+	{
+		UnEquipItemInternal(EquipmentType);
+	}
 }
 
 AUPFWeaponInstance* UUPFCharacterEquipmentComponent::GetCurrentRangedWeaponInstance()
@@ -326,12 +352,19 @@ void UUPFCharacterEquipmentComponent::ToggleHolsterWeaponInternal()
 	// Socket 이동
 	ensure(EquipmentInstance->MeshComp->AttachToComponent(CharacterMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, TargetSocket));
 	EquipmentInstance->OnSocketChanged(TargetSocket);
+	
+	if (HasAuthority())
+	{
+		EntryPtr->AttachedSocketName = TargetSocket;
+	}
 
 	bIsHolstered = !bIsHolstered;
 }
 
 void UUPFCharacterEquipmentComponent::ClientRPCToggleHolsterWeapon_Implementation(UUPFCharacterEquipmentComponent* TargetEquipmentComp)
 {
+	UPF_LOG_COMPONENT(LogTemp, Log, TEXT("Called"));
+	
 	if (TargetEquipmentComp)
 	{
 		TargetEquipmentComp->ToggleHolsterWeaponInternal();

@@ -36,6 +36,9 @@ private:
 	
 	UPROPERTY()
 	TObjectPtr<const UUPFEquipmentItemData> EquipmentItemData;
+
+	UPROPERTY()
+	FName AttachedSocketName;
 	
 	UPROPERTY(NotReplicated)
 	TObjectPtr<AUPFEquipmentInstance> EquipmentInstance;
@@ -64,11 +67,18 @@ private:
 	UPROPERTY()
 	TArray<FUPFAppliedEquipmentEntry> Items;
 
+	UPROPERTY()
+	TObjectPtr<UUPFCharacterEquipmentComponent> EquipmentComponent;
+
 public:
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParms)
 	{
 		return FFastArraySerializer::FastArrayDeltaSerialize<FUPFAppliedEquipmentEntry, FUPFAppliedEquipmentArray>(Items, DeltaParms, *this);
 	}
+
+	void PreReplicatedRemove(const TArrayView<int32>& RemovedIndices, int32 FinalSize);
+	
+	void PostReplicatedAdd(const TArrayView<int32>& AddedIndices, int32 FinalSize);
 };
 
 template<>
@@ -97,8 +107,6 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	virtual void PostNetReceive() override;
-
 protected:
 	AController* GetOwnerController() const;
 	bool HasAuthority() const;
@@ -115,10 +123,12 @@ public:
 	AUPFWeaponInstance* GetCurrentRangedWeaponInstance();
 	
 protected:
+	friend FUPFAppliedEquipmentArray;
+	
 	// 캐릭터에게 장비 스폰 및 장착
 	void EquipItemInternal(const UUPFEquipmentItemData* Data);
 
-	AUPFEquipmentInstance* SpawnAndAttachEquipment(const UUPFEquipmentItemData* Data, FName AttachSocketName);
+	AUPFEquipmentInstance* SpawnAndAttachEquipment(const UUPFEquipmentItemData* Data, FName AttachSocketName) const;
 
 	// 캐릭터의 장비 해제 및 파괴
 	void UnEquipItemInternal(FGameplayTag EquipmentType);
@@ -169,10 +179,4 @@ public:
 	{
 		return bIsHolstered;
 	}
-
-	// Animation
-protected:
-	// 무기 수납 / 착용 시 공통으로 사용되는 몽타주, Holster Ability에 의해 Replicate 로 재생됨
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UAnimMontage> HolsterMontage;
 };
