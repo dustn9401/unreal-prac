@@ -267,6 +267,7 @@ void UUPFCharacterEquipmentComponent::TakeEquipmentAbility(const IAbilitySystemI
 		const FGuid* InputID = InputBindIDs.Find(EquipmentType);
 		if (!ensure(InputID)) return;
 		PlayerCharacter->RemoveAbilitySetBind(*InputID);
+		InputBindIDs.Remove(EquipmentType);
 	}
 }
 
