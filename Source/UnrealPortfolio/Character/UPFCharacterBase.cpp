@@ -107,6 +107,8 @@ void AUPFCharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
+	AbilitySystemComponent->InitAbilityActorInfo(this, this);
+
 	if (HasAuthority())
 	{
 		SetData_ServerOnly(CharacterData);	
