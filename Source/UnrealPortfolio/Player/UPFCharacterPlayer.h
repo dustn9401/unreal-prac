@@ -67,6 +67,9 @@ protected:
 	void Look(const FInputActionValue& Value);
 	void Move(const FInputActionValue& Value);
 
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastRPCUpdateControlRotation(FVector_NetQuantize NewRotation);
+
 // IUPFItemContainerInterface Impl
 public:
 	virtual void TakeItem(UUPFItemData* Data) override;

@@ -30,6 +30,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void QuitLevel();
 
+	virtual void UpdateRotation(float DeltaTime) override;
+
 // ICameraShakeHandler Impl
 public:
 	virtual void PlayCameraShake(const TSubclassOf<UCameraShakeBase> CameraShakeClass) override;
