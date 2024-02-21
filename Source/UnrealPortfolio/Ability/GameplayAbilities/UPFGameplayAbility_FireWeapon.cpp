@@ -250,16 +250,15 @@ FHitResult UUPFGameplayAbility_FireWeapon::DoSingleBulletTrace(const FVector& St
 
 	FHitResult Impact;
 
-	// Trace and process instant hit if something was hit
-	// First trace without using sweep radius
+	// 우선 SweepRadius 를 0으로 주고 쿼리
 	if (FindFirstPawnHitResult(OutHits) == INDEX_NONE)
 	{
 		Impact = WeaponTrace(StartTrace, EndTrace, /*SweepRadius=*/ 0.0f, bIsSimulated, /*out*/ OutHits);
 	}
 
+	// SweepRadius 를 0으로 준 쿼리로 대상을 못찾았고 SweepRadius 가 있는 경우, 다시 쿼리한다. 
 	if (FindFirstPawnHitResult(OutHits) == INDEX_NONE)
 	{
-		// If this weapon didn't hit anything with a line trace and supports a sweep radius, try that
 		if (SweepRadius > 0.0f)
 		{
 			TArray<FHitResult> SweepHits;

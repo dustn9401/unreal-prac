@@ -190,8 +190,6 @@ void AUPFCharacterPlayer::Look(const FInputActionValue& Value)
 
 	AddControllerYawInput(LookAxisVector.X);
 	AddControllerPitchInput(LookAxisVector.Y);
-
-	UPF_LOG(LogTemp, Log, TEXT("%d, %d, %d"), bUseControllerRotationPitch, bUseControllerRotationRoll, bUseControllerRotationYaw);
 }
 
 void AUPFCharacterPlayer::Move(const FInputActionValue& Value)
