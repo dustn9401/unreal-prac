@@ -18,6 +18,6 @@ class UNREALPORTFOLIO_API UUPFHUDWidget : public UUserWidget
 protected:
 	virtual void NativeConstruct() override;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidget))
 	TObjectPtr<UUPFHPBarWidget> HPBarWidget;
 };

@@ -10,7 +10,7 @@ void UUPFHUDWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	HPBarWidget = Cast<UUPFHPBarWidget>(GetWidgetFromName(TEXT("WBP_UPFHPBar")));
+	// HPBarWidget = Cast<UUPFHPBarWidget>(GetWidgetFromName(TEXT("WBP_UPFHPBar")));
 	if (ensure(HPBarWidget))
 	{
 		const AUPFCharacterBase* MyCharacter = Cast<AUPFCharacterBase>(GetOwningPlayerPawn());
