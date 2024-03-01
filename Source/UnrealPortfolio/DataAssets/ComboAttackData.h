@@ -25,6 +25,6 @@ public:
 	UPROPERTY(EditAnywhere, Category=Name)
 	float FrameRate;
 
-	UPROPERTY(EditAnywhere, Category=ComboData)
+	UPROPERTY(EditAnywhere, EditFixedSize, Category=ComboData)
 	TArray<float> EffectiveFrameCount;
 };
