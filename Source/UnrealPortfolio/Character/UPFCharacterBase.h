@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "..\Interface\MeleeAttackAnimationInterface.h"
 #include "AbilitySystemInterface.h"
 #include "Ability/Attributes/UPFStatSet.h"
 #include "Components/UPFAbilitySystemComponent.h"
@@ -40,9 +39,7 @@ public:
 };
 
 UCLASS(Abstract)
-class UNREALPORTFOLIO_API AUPFCharacterBase : public ACharacter,
-public IMeleeAttackAnimationInterface,
-public IAbilitySystemInterface
+class UNREALPORTFOLIO_API AUPFCharacterBase : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -64,11 +61,6 @@ protected:
 	TObjectPtr<UUPFCharacterData> CharacterData;
 
 	void SetData_ServerOnly(UUPFCharacterData* InData);
-
-	
-// IAttackAnimationInterface Impl
-public:
-	virtual void OnMeleeAttackAnimationHit() override;
 
 // IAbilitySystemInterface Impl
 public:

@@ -2,8 +2,7 @@
 
 
 #include "Animation/AnimNotify_MeleeAttackHit.h"
-
-#include "..\Interface\MeleeAttackAnimationInterface.h"
+#include "AbilitySystemBlueprintLibrary.h"
 
 void UAnimNotify_MeleeAttackHit::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
@@ -11,13 +10,10 @@ void UAnimNotify_MeleeAttackHit::Notify(USkeletalMeshComponent* MeshComp, UAnimS
 
 	if (MeshComp)
 	{
-		if (const auto AttackPawn = Cast<IMeleeAttackAnimationInterface>(MeshComp->GetOwner()); AttackPawn)
+		if (AActor* OwnerActor = MeshComp->GetOwner())
 		{
-			AttackPawn->OnMeleeAttackAnimationHit();
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("MeshComp->GetOwner() is NOT IMeleeAttackAnimationInterface!!"));
+			FGameplayEventData Payload;
+			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(OwnerActor, EventTag, Payload);
 		}
 	}
 }

@@ -43,7 +43,12 @@ protected:
 // hit check
 public:
 	// 몽타주 Notify
-	void OnAnimNotify();
+	UFUNCTION()
+	void OnAnimNotify(FGameplayEventData Payload);
+
+	// AnimNotify 가 이 태그를 보내는 타이밍에 Hit Check 수행
+	UPROPERTY(EditAnywhere)
+	FGameplayTag AnimNotifyEventTag;
 
 protected:
 	void OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData, FGameplayTag ApplicationTag);

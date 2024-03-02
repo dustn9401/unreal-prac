@@ -7,6 +7,7 @@
 #include "Item/ItemInstance/Equipments/UPFEquipmentInstance.h"
 #include "UPFRangedWeaponInstance.generated.h"
 
+struct FGameplayAbilityTargetDataHandle;
 class AUPFCharacterBase;
 
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnAmmoChangedDelegate, int32 /*MagazineAmmo*/, int32 /*ExtraAmmo*/)
@@ -231,6 +232,7 @@ private:
 
 // OnFire
 public:
+	// 총이 발사되는 타이밍에 호출되는 함수, 사운드 및 이펙트 출력
 	void OnFire(const FGameplayAbilityTargetDataHandle& InData);
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)

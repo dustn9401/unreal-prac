@@ -7,6 +7,7 @@
 
 AUPFWeaponInstance::AUPFWeaponInstance()
 {
+	bReplicates = false;
 }
 
 void AUPFWeaponInstance::PostEquipped(USkeletalMeshComponent* AttachedMesh, const FName& AttachSocket)

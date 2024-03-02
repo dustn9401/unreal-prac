@@ -162,16 +162,16 @@ void AUPFCharacterBase::SetData_ServerOnly(UUPFCharacterData* InData)
 	}
 }
 
-void AUPFCharacterBase::OnMeleeAttackAnimationHit()
-{
-	// 로컬 컨트롤러만 Notify를 수신한다.
-	if (!IsLocallyControlled()) return;
-
-	const auto AnimatingMeleeAttackAbility = Cast<UUPFGameplayAbility_MeleeAttack>(AbilitySystemComponent->GetAnimatingAbility());
-	if (!AnimatingMeleeAttackAbility) return;
-
-	AnimatingMeleeAttackAbility->OnAnimNotify();
-}
+// void AUPFCharacterBase::OnMeleeAttackAnimationHit()
+// {
+// 	// 로컬 컨트롤러만 Notify를 수신한다.
+// 	if (!IsLocallyControlled()) return;
+//
+// 	const auto AnimatingMeleeAttackAbility = Cast<UUPFGameplayAbility_MeleeAttack>(AbilitySystemComponent->GetAnimatingAbility());
+// 	if (!AnimatingMeleeAttackAbility) return;
+//
+// 	AnimatingMeleeAttackAbility->OnAnimNotify();
+// }
 
 UAbilitySystemComponent* AUPFCharacterBase::GetAbilitySystemComponent() const
 {

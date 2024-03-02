@@ -5,6 +5,7 @@
 
 #include "AbilitySystemComponent.h"
 #include "UPFGameplayTags.h"
+#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Attributes/UPFStatSet.h"
 #include "Character/UPFCharacterBase.h"
 #include "Components/CapsuleComponent.h"
@@ -71,12 +72,17 @@ void UUPFGameplayAbility_MeleeAttack::ActivateAbility(const FGameplayAbilitySpec
 	 */
 	if (IsLocallyControlled())
 	{
-		// 몽타주 종료 콜백
+		// 몽타주 종료 시 어빌리티 종료 처리
 		FOnMontageEnded EndDelegate;
 		EndDelegate.BindUObject(this, &UUPFGameplayAbility_MeleeAttack::OnMontageEnd);
 		ActorInfo->GetAnimInstance()->Montage_SetEndDelegate(EndDelegate, ComboAttackData->Montage);
 
-		// 첫 콤보 체크 타이머는 수동으로 호출
+		// AnimNotify 타이밍에 Hit Check를 수행하도록 하는 코드
+		UAbilityTask_WaitGameplayEvent* Task = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, AnimNotifyEventTag);
+		Task->EventReceived.AddDynamic(this, &UUPFGameplayAbility_MeleeAttack::OnAnimNotify);
+		Task->ReadyForActivation();
+
+		// 첫 콤보 체크 타이머는 수동으로 호출, 두번째 콤보 부터는 타이머 콜백에서 이 함수를 호출함
 		SetNextComboTimerIfPossible();
 	}
 	// 나머지는 TargetData 가 Set 될때의 이벤트를 등록한다.
@@ -171,7 +177,7 @@ void UUPFGameplayAbility_MeleeAttack::SetNextComboTimerIfPossible()
 	}
 }
 
-void UUPFGameplayAbility_MeleeAttack::OnAnimNotify()
+void UUPFGameplayAbility_MeleeAttack::OnAnimNotify(FGameplayEventData Payload)
 {
 	// 로컬 컨트롤러 에서만 호출되는 함수
 	// 이 함수에서 콜리전 Hit 계산을 수행한 뒤, 서버 RPC를 호출한다.

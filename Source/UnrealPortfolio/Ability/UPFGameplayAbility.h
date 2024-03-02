@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
 #include "UPFGameplayAbility.generated.h"
-
 /**
  * 모든 어빌리티들의 base class
  */
