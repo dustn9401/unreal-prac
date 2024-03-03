@@ -12,7 +12,7 @@ public class UnrealPortfolio : ModuleRules
 	
 		PublicDependencyModuleNames.AddRange(new string[] { "GameplayAbilities", "GameplayTags", "GameplayTasks", "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG" });
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "NetCore", "AIModule" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "NetCore", "AIModule", "NavigationSystem" });
 
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
