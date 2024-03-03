@@ -255,8 +255,8 @@ void AUPFCharacterBase::ModifyReplicationTestProps(bool IsStart)
 	{
 		if (ReplicateTestSpawnActor)
 		{
-			ReplicatedSubObject = GetWorld()->SpawnActor<AActor>(ReplicateTestSpawnActor);
-			ReplicatedSubObject->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, UPFSocketNames::hand_rSocket);
+			// ReplicatedSubObject = GetWorld()->SpawnActor<AActor>(ReplicateTestSpawnActor);
+			// ReplicatedSubObject->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, UPFSocketNames::hand_rSocket);
 		}
 
 		TestStruct.Integer = 123;
