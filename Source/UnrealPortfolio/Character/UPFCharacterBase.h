@@ -78,6 +78,7 @@ protected:
 	
 
 public:
+	// const 가 아닌 AttributeSet 포인터가 필요해서 만든 함수
 	UUPFHPSet* GetHPSet() const;
 
 // Widget

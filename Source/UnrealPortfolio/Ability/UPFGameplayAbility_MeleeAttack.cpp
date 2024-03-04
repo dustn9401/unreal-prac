@@ -64,7 +64,8 @@ void UUPFGameplayAbility_MeleeAttack::ActivateAbility(const FGameplayAbilitySpec
 	
 	// 몽타주 실행
 	const TWeakObjectPtr<UAbilitySystemComponent> ASC = ActorInfo->AbilitySystemComponent;
-	ASC->PlayMontage(this, ActivationInfo, ComboAttackData->Montage, 1.0f);
+	const float AttackSpeedRate = ASC->GetNumericAttribute(UUPFStatSet::GetAttackSpeedAttribute());
+	ASC->PlayMontage(this, ActivationInfo, ComboAttackData->Montage, AttackSpeedRate);
 
 	/*
 	 * 어빌리티가 종료되는 시점은 로컬 컨트롤러의 인풋에 의해 달라짐
@@ -161,7 +162,14 @@ void UUPFGameplayAbility_MeleeAttack::SetNextComboTimerIfPossible()
 	check(ComboAttackData->EffectiveFrameCount.IsValidIndex(ComboIndex));
 
 	// ComboEffectiveTime 내에 공격 인풋이 들어와야 다음 콤보로 넘어갈 수 있도록 하는 로직
-	float ComboEffectiveTime = (ComboAttackData->EffectiveFrameCount[ComboIndex] / ComboAttackData->FrameRate);
+	float AttackSpeedRate = 1.0f;
+	if (ensure(CurrentActorInfo && CurrentActorInfo->AbilitySystemComponent.IsValid()))
+	{
+		const TWeakObjectPtr<UAbilitySystemComponent> ASC = CurrentActorInfo->AbilitySystemComponent.Get();
+		AttackSpeedRate = ASC->GetNumericAttribute(UUPFStatSet::GetAttackSpeedAttribute());
+	}
+
+	const float ComboEffectiveTime = (ComboAttackData->EffectiveFrameCount[ComboIndex] / ComboAttackData->FrameRate) / AttackSpeedRate;
 	if (ComboEffectiveTime > 0.0f)	// ComboIndex < ComboAttackData->EffectiveFrameCount.Num() - 1
 	{
 		const FTimerDelegate TimerCallback = FTimerDelegate::CreateWeakLambda(this, [this]
