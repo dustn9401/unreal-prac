@@ -128,8 +128,7 @@ void UUPFCharacterEquipmentComponent::EquipItemServerOnly(const UUPFEquipmentIte
 	const bool IsUnarmed = !CurrentWeaponType.IsValid(); // 아무 장비도 착용하지 않았다면, 현재 선택된 장비 타입으로 지정하고 손에 쥐어준다.
 	const bool IsCurrentWeaponType = CurrentWeaponType == Data->EquipmentType;
 	const bool AttachToHand = (IsCurrentWeaponType && !bIsHolstered) || IsUnarmed;
-
-	// todo: 데이터화 하기
+	
 	const FName AttachSocket = AttachToHand
 		                           ? UPFSocketNames::hand_rSocket
 		                           : UPFSocketNames::spine_03Socket;
@@ -190,7 +189,7 @@ void UUPFCharacterEquipmentComponent::UnEquipItem(FGameplayTag EquipmentType)
 	// 그다음 이 캐릭터의 장비 제거
 	if (HasAuthority())
 	{
-		UnEquipItemInternal(EquipmentType);
+		UnEquipItemServerOnly(EquipmentType);
 	}
 }
 
@@ -204,7 +203,7 @@ AUPFWeaponInstance* UUPFCharacterEquipmentComponent::GetCurrentRangedWeaponInsta
 	return CastChecked<AUPFWeaponInstance>(Entry->EquipmentInstance);
 }
 
-void UUPFCharacterEquipmentComponent::UnEquipItemInternal(FGameplayTag EquipmentType)
+void UUPFCharacterEquipmentComponent::UnEquipItemServerOnly(FGameplayTag EquipmentType)
 {
 	for (auto EntryIt = AppliedEquipmentArray.Items.CreateIterator(); EntryIt; ++EntryIt)
 	{

@@ -131,7 +131,7 @@ protected:
 	AUPFEquipmentInstance* SpawnAndAttachEquipment(const UUPFEquipmentItemData* Data, FName AttachSocketName) const;
 
 	// 캐릭터의 장비 해제 및 파괴
-	void UnEquipItemInternal(FGameplayTag EquipmentType);
+	void UnEquipItemServerOnly(FGameplayTag EquipmentType);
 
 	// 현재 보유중인 EquipmentType 장비의 어빌리티 셋을 캐릭터에 부여한다.
 	void GiveEquipmentAbility(const IAbilitySystemInterface* ASCInterface, const UUPFAbilitySet* AbilitySet, FGameplayTag EquipmentType);
