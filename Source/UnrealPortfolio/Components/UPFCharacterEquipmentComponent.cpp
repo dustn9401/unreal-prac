@@ -33,7 +33,7 @@ void FUPFAppliedEquipmentArray::PostReplicatedAdd(const TArrayView<int32>& Added
 		FUPFAppliedEquipmentEntry& Entry = Items[Index];
 		if (Entry.EquipmentItemData)
 		{
-			EquipmentComponent->EquipItemInternal(Entry.EquipmentItemData);
+			EquipmentComponent->EquipItemServerOnly(Entry.EquipmentItemData);
 		}
 	}
 }
@@ -113,7 +113,7 @@ void UUPFCharacterEquipmentComponent::EquipItem(const UUPFEquipmentItemData* Dat
 	// 장비 스폰 및 이 캐릭터에 장착시키고, 리스트에 추가
 	if (HasAuthority())
 	{
-		EquipItemInternal(Data);
+		EquipItemServerOnly(Data);
 	}
 	
 	// 추가된 AppliedEquipmentEntry 를 사용해서 어빌리티를 지급한다.
@@ -123,7 +123,7 @@ void UUPFCharacterEquipmentComponent::EquipItem(const UUPFEquipmentItemData* Dat
 	}
 }
 
-void UUPFCharacterEquipmentComponent::EquipItemInternal(const UUPFEquipmentItemData* Data)
+void UUPFCharacterEquipmentComponent::EquipItemServerOnly(const UUPFEquipmentItemData* Data)
 {
 	const bool IsUnarmed = !CurrentWeaponType.IsValid(); // 아무 장비도 착용하지 않았다면, 현재 선택된 장비 타입으로 지정하고 손에 쥐어준다.
 	const bool IsCurrentWeaponType = CurrentWeaponType == Data->EquipmentType;

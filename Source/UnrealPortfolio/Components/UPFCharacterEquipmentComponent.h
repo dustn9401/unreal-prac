@@ -126,7 +126,7 @@ protected:
 	friend FUPFAppliedEquipmentArray;
 	
 	// 캐릭터에게 장비 스폰 및 장착
-	void EquipItemInternal(const UUPFEquipmentItemData* Data);
+	void EquipItemServerOnly(const UUPFEquipmentItemData* Data);
 
 	AUPFEquipmentInstance* SpawnAndAttachEquipment(const UUPFEquipmentItemData* Data, FName AttachSocketName) const;
 
