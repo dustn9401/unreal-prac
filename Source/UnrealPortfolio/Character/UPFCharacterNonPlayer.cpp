@@ -6,7 +6,8 @@
 #include "AI/UPFAIController.h"
 #include "AbilitySystemBlueprintLibrary.h"
 
-AUPFCharacterNonPlayer::AUPFCharacterNonPlayer()
+AUPFCharacterNonPlayer::AUPFCharacterNonPlayer(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	AIControllerClass = AUPFAIController::StaticClass();
@@ -54,19 +55,11 @@ void AUPFCharacterNonPlayer::ActivateAbilityByAI(FGameplayTag AbilityTag)
 {
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
 	if (!ensure(ASC)) return;
-
-	for(FGameplayAbilitySpec& AbilitySpec : ASC->GetActivatableAbilities())
-	{
-		// todo
-	}
 	
 	FGameplayEventData Payload;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, AbilityTag, Payload);
 
-	if (ASC->HasMatchingGameplayTag(AbilityTag))
-	{
-		ASC->OnAbilityEnded
-	}
+	// todo: 어빌리티 종료 이벤트 받기
 }
 
 void AUPFCharacterNonPlayer::SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished)

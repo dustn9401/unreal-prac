@@ -16,7 +16,7 @@ class UNREALPORTFOLIO_API AUPFCharacterNonPlayer : public AUPFCharacterBase, pub
 	GENERATED_BODY()
 
 public:
-	AUPFCharacterNonPlayer();
+	AUPFCharacterNonPlayer(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	virtual FName GetStatGroup() override;

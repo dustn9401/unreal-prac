@@ -25,6 +25,7 @@
 #include "Player/UPFPlayerState.h"
 #include "UI/UPFHPBarWidget.h"
 
+
 // Sets default values
 AUPFCharacterBase::AUPFCharacterBase(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
