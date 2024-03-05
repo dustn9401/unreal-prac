@@ -23,8 +23,10 @@ public:
 	// ItemData 를 받아서 오브젝트를 초기화 시킨다.
 	virtual void SetData(const UUPFItemData* InData) override;
 
+	void UpdateMesh();
+
 	// 메시에 Attach 된 후 호출
-	virtual void PostEquipped(USkeletalMeshComponent* AttachedMesh, const FName& AttachSocket);
+	virtual void PostEquipped();
 
 	// 메시에서 Detach 되기 전 호출
 	virtual void PreUnEquipped();

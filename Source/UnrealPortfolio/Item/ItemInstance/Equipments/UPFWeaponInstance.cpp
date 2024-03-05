@@ -3,21 +3,28 @@
 
 #include "Item/ItemInstance/Equipments/UPFWeaponInstance.h"
 
+#include "UnrealPortfolio.h"
 #include "Constants/UPFSocketNames.h"
 
 AUPFWeaponInstance::AUPFWeaponInstance()
 {
-	bReplicates = true;
+	
 }
 
-void AUPFWeaponInstance::PostEquipped(USkeletalMeshComponent* AttachedMesh, const FName& AttachSocket)
+void AUPFWeaponInstance::PostEquipped()
 {
-	Super::PostEquipped(AttachedMesh, AttachSocket);
+	Super::PostEquipped();
 
-	OwnerMesh = AttachedMesh;
-	AttachedSocketNameCache = AttachSocket;
+	AActor* OwnerActor = GetOwner();
+	if (ensure(OwnerActor))
+	{
+		OwnerMesh = OwnerActor->GetComponentByClass<USkeletalMeshComponent>();
+	}
+	
+	AttachedSocketNameCache = GetAttachParentSocketName();
+	UPF_LOG(LogTemp, Log, TEXT("Attached Socket Name: %s"), *AttachedSocketNameCache.ToString());
 
-	if (AttachSocket == UPFSocketNames::hand_rSocket)
+	if (AttachedSocketNameCache == UPFSocketNames::hand_rSocket)
 	{
 		LinkAnimLayer();
 	}

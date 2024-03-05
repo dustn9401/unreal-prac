@@ -9,6 +9,7 @@
 AUPFEquipmentInstance::AUPFEquipmentInstance()
 {
 	RootComponent = MeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMeshComponent"));
+	bReplicates = true;
 }
 
 void AUPFEquipmentInstance::SetData(const UUPFItemData* InData)
@@ -22,12 +23,15 @@ void AUPFEquipmentInstance::SetData(const UUPFItemData* InData)
 	check(EquipmentItemData);
 	
 	USkeletalMesh* EquipmentMesh = EquipmentItemData->SkeletalMesh.IsPending()
-									? EquipmentItemData->SkeletalMesh.LoadSynchronous()
-									: EquipmentItemData->SkeletalMesh.Get();
+								? EquipmentItemData->SkeletalMesh.LoadSynchronous()
+								: EquipmentItemData->SkeletalMesh.Get();
+	
 	SMC->SetSkeletalMesh(EquipmentMesh);
+
+	SetActorRelativeTransform(FTransform::Identity);
 }
 
-void AUPFEquipmentInstance::PostEquipped(USkeletalMeshComponent* AttachedMesh, const FName& AttachSocket)
+void AUPFEquipmentInstance::PostEquipped()
 {
 	bIsEquipped = true;
 }

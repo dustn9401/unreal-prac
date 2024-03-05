@@ -18,7 +18,7 @@ public:
 	AUPFWeaponInstance();
 
 public:
-	virtual void PostEquipped(USkeletalMeshComponent* AttachedMesh, const FName& AttachSocket) override;
+	virtual void PostEquipped() override;
 
 	virtual void PreUnEquipped() override;
 

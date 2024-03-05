@@ -31,9 +31,11 @@ void FUPFAppliedEquipmentArray::PostReplicatedAdd(const TArrayView<int32>& Added
 	for(const int32 Index : AddedIndices)
 	{
 		FUPFAppliedEquipmentEntry& Entry = Items[Index];
-		if (Entry.EquipmentItemData)
+		if (Entry.EquipmentInstance)
 		{
-			EquipmentComponent->EquipItemServerOnly(Entry.EquipmentItemData);
+			Entry.EquipmentInstance->SetData(Entry.EquipmentItemData);
+			Entry.EquipmentInstance->PostEquipped();
+			EquipmentComponent->UpdateWeaponState();
 		}
 	}
 }
@@ -62,8 +64,7 @@ void UUPFCharacterEquipmentComponent::GetLifetimeReplicatedProps(TArray<FLifetim
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UUPFCharacterEquipmentComponent, AppliedEquipmentArray);
-	DOREPLIFETIME_CONDITION(UUPFCharacterEquipmentComponent, CurrentWeaponType, COND_InitialOnly);
-	DOREPLIFETIME_CONDITION(UUPFCharacterEquipmentComponent, bIsHolstered, COND_InitialOnly);
+	DOREPLIFETIME(UUPFCharacterEquipmentComponent, CurrentWeaponType);
 }
 
 AController* UUPFCharacterEquipmentComponent::GetOwnerController() const
@@ -172,8 +173,9 @@ AUPFEquipmentInstance* UUPFCharacterEquipmentComponent::SpawnAndAttachEquipment(
 	SpawnedItem->FinishSpawning(FTransform::Identity);
 
 	SpawnedItem->MeshComp->AttachToComponent(CharacterMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, AttachSocketName);
+	SpawnedItem->SetOwner(GetOwner());
 	
-	SpawnedItem->PostEquipped(CharacterMeshComponent, AttachSocketName);
+	SpawnedItem->PostEquipped();
 
 	return SpawnedItem;
 }
@@ -303,7 +305,7 @@ void UUPFCharacterEquipmentComponent::ToggleHolsterWeapon()
 	FUPFAppliedEquipmentEntry* EntryPtr = FindEquipment(CurrentWeaponType);
 	if (!ensure(EntryPtr)) return;
 	
-	// 서버, 로컬 컨트롤러는 즉시 수납상태를 변경하고 어빌리티 관련 처리 수행
+	// 수납상태를 변경하고 어빌리티 관련 처리 수행
 	ToggleHolsterWeaponInternal();
 		
 	if (bIsHolstered)
@@ -322,22 +324,6 @@ void UUPFCharacterEquipmentComponent::ToggleHolsterWeapon()
 			GiveEquipmentAbility(ASCInterface, EntryPtr->EquipmentItemData->AbilitiesToGrant, CurrentWeaponType);
 		}
 	}
-
-	if (OwnerPawn->HasAuthority())
-	{
-		// 서버, 로컬 컨트롤러를 제외한 플레이어들에게 수납 상태 변경 Client RPC 호출
-		for(const AUPFCharacterPlayer* CharacterPlayer : TActorRange<AUPFCharacterPlayer>(GetWorld()))
-		{
-			if (!CharacterPlayer) continue;
-			if (CharacterPlayer == OwnerPawn) continue;	// 이 캐릭터의 주인에게는 보내지 않음
-			if (CharacterPlayer->IsLocallyControlled()) continue;	// 서버 자신에게는 보내지 않음
-			
-			if (UUPFCharacterEquipmentComponent* OtherPlayerEquipmentComp = CharacterPlayer->GetComponentByClass<UUPFCharacterEquipmentComponent>())
-			{
-				OtherPlayerEquipmentComp->ClientRPCToggleHolsterWeapon(this);
-			}
-		}
-	}
 }
 
 void UUPFCharacterEquipmentComponent::ToggleHolsterWeaponInternal()
@@ -353,15 +339,10 @@ void UUPFCharacterEquipmentComponent::ToggleHolsterWeaponInternal()
 	ensure(EquipmentInstance->MeshComp->AttachToComponent(CharacterMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, TargetSocket));
 	EquipmentInstance->OnSocketChanged(TargetSocket);
 	
-	if (HasAuthority())
-	{
-		EntryPtr->AttachedSocketName = TargetSocket;
-	}
-
 	bIsHolstered = !bIsHolstered;
 }
 
-void UUPFCharacterEquipmentComponent::ClientRPCToggleHolsterWeapon_Implementation(UUPFCharacterEquipmentComponent* TargetEquipmentComp)
+void UUPFCharacterEquipmentComponent::ServerRPCToggleHolsterWeapon_Implementation(UUPFCharacterEquipmentComponent* TargetEquipmentComp)
 {
 	UPF_LOG_COMPONENT(LogTemp, Log, TEXT("Called"));
 	
@@ -378,4 +359,17 @@ FUPFAppliedEquipmentEntry* UUPFCharacterEquipmentComponent::FindEquipment(FGamep
 	{
 		return X.EquipmentItemData->EquipmentType == WeaponType;
 	});
+}
+
+void UUPFCharacterEquipmentComponent::UpdateWeaponState()
+{
+	FUPFAppliedEquipmentEntry* CurrentWeaponEntry = FindEquipment(CurrentWeaponType);
+	if (!CurrentWeaponEntry || !CurrentWeaponEntry->EquipmentInstance)
+	{
+		bIsHolstered = false;
+		return;
+	}
+
+	AUPFEquipmentInstance* CurrentWeaponInstance = CurrentWeaponEntry->EquipmentInstance;
+	bIsHolstered = CurrentWeaponInstance->GetAttachParentSocketName() != UPFSocketNames::hand_rSocket;
 }

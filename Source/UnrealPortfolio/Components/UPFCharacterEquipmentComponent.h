@@ -36,11 +36,8 @@ private:
 	
 	UPROPERTY()
 	TObjectPtr<const UUPFEquipmentItemData> EquipmentItemData;
-
-	UPROPERTY()
-	FName AttachedSocketName;
 	
-	UPROPERTY(NotReplicated)
+	UPROPERTY()
 	TObjectPtr<AUPFEquipmentInstance> EquipmentInstance;
 
 	// 부여된 어빌리티 및 이펙트 데이터, 서버만 데이터가 채워져 있다.
@@ -164,15 +161,17 @@ protected:
 	FGameplayTag CurrentWeaponType;
 
 	// 무기를 수납중인지 여부
-	UPROPERTY(Replicated)
+	UPROPERTY()
 	uint8 bIsHolstered : 1;
 
 	void ToggleHolsterWeaponInternal();
 
-	UFUNCTION(Client, Reliable)
-	void ClientRPCToggleHolsterWeapon(UUPFCharacterEquipmentComponent* TargetEquipmentComp);
+	UFUNCTION(Server, Reliable)
+	void ServerRPCToggleHolsterWeapon(UUPFCharacterEquipmentComponent* TargetEquipmentComp);
 	
 	FUPFAppliedEquipmentEntry* FindEquipment(FGameplayTag WeaponType);
+
+	void UpdateWeaponState();
 
 public:
 	FORCEINLINE bool GetIsHolstered() const

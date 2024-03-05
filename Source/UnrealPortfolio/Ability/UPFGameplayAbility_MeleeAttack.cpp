@@ -10,7 +10,6 @@
 #include "Character/UPFCharacterBase.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/UPFCharacterEquipmentComponent.h"
-#include "Components/UPFWeaponStateComponent.h"
 #include "DataAssets/ComboAttackData.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/GameStateBase.h"
