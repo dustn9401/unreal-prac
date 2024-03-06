@@ -166,8 +166,8 @@ protected:
 
 	void ToggleHolsterWeaponInternal();
 
-	UFUNCTION(Server, Reliable)
-	void ServerRPCToggleHolsterWeapon(UUPFCharacterEquipmentComponent* TargetEquipmentComp);
+	UFUNCTION(Client, Reliable)
+	void ClientRPCToggleHolsterWeapon(UUPFCharacterEquipmentComponent* TargetEquipmentComp);
 	
 	FUPFAppliedEquipmentEntry* FindEquipment(FGameplayTag WeaponType);
 

@@ -324,6 +324,22 @@ void UUPFCharacterEquipmentComponent::ToggleHolsterWeapon()
 			GiveEquipmentAbility(ASCInterface, EntryPtr->EquipmentItemData->AbilitiesToGrant, CurrentWeaponType);
 		}
 	}
+
+	if (HasAuthority())
+	{
+		// 서버, 로컬 컨트롤러를 제외한 플레이어들에게 수납 상태 변경 Client RPC 호출
+		for(const AUPFCharacterPlayer* CharacterPlayer : TActorRange<AUPFCharacterPlayer>(GetWorld()))
+		{
+			if (!CharacterPlayer) continue;
+			if (CharacterPlayer == OwnerPawn) continue;	// 이 캐릭터의 주인에게는 보내지 않음
+			if (CharacterPlayer->IsLocallyControlled()) continue;	// 서버 자신에게는 보내지 않음
+
+			if (UUPFCharacterEquipmentComponent* OtherPlayerEquipmentComp = CharacterPlayer->GetComponentByClass<UUPFCharacterEquipmentComponent>())
+			{
+				OtherPlayerEquipmentComp->ClientRPCToggleHolsterWeapon(this);
+			}
+		}
+	}
 }
 
 void UUPFCharacterEquipmentComponent::ToggleHolsterWeaponInternal()
@@ -342,7 +358,7 @@ void UUPFCharacterEquipmentComponent::ToggleHolsterWeaponInternal()
 	bIsHolstered = !bIsHolstered;
 }
 
-void UUPFCharacterEquipmentComponent::ServerRPCToggleHolsterWeapon_Implementation(UUPFCharacterEquipmentComponent* TargetEquipmentComp)
+void UUPFCharacterEquipmentComponent::ClientRPCToggleHolsterWeapon_Implementation(UUPFCharacterEquipmentComponent* TargetEquipmentComp)
 {
 	UPF_LOG_COMPONENT(LogTemp, Log, TEXT("Called"));
 	
