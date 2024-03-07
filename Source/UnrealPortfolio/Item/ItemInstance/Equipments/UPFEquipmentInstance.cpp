@@ -27,8 +27,6 @@ void AUPFEquipmentInstance::SetData(const UUPFItemData* InData)
 								: EquipmentItemData->SkeletalMesh.Get();
 	
 	SMC->SetSkeletalMesh(EquipmentMesh);
-
-	SetActorRelativeTransform(FTransform::Identity);
 }
 
 void AUPFEquipmentInstance::PostEquipped()

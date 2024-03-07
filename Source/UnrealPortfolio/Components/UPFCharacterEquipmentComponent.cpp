@@ -34,6 +34,7 @@ void FUPFAppliedEquipmentArray::PostReplicatedAdd(const TArrayView<int32>& Added
 		if (Entry.EquipmentInstance)
 		{
 			Entry.EquipmentInstance->SetData(Entry.EquipmentItemData);
+			Entry.EquipmentInstance->SetActorRelativeTransform(FTransform::Identity);
 			Entry.EquipmentInstance->PostEquipped();
 			EquipmentComponent->UpdateWeaponState();
 		}
@@ -165,7 +166,7 @@ void UUPFCharacterEquipmentComponent::EquipItemServerOnly(const UUPFEquipmentIte
 AUPFEquipmentInstance* UUPFCharacterEquipmentComponent::SpawnAndAttachEquipment(const UUPFEquipmentItemData* Data, FName AttachSocketName) const
 {
 	UPF_LOG_COMPONENT(LogTemp, Log, TEXT("Owner Name = %s"), *GetOwner()->GetName());
-	AUPFEquipmentInstance* SpawnedItem = GetWorld()->SpawnActorDeferred<AUPFEquipmentInstance>(Data->InstanceClass, FTransform::Identity, GetOwner());
+	AUPFEquipmentInstance* SpawnedItem = GetWorld()->SpawnActorDeferred<AUPFEquipmentInstance>(Data->InstanceClass, FTransform::Identity, /*Owner*/ GetOwner());
 
 	// Mesh 적용 등 세팅
 	SpawnedItem->SetData(Data);
@@ -173,7 +174,6 @@ AUPFEquipmentInstance* UUPFCharacterEquipmentComponent::SpawnAndAttachEquipment(
 	SpawnedItem->FinishSpawning(FTransform::Identity);
 
 	SpawnedItem->MeshComp->AttachToComponent(CharacterMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, AttachSocketName);
-	SpawnedItem->SetOwner(GetOwner());
 	
 	SpawnedItem->PostEquipped();
 

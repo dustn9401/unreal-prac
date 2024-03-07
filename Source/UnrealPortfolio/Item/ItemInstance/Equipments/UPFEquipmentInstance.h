@@ -23,8 +23,6 @@ public:
 	// ItemData 를 받아서 오브젝트를 초기화 시킨다.
 	virtual void SetData(const UUPFItemData* InData) override;
 
-	void UpdateMesh();
-
 	// 메시에 Attach 된 후 호출
 	virtual void PostEquipped();
 
