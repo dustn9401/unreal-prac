@@ -55,7 +55,7 @@ void UUPFGameplayAbility_Holster::OnEventReceived(FGameplayEventData Payload)
 	UPF_LOG_ABILITY(LogTemp, Log, TEXT("Called!"));
 	
 	AUPFCharacterBase* UPFCharacter = CastChecked<AUPFCharacterBase>(CurrentActorInfo->OwnerActor);
-	UPFCharacter->EquipmentComponent->ToggleHolsterWeapon();
+	UPFCharacter->EquipmentComponent->RefreshASCAfterToggleHolsterWeapon();
 
 	// 여기서 어빌리티를 종료시켜서 다시 인풋이 들어왔을 때 취소 시키지 않는다.
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);

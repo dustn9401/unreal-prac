@@ -290,7 +290,7 @@ bool UUPFCharacterEquipmentComponent::CanToggleHolster()
 	return true;
 }
 
-void UUPFCharacterEquipmentComponent::ToggleHolsterWeapon()
+void UUPFCharacterEquipmentComponent::RefreshASCAfterToggleHolsterWeapon()
 {
 	APawn* OwnerPawn = UPFActorUtility::GetTypedOwnerRecursive<APawn>(GetOwner());
 	if (!ensure(OwnerPawn)) return;
@@ -304,9 +304,6 @@ void UUPFCharacterEquipmentComponent::ToggleHolsterWeapon()
 
 	FUPFAppliedEquipmentEntry* EntryPtr = FindEquipment(CurrentWeaponType);
 	if (!ensure(EntryPtr)) return;
-	
-	// 수납상태를 변경하고 어빌리티 관련 처리 수행
-	ToggleHolsterWeaponInternal();
 		
 	if (bIsHolstered)
 	{
@@ -324,25 +321,9 @@ void UUPFCharacterEquipmentComponent::ToggleHolsterWeapon()
 			GiveEquipmentAbility(ASCInterface, EntryPtr->EquipmentItemData->AbilitiesToGrant, CurrentWeaponType);
 		}
 	}
-
-	if (HasAuthority())
-	{
-		// 서버, 로컬 컨트롤러를 제외한 플레이어들에게 수납 상태 변경 Client RPC 호출
-		for(const AUPFCharacterPlayer* CharacterPlayer : TActorRange<AUPFCharacterPlayer>(GetWorld()))
-		{
-			if (!CharacterPlayer) continue;
-			if (CharacterPlayer == OwnerPawn) continue;	// 이 캐릭터의 주인에게는 보내지 않음
-			if (CharacterPlayer->IsLocallyControlled()) continue;	// 서버 자신에게는 보내지 않음
-
-			if (UUPFCharacterEquipmentComponent* OtherPlayerEquipmentComp = CharacterPlayer->GetComponentByClass<UUPFCharacterEquipmentComponent>())
-			{
-				OtherPlayerEquipmentComp->ClientRPCToggleHolsterWeapon(this);
-			}
-		}
-	}
 }
 
-void UUPFCharacterEquipmentComponent::ToggleHolsterWeaponInternal()
+void UUPFCharacterEquipmentComponent::ToggleHolsterWeaponFromAnimNotify()
 {
 	FUPFAppliedEquipmentEntry* EntryPtr = FindEquipment(CurrentWeaponType);
 	if (!ensure(EntryPtr)) return;
@@ -357,17 +338,6 @@ void UUPFCharacterEquipmentComponent::ToggleHolsterWeaponInternal()
 	
 	bIsHolstered = !bIsHolstered;
 }
-
-void UUPFCharacterEquipmentComponent::ClientRPCToggleHolsterWeapon_Implementation(UUPFCharacterEquipmentComponent* TargetEquipmentComp)
-{
-	UPF_LOG_COMPONENT(LogTemp, Log, TEXT("Called"));
-	
-	if (TargetEquipmentComp)
-	{
-		TargetEquipmentComp->ToggleHolsterWeaponInternal();
-	}
-}
-
 
 FUPFAppliedEquipmentEntry* UUPFCharacterEquipmentComponent::FindEquipment(FGameplayTag WeaponType)
 {

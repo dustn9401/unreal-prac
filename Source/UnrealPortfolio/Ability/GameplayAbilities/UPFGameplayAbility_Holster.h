@@ -27,6 +27,7 @@ protected:
 
 	virtual void InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 
+	// AnimNotify 에서 보내주는 GameplayEvent 에 의해 호출되는 함수, 소켓 변경 및 관련 변수업데이트 이후 호출되어야 함 
 	UFUNCTION()
 	void OnEventReceived(FGameplayEventData Payload);
 

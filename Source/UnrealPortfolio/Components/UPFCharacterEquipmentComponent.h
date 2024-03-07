@@ -145,8 +145,10 @@ public:
 	bool CanToggleHolster();
 	
 	// 무기를 손에 들거나 수납한다.
+	void RefreshASCAfterToggleHolsterWeapon();
+
 	UFUNCTION(BlueprintCallable)
-	void ToggleHolsterWeapon();
+	void ToggleHolsterWeaponFromAnimNotify();
 
 protected:
 	UPROPERTY()
@@ -163,11 +165,6 @@ protected:
 	// 무기를 수납중인지 여부
 	UPROPERTY()
 	uint8 bIsHolstered : 1;
-
-	void ToggleHolsterWeaponInternal();
-
-	UFUNCTION(Client, Reliable)
-	void ClientRPCToggleHolsterWeapon(UUPFCharacterEquipmentComponent* TargetEquipmentComp);
 	
 	FUPFAppliedEquipmentEntry* FindEquipment(FGameplayTag WeaponType);
 
