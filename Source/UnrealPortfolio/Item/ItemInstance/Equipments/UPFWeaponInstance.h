@@ -17,13 +17,15 @@ class UNREALPORTFOLIO_API AUPFWeaponInstance : public AUPFEquipmentInstance
 public:
 	AUPFWeaponInstance();
 
+protected:
+	virtual void OnRep_Owner() override;
+
 public:
-	virtual void PostEquipped() override;
+	virtual void OnOwnerUpdated() override;
 
-	virtual void PreUnEquipped() override;
-
+public:
 	// 소켓이 변경될 때 외부에서 호출하는 함수
-	virtual void OnSocketChanged(const FName& NewSocketName) override;
+	virtual void OnSocketChanged() override;
 
 
 protected:
@@ -38,11 +40,10 @@ protected:
 	TSubclassOf<UAnimInstance> AnimLayer;
 
 	// OwnerMesh에 AnimLayer 를 등록 
-	void LinkAnimLayer();
+	void LinkAnimLayerIfPossible();
 
 	// OwnerMesh에서 AnimLayer 를 해제
-	void UnLinkAnimLayer();
-
-	FName AttachedSocketNameCache;
+	void UnLinkAnimLayerIfPossible();
+	
 	bool IsAnimLayerLinked = false;
 };

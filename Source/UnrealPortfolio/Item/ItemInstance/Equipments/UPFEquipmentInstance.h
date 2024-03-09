@@ -22,6 +22,8 @@ public:
 public:
 	// ItemData 를 받아서 오브젝트를 초기화 시킨다.
 	virtual void SetData(const UUPFItemData* InData) override;
+	
+	virtual void OnOwnerUpdated() {}
 
 	// 메시에 Attach 된 후 호출
 	virtual void PostEquipped();
@@ -30,7 +32,7 @@ public:
 	virtual void PreUnEquipped();
 
 	// 소켓이 변경될 때 외부에서 호출하는 함수
-	virtual void OnSocketChanged(const FName& NewSocketName);
+	virtual void OnSocketChanged();
 
 	// 이 장비 인스턴스가 현재 누군가에게 착용되어 있는 상태인지 여부
 	uint8 bIsEquipped : 1;

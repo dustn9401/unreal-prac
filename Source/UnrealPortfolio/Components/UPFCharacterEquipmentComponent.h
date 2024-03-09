@@ -44,6 +44,8 @@ private:
 	UPROPERTY(NotReplicated)
 	FUPFGrantedAbilitySetData GrantedData;
 
+	bool NeedUpdateEquipmentInstance = false;
+
 public:
 	// 캐릭터가 장비를 보유 중이어도, 수납된 상태인 경우 등 어빌리티가 지급되지 않은 상태일 수도 있음.  그걸 확인하는 용도의 함수
 	bool IsAbilityGranted() const
@@ -155,8 +157,11 @@ protected:
 	TObjectPtr<USkeletalMeshComponent> CharacterMeshComponent;
 	
 	// 현재 착용중인 장비 목록
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing=OnRep_AppliedEquipmentArray)
 	FUPFAppliedEquipmentArray AppliedEquipmentArray;
+
+	UFUNCTION()
+	void OnRep_AppliedEquipmentArray();
 
 	// 현재 선택된 무기 타입 (근접무기/라이플/권총 등)
 	UPROPERTY(Replicated)

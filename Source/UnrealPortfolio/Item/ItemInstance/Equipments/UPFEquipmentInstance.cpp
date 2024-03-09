@@ -39,7 +39,7 @@ void AUPFEquipmentInstance::PreUnEquipped()
 	bIsEquipped = false;
 }
 
-void AUPFEquipmentInstance::OnSocketChanged(const FName& NewSocketName)
+void AUPFEquipmentInstance::OnSocketChanged()
 {
 }
 

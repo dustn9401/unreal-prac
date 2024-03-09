@@ -7,6 +7,7 @@
 #include "EngineUtils.h"
 #include "Character/UPFCharacterBase.h"
 #include "Constants/UPFSocketNames.h"
+#include "Engine/ActorChannel.h"
 #include "Item/UPFEquipmentItemData.h"
 #include "Item/ItemInstance/Equipments/UPFEquipmentInstance.h"
 #include "Item/ItemInstance/Equipments/UPFWeaponInstance.h"
@@ -33,10 +34,17 @@ void FUPFAppliedEquipmentArray::PostReplicatedAdd(const TArrayView<int32>& Added
 		FUPFAppliedEquipmentEntry& Entry = Items[Index];
 		if (Entry.EquipmentInstance)
 		{
+			UE_LOG(LogTemp, Log, TEXT("PostRepAdd, Instance not null"));
 			Entry.EquipmentInstance->SetData(Entry.EquipmentItemData);
 			Entry.EquipmentInstance->SetActorRelativeTransform(FTransform::Identity);
 			Entry.EquipmentInstance->PostEquipped();
 			EquipmentComponent->UpdateWeaponState();
+		}
+		else
+		{
+			// 서버만 존재하다가 클라이언트가 추가되는 경우 이곳으로 진입하게 됨
+			UE_LOG(LogTemp, Log, TEXT("PostRepAdd, Instance is null!"));
+			Entry.NeedUpdateEquipmentInstance = true;
 		}
 	}
 }
@@ -154,28 +162,23 @@ void UUPFCharacterEquipmentComponent::EquipItemServerOnly(const UUPFEquipmentIte
 		AppliedEquipmentArray.Items.Emplace(NewEntry);
 		AppliedEquipmentArray.MarkItemDirty(NewEntry);
 	}
-	else
-	{
-		FUPFAppliedEquipmentEntry* Entry = FindEquipment(Data->EquipmentType);
-		if (!ensure(Entry)) return;
-
-		Entry->EquipmentInstance = SpawnedItem;
-	}
 }
 
 AUPFEquipmentInstance* UUPFCharacterEquipmentComponent::SpawnAndAttachEquipment(const UUPFEquipmentItemData* Data, FName AttachSocketName) const
 {
 	UPF_LOG_COMPONENT(LogTemp, Log, TEXT("Owner Name = %s"), *GetOwner()->GetName());
-	AUPFEquipmentInstance* SpawnedItem = GetWorld()->SpawnActorDeferred<AUPFEquipmentInstance>(Data->InstanceClass, FTransform::Identity, /*Owner*/ GetOwner());
 
+	APawn* OwnerPawn = UPFActorUtility::GetTypedOwnerRecursive<APawn>(GetOwner());
+	AUPFEquipmentInstance* SpawnedItem = GetWorld()->SpawnActorDeferred<AUPFEquipmentInstance>(Data->InstanceClass, FTransform::Identity, /*Owner*/ GetOwner() /*Instigator*/, OwnerPawn);
+	
 	// Mesh 적용 등 세팅
 	SpawnedItem->SetData(Data);
 
 	SpawnedItem->FinishSpawning(FTransform::Identity);
 
 	SpawnedItem->MeshComp->AttachToComponent(CharacterMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, AttachSocketName);
-	
-	SpawnedItem->PostEquipped();
+
+	SpawnedItem->OnOwnerUpdated();
 
 	return SpawnedItem;
 }
@@ -214,6 +217,8 @@ void UUPFCharacterEquipmentComponent::UnEquipItemServerOnly(FGameplayTag Equipme
 
 		if (Entry.EquipmentInstance)
 		{
+			Entry.EquipmentInstance->SetOwner(nullptr);
+			Entry.EquipmentInstance->OnOwnerUpdated();
 			Entry.EquipmentInstance->DestroySelf();
 		}
 
@@ -334,9 +339,32 @@ void UUPFCharacterEquipmentComponent::ToggleHolsterWeaponFromAnimNotify()
 
 	// Socket 이동
 	ensure(EquipmentInstance->MeshComp->AttachToComponent(CharacterMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, TargetSocket));
-	EquipmentInstance->OnSocketChanged(TargetSocket);
+	EquipmentInstance->OnSocketChanged();
 	
 	bIsHolstered = !bIsHolstered;
+}
+
+void UUPFCharacterEquipmentComponent::OnRep_AppliedEquipmentArray()
+{
+	for(FUPFAppliedEquipmentEntry& Entry : AppliedEquipmentArray.Items)
+	{
+		if (Entry.NeedUpdateEquipmentInstance)
+		{
+			if (Entry.EquipmentInstance)
+			{
+				Entry.EquipmentInstance->SetData(Entry.EquipmentItemData);
+				Entry.EquipmentInstance->SetActorRelativeTransform(FTransform::Identity);
+				Entry.EquipmentInstance->PostEquipped();
+				UpdateWeaponState();
+				Entry.NeedUpdateEquipmentInstance = false;
+				UPF_LOG_COMPONENT(LogTemp, Log, TEXT("EquipmentInstance Update Done."));
+			}
+			else
+			{
+				UPF_LOG_COMPONENT(LogTemp, Log, TEXT("EquipmentInstance still null"));
+			}
+		}
+	}
 }
 
 FUPFAppliedEquipmentEntry* UUPFCharacterEquipmentComponent::FindEquipment(FGameplayTag WeaponType)

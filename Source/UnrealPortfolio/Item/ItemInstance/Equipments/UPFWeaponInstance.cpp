@@ -11,72 +11,60 @@ AUPFWeaponInstance::AUPFWeaponInstance()
 	
 }
 
-void AUPFWeaponInstance::PostEquipped()
+void AUPFWeaponInstance::OnRep_Owner()
 {
-	Super::PostEquipped();
+	Super::OnRep_Owner();
 
+	OnOwnerUpdated();
+}
+
+void AUPFWeaponInstance::OnOwnerUpdated()
+{
 	AActor* OwnerActor = GetOwner();
-	if (ensure(OwnerActor))
+	if (OwnerActor)
 	{
 		OwnerMesh = OwnerActor->GetComponentByClass<USkeletalMeshComponent>();
+		LinkAnimLayerIfPossible();
+		UPF_LOG(LogTemp, Log, TEXT("Owner Name: %s"), *OwnerActor->GetName());
 	}
-	
-	AttachedSocketNameCache = GetAttachParentSocketName();
-	UPF_LOG(LogTemp, Log, TEXT("Attached Socket Name: %s"), *AttachedSocketNameCache.ToString());
-
-	if (AttachedSocketNameCache == UPFSocketNames::hand_rSocket)
+	else
 	{
-		LinkAnimLayer();
+		UPF_LOG(LogTemp, Log, TEXT("Owner is NULL"));
+		UnLinkAnimLayerIfPossible();
 	}
 }
 
-void AUPFWeaponInstance::PreUnEquipped()
+void AUPFWeaponInstance::OnSocketChanged()
 {
-	Super::PreUnEquipped();
+	Super::OnSocketChanged();
 
-	if (IsAnimLayerLinked)
-	{
-		UnLinkAnimLayer();
-	}
-
-	AttachedSocketNameCache = FName(NAME_None);
-}
-
-void AUPFWeaponInstance::OnSocketChanged(const FName& NewSocketName)
-{
-	Super::OnSocketChanged(NewSocketName);
+	const FName AttachedSocketName = GetAttachParentSocketName();
 	
-	if (AttachedSocketNameCache == NewSocketName) return;
-
-	// hand -> none or back
-	if (AttachedSocketNameCache == UPFSocketNames::hand_rSocket)
+	if (AttachedSocketName == UPFSocketNames::hand_rSocket)
 	{
-		UnLinkAnimLayer();
+		LinkAnimLayerIfPossible();
 	}
-	// none or back -> hand
-	else if (NewSocketName == UPFSocketNames::hand_rSocket)
+	else
 	{
-		LinkAnimLayer();
+		UnLinkAnimLayerIfPossible();
 	}
-
-	AttachedSocketNameCache = NewSocketName;
 }
 
-void AUPFWeaponInstance::LinkAnimLayer()
+void AUPFWeaponInstance::LinkAnimLayerIfPossible()
 {
 	if (!AnimLayer) return;
-	if (!ensure(OwnerMesh)) return;
-	if (!ensure(!IsAnimLayerLinked)) return;
+	if (!OwnerMesh) return;
+	if (IsAnimLayerLinked) return;
 	IsAnimLayerLinked = true;
 	
 	OwnerMesh->LinkAnimClassLayers(AnimLayer);
 }
 
-void AUPFWeaponInstance::UnLinkAnimLayer()
+void AUPFWeaponInstance::UnLinkAnimLayerIfPossible()
 {
 	if (!AnimLayer) return;
-	if (!ensure(OwnerMesh)) return;
-	if (!ensure(IsAnimLayerLinked)) return;
+	if (!OwnerMesh) return;
+	if (!IsAnimLayerLinked) return;
 	IsAnimLayerLinked = false;
 
 	OwnerMesh->UnlinkAnimClassLayers(AnimLayer);
