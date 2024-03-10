@@ -35,7 +35,7 @@ void FUPFAppliedEquipmentArray::PostReplicatedAdd(const TArrayView<int32>& Added
 		if (Entry.EquipmentInstance)
 		{
 			UE_LOG(LogTemp, Log, TEXT("PostRepAdd, Instance not null"));
-			EquipmentComponent->OnEquipmentInstanceReady(Entry);
+			EquipmentComponent->InitEquipmentInstance(Entry);
 		}
 		else
 		{
@@ -121,13 +121,15 @@ void UUPFCharacterEquipmentComponent::EquipItem(const UUPFEquipmentItemData* Dat
 	if (HasAuthority())
 	{
 		EquipItemServerOnly(Data);
+		
+		// 추가된 AppliedEquipmentEntry 를 사용해서 어빌리티를 지급
+		if (const IAbilitySystemInterface* ASCInterface = UPFActorUtility::GetTypedOwnerRecursive<IAbilitySystemInterface>(GetOwner()))
+		{
+			GiveEquipmentAbility(ASCInterface, Data->AbilitiesToGrant, Data->EquipmentType);
+		}
 	}
-	
-	// 추가된 AppliedEquipmentEntry 를 사용해서 어빌리티를 지급한다.
-	if (const IAbilitySystemInterface* ASCInterface = UPFActorUtility::GetTypedOwnerRecursive<IAbilitySystemInterface>(GetOwner()))
-	{
-		GiveEquipmentAbility(ASCInterface, Data->AbilitiesToGrant, Data->EquipmentType);
-	}
+
+	// 어빌리티의 인풋 바인딩은 장비 Actor 가 Replication 완료 됬을 때 수행
 }
 
 void UUPFCharacterEquipmentComponent::EquipItemServerOnly(const UUPFEquipmentItemData* Data)
@@ -137,8 +139,8 @@ void UUPFCharacterEquipmentComponent::EquipItemServerOnly(const UUPFEquipmentIte
 	const bool AttachToHand = (IsCurrentWeaponType && !bIsHolstered) || IsUnarmed;
 	
 	const FName AttachSocket = AttachToHand
-		                           ? UPFSocketNames::hand_rSocket
-		                           : UPFSocketNames::spine_03Socket;
+								   ? UPFSocketNames::hand_rSocket
+								   : UPFSocketNames::spine_03Socket;
 
 	if (IsUnarmed)
 	{
@@ -150,15 +152,15 @@ void UUPFCharacterEquipmentComponent::EquipItemServerOnly(const UUPFEquipmentIte
 	AUPFEquipmentInstance* SpawnedItem = SpawnAndAttachEquipment(Data, AttachSocket);
 
 	// 장비 목록에 추가
-	if (HasAuthority())
-	{
-		FUPFAppliedEquipmentEntry NewEntry;
-		NewEntry.EquipmentItemData = Data;
-		NewEntry.EquipmentInstance = SpawnedItem;
+	FUPFAppliedEquipmentEntry NewEntry;
+	NewEntry.EquipmentItemData = Data;
+	NewEntry.EquipmentInstance = SpawnedItem;
 		
-		AppliedEquipmentArray.Items.Emplace(NewEntry);
-		AppliedEquipmentArray.MarkItemDirty(NewEntry);
-	}
+	AppliedEquipmentArray.Items.Emplace(NewEntry);
+	AppliedEquipmentArray.MarkItemDirty(NewEntry);
+
+	// 서버는 아래의 함수를 직접 호출, 클라는 Replicate 관련 함수들에서 호출됨
+	InitEquipmentInstance(NewEntry);
 }
 
 AUPFEquipmentInstance* UUPFCharacterEquipmentComponent::SpawnAndAttachEquipment(const UUPFEquipmentItemData* Data, FName AttachSocketName) const
@@ -167,9 +169,6 @@ AUPFEquipmentInstance* UUPFCharacterEquipmentComponent::SpawnAndAttachEquipment(
 
 	APawn* OwnerPawn = UPFActorUtility::GetTypedOwnerRecursive<APawn>(GetOwner());
 	AUPFEquipmentInstance* SpawnedItem = GetWorld()->SpawnActorDeferred<AUPFEquipmentInstance>(Data->InstanceClass, FTransform::Identity, /*Owner*/ GetOwner() /*Instigator*/, OwnerPawn);
-	
-	// Mesh 적용 등 세팅
-	SpawnedItem->SetData(Data);
 
 	SpawnedItem->FinishSpawning(FTransform::Identity);
 
@@ -242,14 +241,6 @@ void UUPFCharacterEquipmentComponent::GiveEquipmentAbility(const IAbilitySystemI
 		check(EntryPtr && !EntryPtr->IsAbilityGranted()); // 어빌리티가 이미 지급된 상태면 중복 호출임
 		AbilitySet->GiveToAbilityComp(ASCInterface, EntryPtr->EquipmentInstance, &EntryPtr->GrantedData);
 	}
-
-	// 로컬컨트롤러는 인풋 바인딩
-	if (AUPFCharacterPlayer* PlayerCharacter = UPFActorUtility::GetTypedOwnerRecursive<AUPFCharacterPlayer>(GetOwner());
-		PlayerCharacter->IsLocallyControlled())
-	{
-		const FGuid InputBindID = PlayerCharacter->BindAbilitySetInput(AbilitySet);
-		InputBindIDs.Add(EquipmentType, InputBindID);
-	}
 }
 
 void UUPFCharacterEquipmentComponent::TakeEquipmentAbility(const IAbilitySystemInterface* ASCInterface, FGameplayTag EquipmentType)
@@ -272,6 +263,16 @@ void UUPFCharacterEquipmentComponent::TakeEquipmentAbility(const IAbilitySystemI
 		PlayerCharacter->RemoveAbilitySetBind(*InputID);
 		InputBindIDs.Remove(EquipmentType);
 	}
+}
+
+void UUPFCharacterEquipmentComponent::BindLocalPlayerInput(const FUPFAppliedEquipmentEntry& Entry)
+{
+	AUPFCharacterPlayer* PlayerCharacter = UPFActorUtility::GetTypedOwnerRecursive<AUPFCharacterPlayer>(GetOwner());
+	if (!PlayerCharacter) return;
+	if (!PlayerCharacter->IsLocallyControlled()) return;
+	
+	const FGuid InputBindID = PlayerCharacter->BindAbilitySetInput(Entry.EquipmentItemData->AbilitiesToGrant);
+	InputBindIDs.Add(Entry.EquipmentItemData->EquipmentType, InputBindID);
 }
 
 bool UUPFCharacterEquipmentComponent::CanToggleHolster()
@@ -349,7 +350,7 @@ void UUPFCharacterEquipmentComponent::OnRep_AppliedEquipmentArray()
 		{
 			if (Entry.EquipmentInstance)
 			{
-				OnEquipmentInstanceReady(Entry);
+				InitEquipmentInstance(Entry);
 				UPF_LOG_COMPONENT(LogTemp, Log, TEXT("EquipmentInstance Update Done."));
 			}
 			else
@@ -360,13 +361,15 @@ void UUPFCharacterEquipmentComponent::OnRep_AppliedEquipmentArray()
 	}
 }
 
-void UUPFCharacterEquipmentComponent::OnEquipmentInstanceReady(FUPFAppliedEquipmentEntry& Entry)
+void UUPFCharacterEquipmentComponent::InitEquipmentInstance(FUPFAppliedEquipmentEntry& Entry)
 {
 	Entry.EquipmentInstance->SetData(Entry.EquipmentItemData);
 	Entry.EquipmentInstance->SetActorRelativeTransform(FTransform::Identity);
 	Entry.EquipmentInstance->PostEquipped();
 	Entry.NeedUpdateEquipmentInstance = false;
 	UpdateWeaponState();
+
+	BindLocalPlayerInput(Entry);
 }
 
 FUPFAppliedEquipmentEntry* UUPFCharacterEquipmentComponent::FindEquipment(FGameplayTag WeaponType)

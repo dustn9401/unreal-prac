@@ -138,6 +138,8 @@ protected:
 	// 현재 보유중인 EquipmentType 장비의 어빌리티 셋을 캐릭터에서 제거한다.
 	void TakeEquipmentAbility(const IAbilitySystemInterface* ASCInterface, FGameplayTag EquipmentType);
 
+	void BindLocalPlayerInput(const FUPFAppliedEquipmentEntry& Entry);
+
 	// 로컬 컨트롤로만 사용하는 변수, 장비로 인해 바인딩 된 인풋 ID 저장용
 	TMap<FGameplayTag, FGuid> InputBindIDs;
 
@@ -164,7 +166,7 @@ protected:
 	void OnRep_AppliedEquipmentArray();
 
 	// Entry 의 EquipmentInstance 가 준비 완료된 후 1회 호출, 서버는 즉시 호출되고 클라는 Replicate 완료 됬을때 호출
-	void OnEquipmentInstanceReady(FUPFAppliedEquipmentEntry& Entry);
+	void InitEquipmentInstance(FUPFAppliedEquipmentEntry& Entry);
 
 	// 현재 선택된 무기 타입 (근접무기/라이플/권총 등)
 	UPROPERTY(Replicated)

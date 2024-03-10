@@ -530,14 +530,12 @@ void UUPFGameplayAbility_FireWeapon::OnTargetDataReadyCallback(const FGameplayAb
 
 		K2_OnTargetDataReady(InData);
 		
-		/*
-		 * 데미지 GameplayEffect 적용
-		 * GameplayCueNotify 를 클라이언트 에서도 실행하기 위해, Authority 여부 분기하지 않고 호출한다.
-		 * 실제 Attribute 값 수정은 함수 내부적으로 서버에서만 진행함
-		 */
 		// ReSharper disable once CppExpressionWithoutSideEffects
-		ApplyGameplayEffectToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo,
-			InData, DamageEffectClass, 1.0f);
+		if (K2_HasAuthority())
+		{
+			ApplyGameplayEffectToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo,
+				InData, DamageEffectClass, 1.0f);
+		}
 		
 		SourceASC->ConsumeClientReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
 	}
