@@ -35,10 +35,7 @@ void FUPFAppliedEquipmentArray::PostReplicatedAdd(const TArrayView<int32>& Added
 		if (Entry.EquipmentInstance)
 		{
 			UE_LOG(LogTemp, Log, TEXT("PostRepAdd, Instance not null"));
-			Entry.EquipmentInstance->SetData(Entry.EquipmentItemData);
-			Entry.EquipmentInstance->SetActorRelativeTransform(FTransform::Identity);
-			Entry.EquipmentInstance->PostEquipped();
-			EquipmentComponent->UpdateWeaponState();
+			EquipmentComponent->OnEquipmentInstanceReady(Entry);
 		}
 		else
 		{
@@ -352,11 +349,7 @@ void UUPFCharacterEquipmentComponent::OnRep_AppliedEquipmentArray()
 		{
 			if (Entry.EquipmentInstance)
 			{
-				Entry.EquipmentInstance->SetData(Entry.EquipmentItemData);
-				Entry.EquipmentInstance->SetActorRelativeTransform(FTransform::Identity);
-				Entry.EquipmentInstance->PostEquipped();
-				UpdateWeaponState();
-				Entry.NeedUpdateEquipmentInstance = false;
+				OnEquipmentInstanceReady(Entry);
 				UPF_LOG_COMPONENT(LogTemp, Log, TEXT("EquipmentInstance Update Done."));
 			}
 			else
@@ -365,6 +358,15 @@ void UUPFCharacterEquipmentComponent::OnRep_AppliedEquipmentArray()
 			}
 		}
 	}
+}
+
+void UUPFCharacterEquipmentComponent::OnEquipmentInstanceReady(FUPFAppliedEquipmentEntry& Entry)
+{
+	Entry.EquipmentInstance->SetData(Entry.EquipmentItemData);
+	Entry.EquipmentInstance->SetActorRelativeTransform(FTransform::Identity);
+	Entry.EquipmentInstance->PostEquipped();
+	Entry.NeedUpdateEquipmentInstance = false;
+	UpdateWeaponState();
 }
 
 FUPFAppliedEquipmentEntry* UUPFCharacterEquipmentComponent::FindEquipment(FGameplayTag WeaponType)

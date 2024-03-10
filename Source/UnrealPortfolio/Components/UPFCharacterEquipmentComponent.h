@@ -163,6 +163,9 @@ protected:
 	UFUNCTION()
 	void OnRep_AppliedEquipmentArray();
 
+	// Entry 의 EquipmentInstance 가 준비 완료된 후 1회 호출, 서버는 즉시 호출되고 클라는 Replicate 완료 됬을때 호출
+	void OnEquipmentInstanceReady(FUPFAppliedEquipmentEntry& Entry);
+
 	// 현재 선택된 무기 타입 (근접무기/라이플/권총 등)
 	UPROPERTY(Replicated)
 	FGameplayTag CurrentWeaponType;
